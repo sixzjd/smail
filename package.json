@@ -1,0 +1,17 @@
+{
+  "name": "smail",
+  "version": "1.0.0",
+  "private": true,
+  "description": "smail - Self-hosted email service (local deployment)",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:server": "cd server && node src/index.js",
+    "dev:web": "cd web && npx vite --mode dev",
+    "build": "cd web && npx vite build --mode release",
+    "start": "cd server && NODE_ENV=production node src/index.js",
+    "init-db": "cd server && node src/init-db.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
