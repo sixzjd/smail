@@ -1,15 +1,17 @@
 <template>
-  <emailScroll type="star" ref="scroll"
-               :allow-star="false"
-               :cancel-success="cancelStar"
-               :getEmailList="starList"
-               :emailDelete="emailDelete"
-               :star-add="starAdd"
-               :star-cancel="starCancel"
-               @jump="jumpContent"
-               actionLeft="6px"
-               :show-account-icon="false"
-  />
+  <div class="star-view">
+    <emailScroll type="star" ref="scroll"
+                 :allow-star="false"
+                 :cancel-success="cancelStar"
+                 :getEmailList="starList"
+                 :emailDelete="emailDelete"
+                 :star-add="starAdd"
+                 :star-cancel="starCancel"
+                 @jump="jumpContent"
+                 actionLeft="6px"
+                 :show-account-icon="false"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -45,3 +47,9 @@ onMounted(() => {
 })
 
 </script>
+
+<style scoped>
+.star-view {
+  height: 100%;
+}
+</style>

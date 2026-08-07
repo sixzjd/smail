@@ -4,147 +4,106 @@
       <Icon class="icon" icon="ion:add-outline" width="23" height="23" @click="openAddRole"/>
       <Icon class="icon" icon="ion:reload" width="18" height="18" @click="refresh"/>
     </div>
-    <el-scrollbar class="perm-scrollbar">
+    <div class="perm-scroll">
       <div class="loading" :class="tableLoading ? 'loading-show' : 'loading-hide'"
            :style="first ? 'background: transparent' : ''">
         <loading/>
       </div>
-      <el-table
+      <s-table
+          :columns="roleColumns"
           :data="roles"
-          style="height: 100%;"
-          :empty-text="''"
+          rowKey="roleId"
       >
-        <el-table-column width="10"/>
-        <el-table-column :label="$t('role')" prop="name" :min-width="roleWidth">
-          <template #default="props">
-            <div class="role-name">
-              <span>{{ props.row.name }}</span>
-              <span v-if="props.row.isDefault"><el-tag class="def-tag">{{ $t('default') }}</el-tag></span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('order')" :width="sortWidth" prop="sort"/>
-        <el-table-column v-if="desShow" :label="$t('description')" min-width="200" prop="description">
-          <template #default="props">
-            <div class="description">
-              <span>{{ props.row.description }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('tabSetting')" :width="settingWidth">
-          <template #default="props">
-            <el-dropdown trigger="click">
-              <el-button size="small" type="primary">{{ $t('action') }}</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="openRoleSet(props.row)">{{ $t('change') }}</el-dropdown-item>
-                  <el-dropdown-item @click="setDef(props.row)">{{ $t('default') }}</el-dropdown-item>
-                  <el-dropdown-item @click="delRole(props.row)">{{ $t('delete') }}</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-scrollbar>
-    <el-dialog top="5vh" class="dialog" v-model="roleFormShow" @closed="resetForm">
-      <template #header>
-        <span style="font-size: 18px">{{ dialogType.title }}</span>
-        <el-popover
-            width="340"
-            :title="t('featDesc')"
-            placement="bottom"
-        >
-          <template #reference>
-            <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-          </template>
-          <div style="font-weight: bold;;margin-bottom: 2px;">{{ t('emailInterception') }}</div>
-          <div>{{ t('emailInterceptionDesc') }}</div>
-          <div style="font-weight: bold;;margin-top: 10px;margin-bottom: 2px;">{{ t('availableDomains') }}</div>
-          <div>
-            {{ t('availableDomainsDesc') }}
+        <template #name="{row}">
+          <div class="role-name">
+            <span>{{ translateRoleName(row.name) }}</span>
+            <span v-if="row.isDefault"><s-tag class="def-tag">{{ $t('default') }}</s-tag></span>
           </div>
-        </el-popover>
+        </template>
+        <template #description="{row}">
+          <div class="description"><span>{{ translateRoleDesc(row.description) }}</span></div>
+        </template>
+        <template #settingActions="{row}">
+          <s-dropdown>
+            <template #trigger>
+              <s-button size="sm" type="primary">{{ $t('action') }}</s-button>
+            </template>
+            <s-dropdown-item @click="openRoleSet(row)">{{ $t('change') }}</s-dropdown-item>
+            <s-dropdown-item @click="setDef(row)">{{ $t('default') }}</s-dropdown-item>
+            <s-dropdown-item @click="delRole(row)">{{ $t('delete') }}</s-dropdown-item>
+          </s-dropdown>
+        </template>
+      </s-table>
+    </div>
+
+    <s-modal v-model="roleFormShow" size="md" @close="resetForm">
+      <template #title>
+        <span style="font-size: 16px; font-weight: 700; font-family: var(--s-font-display)">{{ dialogType.title }}</span>
+        <s-tooltip :content="tooltipContent">
+          <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+        </s-tooltip>
       </template>
-      <div class="dialog-box">
-        <el-input class="dialog-input" v-model="form.name" type="text" :maxlength="12" :placeholder="$t('roleName')"
-                  autocomplete="off"/>
-        <el-input class="dialog-input" v-model="form.description" :maxlength="30" type="text"
-                  :placeholder="$t('description')" autocomplete="off"/>
-        <el-input-tag class="dialog-input" tag-type="warning" v-model="form.banEmail"
-                      @add-tag="banEmailAddTag" type="text" :placeholder="$t('emailInterception')" autocomplete="off"/>
-        <el-select
-            class="dialog-input"
-            v-model="form.availDomain"
-            multiple
-            filterable
-            allow-create
-            default-first-option
-            :reserve-keyword="false"
-            tag-type="success"
-            :placeholder="$t('availableDomains')"
-            @change="availDomainChange"
-        >
-          <el-option
-              v-for="item in domainOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-          />
-        </el-select>
-        <div class="dialog-input">
-          <el-input-number :placeholder="$t('order')" :min="0" :max="9999" v-model.number="form.sort"
-                           controls-position="right" autocomplete="off"/>
+      <div class="s-form">
+        <div class="s-form-item">
+          <label>{{ $t('roleName') }}</label>
+          <s-input v-model="form.name" type="text" :placeholder="$t('roleName')"/>
         </div>
-        <el-radio-group v-model="expand" size="small" @change="expandChange" class="perm-expand">
-          <el-radio-button :label="$t('expand')" :value="true"/>
-          <el-radio-button :label="$t('collapse')" :value="false"/>
-        </el-radio-group>
-        <el-tree
-            :expand-on-click-node="false"
-            :check-on-click-node="false"
+        <div class="s-form-item">
+          <label>{{ $t('description') }}</label>
+          <s-input v-model="form.description" type="text" :placeholder="$t('description')"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('emailInterception') }}</label>
+          <s-input-tag tag-type="warning" v-model="form.banEmail" @add-tag="banEmailAddTag" type="text" :placeholder="$t('emailInterception')" autocomplete="off"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('availableDomains') }}</label>
+          <s-select
+              v-model="form.availDomain"
+              multiple
+              :options="domainOptions"
+              :placeholder="$t('availableDomains')"
+          />
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('order') }}</label>
+          <s-input-number :min="0" :max="9999" v-model="form.sort"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('permissions') }}</label>
+          <s-radio-group v-model="expand" :options="[{label: $t('expand'), value: true},{label: $t('collapse'), value: false}]" buttonStyle @change="expandChange"/>
+        </div>
+        <s-tree
             ref="tree"
             :data="treeList"
             show-checkbox
             node-key="permId"
             :default-expand-all="expand"
-            :props="{
-              label: 'name'
-            }"
+            :props="{ label: 'name', children: 'children' }"
+            class="perm-tree"
         >
           <template #default="{ node, data }">
             <div>
               <span>{{ node.label }}</span>
               <span class="send-num" v-if="data.permKey === 'email:send'" @click.stop>
-                <el-input-number v-if="form.sendType === 'day' || form.sendType === 'count'" v-model="form.sendCount" controls-position="right" :min="0" :max="99999" size="small"
-                                 :placeholder="$t('total')">
-                </el-input-number>
-                  <el-select v-model="form.sendType" placeholder="Select" size="small"
-                             :style="`width: ${ locale === 'zh' ? 65 : 85 }px;margin-left: 5px;`">
-                    <el-option :label="$t('total')" value="count"/>
-                    <el-option :label="$t('daily')" value="day"/>
-                    <el-option :label="$t('internal')" value="internal"/>
-                    <el-option :label="$t('btnBan')" value="ban"/>
-                  </el-select>
+                <s-input-number v-if="form.sendType === 'day' || form.sendType === 'count'" v-model="form.sendCount" :min="0" :max="99999" />
+                  <s-select v-model="form.sendType" :options="sendTypeOptions"
+                             :style="`width: ${ locale === 'zh' ? 70 : 90 }px;margin-left: 5px;`"/>
               </span>
               <span class="send-num" v-if="data.permKey === 'account:add'" @click.stop>
-                <el-input-number v-model="form.accountCount" controls-position="right" :min="0" :max="99999"
-                                 size="small" :placeholder="$t('total')">
-                </el-input-number>
+                <s-input-number v-model="form.accountCount" :min="0" :max="99999"/>
               </span>
             </div>
           </template>
-        </el-tree>
-        <el-button class="btn" type="primary" :loading="permLoading" @click="roleFormClick"
-        >{{ $t('save') }}
-        </el-button>
+        </s-tree>
+        <s-button type="primary" block :loading="permLoading" @click="roleFormClick">{{ $t('save') }}</s-button>
       </div>
-    </el-dialog>
+    </s-modal>
   </div>
 </template>
 <script setup>
 import {Icon} from "@iconify/vue";
-import {defineOptions, nextTick, reactive, ref} from "vue";
+import {defineOptions, nextTick, reactive, ref, computed} from "vue";
 import {roleAdd, roleDelete, rolePermTree, roleRoleList, roleSet, roleSetDef} from "@/request/role.js";
 import loading from '@/components/loading/index.vue';
 import {useRoleStore} from "@/store/role.js";
@@ -152,6 +111,8 @@ import {useUserStore} from "@/store/user.js";
 import {useSettingStore} from "@/store/setting.js";
 import {isEmail, isDomain} from "@/utils/verify-utils.js";
 import {useI18n} from "vue-i18n";
+import {toast} from '@/components/ui/toast.js';
+import {confirm} from '@/components/ui/confirm.js';
 
 defineOptions({
   name: 'role'
@@ -178,6 +139,18 @@ const dialogType = reactive({
   type: ''
 })
 
+// Translate known role names
+function translateRoleName(name) {
+  if (name === '普通用户') return t('normalUser')
+  return name
+}
+
+// Translate known role descriptions
+function translateRoleDesc(desc) {
+  if (desc === '默认用户角色') return t('defaultUserRole')
+  return desc
+}
+
 const form = reactive({
   name: null,
   description: null,
@@ -195,6 +168,26 @@ let domainOptions = []
 const expand = ref(false)
 
 let chooseRole = {}
+
+const tooltipContent = computed(() => {
+  return `${t('emailInterception')}: ${t('emailInterceptionDesc')}\n${t('availableDomains')}: ${t('availableDomainsDesc')}`
+})
+
+const sendTypeOptions = computed(() => [
+  {label: t('total'), value: 'count'},
+  {label: t('daily'), value: 'day'},
+  {label: t('internal'), value: 'internal'},
+  {label: t('btnBan'), value: 'ban'}
+])
+
+const roleColumns = computed(() => {
+  const cols = []
+  cols.push({prop: 'name', label: t('role'), width: roleWidth.value + 'px'})
+  cols.push({prop: 'sort', label: t('order'), width: sortWidth.value ? sortWidth.value + 'px' : undefined})
+  if (desShow.value) cols.push({prop: 'description', label: t('description'), width: '200px'})
+  cols.push({prop: 'settingActions', label: t('tabSetting'), width: settingWidth.value ? settingWidth.value + 'px' : undefined})
+  return cols
+})
 
 refresh()
 
@@ -242,32 +235,21 @@ function roleFormClick() {
 
 function setDef(role) {
   roleSetDef(role.roleId).then(() => {
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
     getRoleList()
   })
 }
 
-function delRole(role) {
-  ElMessageBox.confirm(t('delConfirm', {msg: role.name}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('confirm'),
-    type: 'warning'
-  }).then(() => {
+async function delRole(role) {
+  const ok = await confirm(t('delConfirm', {msg: role.name}))
+  if (ok) {
     roleDelete(role.roleId).then(() => {
-      ElMessage({
-        message: t('copySuccessMsg'),
-        type: "success",
-        plain: true
-      })
+      toast(t('copySuccessMsg'), 'success')
       getRoleList()
       userStore.refreshUserList()
       roleStore.refreshSelect()
     })
-  });
+  }
 }
 
 function expandChange(e) {
@@ -288,11 +270,7 @@ function expandChange(e) {
 function setRole() {
 
   if (!form.name) {
-    ElMessage({
-      message: t('emptyRoleNameMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyRoleNameMsg'), 'error')
     return
   }
 
@@ -303,11 +281,7 @@ function setRole() {
 
   permLoading.value = true
   roleSet(params).then(() => {
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
 
     const names = roles.value.map(role => role.name)
 
@@ -367,11 +341,7 @@ function addRole() {
 
   permLoading.value = true
   roleAdd(params).then(() => {
-    ElMessage({
-      message: t('addSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('addSuccessMsg'), 'success')
     roleFormShow.value = false
     getRoleList()
     roleStore.refreshSelect()
@@ -413,63 +383,66 @@ window.onresize = () => {
 
 
 </script>
-<style scoped lang="scss">
-
+<style scoped>
 .perm-box {
   height: 100%;
   overflow: hidden;
   width: 100%;
+  font-family: var(--s-font-body);
+  color: var(--s-ink);
 
-  .perm-scrollbar {
-    height: 100%;
+  .perm-scroll {
+    height: calc(100% - 48px);
+    overflow-y: auto;
+    position: relative;
   }
 }
 
 .send-num {
   margin-left: 10px;
-
-  .el-input-number {
-    width: 95px;
-  }
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .def-tag {
-  margin-left: 10px;
-  height: 20px;
+  margin-left: 8px;
 }
 
 .header-actions {
-  padding: 9px 15px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 18px;
-  box-shadow: var(--header-actions-border);
+  gap: 16px;
+  border-bottom: 1px solid var(--s-line);
   font-size: 18px;
-
-  .search {
-    :deep(.el-input-group) {
-      height: 28px;
-    }
-
-    :deep(.el-input__inner) {
-      height: 28px;
-    }
-  }
+  background: var(--s-paper);
 
   .icon {
     cursor: pointer;
+    color: var(--s-muted);
+    transition: color var(--s-ease);
+    &:hover {
+      color: var(--s-ink);
+    }
   }
 }
 
 .warning {
   position: relative;
-  left: 5px;
+  left: 6px;
   top: 2px;
-  color: gray;
+  color: var(--s-muted);
   cursor: pointer;
 }
 
-:deep(.description) {
+.description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -482,7 +455,7 @@ window.onresize = () => {
   align-items: center;
   justify-content: center;
   position: absolute;
-  background: var(--loadding-background);
+  background: var(--s-paper);
   z-index: 2;
 }
 
@@ -493,59 +466,33 @@ window.onresize = () => {
 
 .loading-hide {
   pointer-events: none;
-  transition: var(--loading-hide-transition);
+  transition: opacity 200ms ease;
   opacity: 0;
 }
 
-.role-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.s-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.s-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.s-form-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--s-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.description {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-:deep(.el-segmented--small .el-segmented__item) {
-  border-radius: 8px !important;
-  overflow: hidden;
-}
-
-.dialog-box {
-  .dialog-input {
-    margin-bottom: 15px !important;
-  }
-}
-
-.perm-expand {
-  margin-bottom: 5px;
-  --el-border-radius-base: 4px;
-  position: relative;
-  bottom: 5px;
-}
-
-
-:deep(.el-dialog) {
-  margin-bottom: 20px !important;
-  width: 460px !important;
-  @media (max-width: 500px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-
-  }
-}
-
-:deep(.el-scrollbar__view) {
-  height: 100%;
-}
-
-.btn {
-  width: 100%;
-  margin-top: 15px;
+.perm-tree {
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 </style>

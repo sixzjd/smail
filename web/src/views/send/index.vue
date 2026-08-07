@@ -1,24 +1,26 @@
 <template>
-  <emailScroll ref="sendScroll"
-               :cancel-success="cancelStar"
-               :star-success="addStar"
-               :getEmailList="getEmailList"
-               :emailDelete="emailDelete"
-               :star-add="starAdd"
-               show-status
-               actionLeft="4px"
-               :star-cancel="starCancel"
-               @jump="jumpContent"
-               :time-sort="params.timeSort"
-               :type="'send'"
-  >
-    <template #first>
-      <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
-            v-if="params.timeSort === 0" width="28" height="28"/>
-      <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
-            width="28" height="28"/>
-    </template>
-  </emailScroll>
+  <div class="send-view">
+    <emailScroll ref="sendScroll"
+                 :cancel-success="cancelStar"
+                 :star-success="addStar"
+                 :getEmailList="getEmailList"
+                 :emailDelete="emailDelete"
+                 :star-add="starAdd"
+                 show-status
+                 actionLeft="4px"
+                 :star-cancel="starCancel"
+                 @jump="jumpContent"
+                 :time-sort="params.timeSort"
+                 :type="'send'"
+    >
+      <template #first>
+        <button class="sort-btn" @click="changeTimeSort" :title="params.timeSort === 0 ? 'Newest first' : 'Oldest first'">
+          <Icon v-if="params.timeSort === 0" icon="material-symbols-light:timer-arrow-down-outline" width="20" height="20" />
+          <Icon v-else icon="material-symbols-light:timer-arrow-up-outline" width="20" height="20" />
+        </button>
+      </template>
+    </emailScroll>
+  </div>
 </template>
 
 <script setup>
@@ -84,7 +86,26 @@ function getEmailList(emailId, size) {
 </script>
 
 <style scoped>
-.icon {
+.send-view {
+  height: 100%;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--s-muted);
+  border-radius: var(--s-radius-sm);
   cursor: pointer;
+  transition: all var(--s-ease);
+}
+
+.sort-btn:hover {
+  background: var(--s-soft);
+  color: var(--s-accent);
 }
 </style>

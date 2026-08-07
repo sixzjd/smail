@@ -3,100 +3,105 @@
     <div class="header-actions">
       <Icon class="icon" icon="ion:add-outline" width="23" height="23" @click="openAdd"/>
       <div class="search">
-        <el-input
+        <s-input
             v-model="params.code"
             class="search-input"
             :placeholder="$t('searchRegKeyDesc')"
-        >
-        </el-input>
+        />
       </div>
       <Icon class="icon" icon="iconoir:search" @click="search" width="20" height="20"/>
       <Icon class="icon" icon="ion:reload" width="18" height="18" @click="refresh"/>
       <Icon class="icon" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="clearNotUse"/>
     </div>
 
-    <el-scrollbar class="scrollbar">
-      <div  class="loading" :class="regKeyLoading ? 'loading-show' : 'loading-hide'" :style="regKeyFirst ? 'background: transparent' : ''">
+    <div class="scroll-area">
+      <div class="loading" :class="regKeyLoading ? 'loading-show' : 'loading-hide'" :style="regKeyFirst ? 'background: transparent' : ''">
         <loading/>
       </div>
       <div class="code-box">
-        <div class="code-item" v-for="item in regKeyData">
+        <div class="code-item" v-for="item in regKeyData" :key="item.regKeyId">
           <div class="code-info">
             <div class="info-left">
               <div class="info-left-item">
                 <span class="code" @click="copyCode(item.code)">{{ item.code }}</span>
               </div>
               <div class="info-left-item">
-                <div>{{ $t('remainingUses') }}：</div>
+                <div class="info-label">{{ $t('remainingUses') }}:</div>
                 <div v-if="item.count">{{ item.count }}</div>
-                <el-tag v-else type="danger">{{ $t('exhausted') }}</el-tag>
+                <s-tag v-else type="danger">{{ $t('exhausted') }}</s-tag>
               </div>
               <div class="info-left-item">
-                <div>{{ $t('roleDesc') }}：</div>
-                <el-tag>{{ item.roleName }}</el-tag>
+                <div class="info-label">{{ $t('roleDesc') }}:</div>
+                <s-tag>{{ item.roleName }}</s-tag>
               </div>
               <div class="info-left-item">
-                <div>{{ $t('validUntil') }}：</div>
+                <div class="info-label">{{ $t('validUntil') }}:</div>
                 <div v-if="item.expireTime">{{ formatExpireTime(item.expireTime) }}</div>
-                <el-tag v-else type="danger">{{ $t('expired') }}</el-tag>
+                <s-tag v-else type="danger">{{ $t('expired') }}</s-tag>
               </div>
             </div>
             <div class="info-right">
-              <el-dropdown class="setting">
-                <Icon icon="fluent:settings-24-filled" width="21" height="21" color="#909399"/>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="copyCode(item.code)">{{ $t('copy') }}</el-dropdown-item>
-                    <el-dropdown-item @click="openHistory(item)">{{ $t('history') }}</el-dropdown-item>
-                    <el-dropdown-item @click="deleteRegKey(item)">{{ $t('delete') }}</el-dropdown-item>
-                  </el-dropdown-menu>
+              <s-dropdown>
+                <template #trigger>
+                  <Icon class="setting" icon="fluent:settings-24-filled" width="21" height="21" color="var(--s-muted)"/>
                 </template>
-              </el-dropdown>
+                <s-dropdown-item @click="copyCode(item.code)">{{ $t('copy') }}</s-dropdown-item>
+                <s-dropdown-item @click="openHistory(item)">{{ $t('history') }}</s-dropdown-item>
+                <s-dropdown-item @click="deleteRegKey(item)">{{ $t('delete') }}</s-dropdown-item>
+              </s-dropdown>
             </div>
           </div>
         </div>
       </div>
       <div class="empty" v-if="regKeyData.length === 0">
-        <el-empty v-if="!regKeyFirst" :image-size="isMobile ? 120 : null" :description="$t('noCodeFound')"/>
+        <s-empty v-if="!regKeyFirst" :description="$t('noCodeFound')"/>
       </div>
-    </el-scrollbar>
-    <el-dialog v-model="showAdd" :title="$t('addRegKey')">
-      <div class="container">
-        <el-input v-model="addForm.code" :placeholder="$t('regKey')">
-          <template #suffix>
-            <Icon @click.stop="genCode" class="gen-code" icon="bitcoin-icons:refresh-filled" width="24" height="24"/>
-          </template>
-        </el-input>
-        <el-select v-model="addForm.roleId" :placeholder="$t('roleDesc')">
-          <el-option v-for="item in roleList" :label="item.name" :value="item.roleId" :key="item.roleId"/>
-        </el-select>
-        <el-date-picker
-            v-model="addForm.expireTime"
-            type="date"
-            :placeholder="$t('validUntil')"
-        />
-        <el-input-number v-model="addForm.count" :min="1" :max="99999"/>
-        <el-button class="btn" type="primary" @click="submit" :loading="addLoading"
-        >{{ $t('add') }}
-        </el-button>
+    </div>
+
+    <s-modal v-model="showAdd" :title="$t('addRegKey')" size="sm">
+      <div class="s-form">
+        <div class="s-form-item">
+          <label>{{ $t('regKey') }}</label>
+          <s-input v-model="addForm.code" :placeholder="$t('regKey')">
+            <template #suffix>
+              <Icon @click.stop="genCode" class="gen-code" icon="bitcoin-icons:refresh-filled" width="24" height="24"/>
+            </template>
+          </s-input>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('roleDesc') }}</label>
+          <s-select v-model="addForm.roleId" :options="roleOptions" :placeholder="$t('roleDesc')"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('validUntil') }}</label>
+          <input type="date" class="s-date-input" v-model="addForm.expireTime"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('count') }}</label>
+          <s-input-number v-model="addForm.count" :min="1" :max="99999"/>
+        </div>
+        <s-button type="primary" block :loading="addLoading" @click="submit">
+          {{ $t('add') }}
+        </s-button>
       </div>
-    </el-dialog>
-    <el-dialog class="history-list" v-model="showRegKeyHistory" :title="$t('useHistory')">
-      <div class="loading" :class="historyLoading ? 'loading-show' : 'loading-hide'">
+    </s-modal>
+
+    <s-modal v-model="showRegKeyHistory" :title="$t('useHistory')" size="md">
+      <div class="history-loading" v-if="historyLoading">
         <loading/>
       </div>
-      <el-table v-if="!historyLoading" :data="historyList" :fit="true" style="height: 100%">
-        <el-table-column :min-width="emailColumnWidth" property="email" :label="$t('user')"
-                         :show-overflow-tooltip="true"/>
-        <el-table-column :width="createTimeColumnWidth" :formatter="formatUserCreateTime" property="createTime"
-                         :label="$t('date')" fixed="right" :show-overflow-tooltip="true"/>
-      </el-table>
-    </el-dialog>
+      <s-table
+          v-if="!historyLoading"
+          :columns="historyColumns"
+          :data="historyList"
+          rowKey="email"
+      />
+    </s-modal>
   </div>
 </template>
 
 <script setup>
-import {defineOptions, nextTick, reactive, ref, watch} from "vue"
+import {defineOptions, nextTick, reactive, ref, watch, computed} from "vue"
 import {Icon} from "@iconify/vue";
 import loading from "@/components/loading/index.vue";
 import {useSettingStore} from "@/store/setting.js";
@@ -107,6 +112,8 @@ import {getTextWidth} from "@/utils/text.js";
 import dayjs from "dayjs";
 import {tzDayjs} from "@/utils/day.js";
 import {useI18n} from "vue-i18n";
+import {toast} from '@/components/ui/toast.js';
+import {confirm} from '@/components/ui/confirm.js';
 
 defineOptions({
   name: 'reg-key'
@@ -139,6 +146,13 @@ const addForm = reactive({
 })
 
 const regKeyData = reactive([])
+
+const roleOptions = computed(() => roleList.map(item => ({label: item.name, value: item.roleId})))
+
+const historyColumns = computed(() => [
+  {prop: 'email', label: t('user'), width: emailColumnWidth.value ? emailColumnWidth.value + 'px' : undefined},
+  {prop: 'createTime', label: t('date'), width: createTimeColumnWidth.value ? createTimeColumnWidth.value + 'px' : undefined}
+])
 
 getList(true)
 
@@ -261,18 +275,10 @@ function getList(showLoading = false) {
 async function copyCode(code) {
   try {
     await navigator.clipboard.writeText(code);
-    ElMessage({
-      message: t('copySuccessMsg'),
-      type: 'success',
-      plain: true,
-    })
+    toast(t('copySuccessMsg'), 'success')
   } catch (err) {
     console.error('复制失败:', err);
-    ElMessage({
-      message: '复制失败',
-      type: 'error',
-      plain: true,
-    })
+    toast('复制失败', 'error')
   }
 }
 
@@ -289,58 +295,35 @@ function generateRandomCode(length = 8) {
   return result;
 }
 
-function clearNotUse() {
-  ElMessageBox.confirm(t('clearRegKey'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
+async function clearNotUse() {
+  const ok = await confirm(t('clearRegKey'))
+  if (ok) {
     regKeyClearNotUse().then(() => {
-      ElMessage({
-        message: t('clearSuccess'),
-        type: 'success',
-        plain: true,
-      })
+      toast(t('clearSuccess'), 'success')
       getList()
     })
-  });
+  }
 }
 
 function submit() {
 
   if (!addForm.code) {
-    ElMessage({
-      message: $('emptyRegKeyMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyRegKeyMsg'), 'error')
     return
   }
 
   if (!addForm.roleId) {
-    ElMessage({
-      message: t('emptyRole'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyRole'), 'error')
     return
   }
 
   if (!addForm.expireTime) {
-    ElMessage({
-      message: t('emptyTimeMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyTimeMsg'), 'error')
     return
   }
 
   if (!addForm.count) {
-    ElMessage({
-      message: t('emptyCountMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyCountMsg'), 'error')
     return
   }
 
@@ -348,32 +331,21 @@ function submit() {
   regKeyAdd(addForm).then(() => {
     showAdd.value = false
     resetForm()
-    ElMessage({
-      message: t('addSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('addSuccessMsg'), 'success')
     getList()
   }).finally(() => {
     addLoading.value = false
   })
 }
 
-function deleteRegKey(regKey) {
-  ElMessageBox.confirm(t('delConfirm', {msg: regKey.code}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
+async function deleteRegKey(regKey) {
+  const ok = await confirm(t('delConfirm', {msg: regKey.code}))
+  if (ok) {
     regKeyDelete([regKey.regKeyId]).then(() => {
       getList()
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: "success",
-        plain: true
-      })
+      toast(t('delSuccessMsg'), 'success')
     })
-  });
+  }
 }
 
 function resetForm() {
@@ -387,66 +359,92 @@ function openAdd() {
 
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .reg-key {
   height: 100%;
   overflow: hidden;
+  font-family: var(--s-font-body);
+  color: var(--s-ink);
 }
 
-.scrollbar {
+.scroll-area {
   height: calc(100% - 48px);
   position: relative;
-  background: var(--extra-light-fill);
+  overflow-y: auto;
+  background: var(--s-body);
   @media (max-width: 372px) {
     height: calc(100% - 85px);
   }
+}
 
-  .code-box {
-    padding: 15px 15px 25px 15px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 15px;
+.code-box {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
 
-    .code-item {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      border: 1px solid var(--el-border-color);
-      transition: all 200ms;
-      padding: 15px;
+.code-item {
+  background: var(--s-paper);
+  border-radius: var(--s-radius);
+  border: 1px solid var(--s-line);
+  transition: box-shadow var(--s-ease);
+  padding: 16px;
 
-      .code-info {
+  &:hover {
+    box-shadow: var(--s-shadow-sm);
+  }
+
+  .code-info {
+    display: flex;
+
+    .info-left {
+      flex: 1;
+      min-width: 0;
+
+      .info-left-item {
         display: flex;
+        padding-top: 6px;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
 
-        .info-left {
-          flex: 1;
-          min-width: 0;
+        .code {
+          font-weight: 700;
+          font-size: 15px;
+          font-family: var(--s-font-display);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          cursor: pointer;
+          color: var(--s-accent);
 
-          .info-left-item {
-            display: flex;
-            padding-top: 5px;
-
-            .code {
-              font-weight: bold;;
-              font-size: 16px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              cursor: pointer;
-            }
+          &:hover {
+            text-decoration: underline;
           }
-
-          .info-left-item:first-child {
-            padding-top: 0;
-          }
-        }
-
-        .info-right {
-          display: flex;
-          flex-direction: column;
-          padding-top: 2px;
-          gap: 5px;
         }
       }
+
+      .info-label {
+        color: var(--s-muted);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        margin-right: 4px;
+      }
+
+      .info-left-item:first-child {
+        padding-top: 0;
+      }
+    }
+
+    .info-right {
+      display: flex;
+      flex-direction: column;
+      padding-top: 2px;
+      gap: 5px;
     }
   }
 }
@@ -455,32 +453,14 @@ function openAdd() {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: 60%;
 }
 
-:deep(.history-list.el-dialog) {
-  min-height: 300px;
-  width: 500px !important;
-  @media (max-width: 540px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-.history-list .loading {
-  position: absolute;
-  top: 10px;
-  z-index: 0;
-  background: rgba(255, 255, 255, 0);
-}
-
-:deep(.history-list .el-dialog__header) {
-  padding-bottom: 5px;
-}
-
-:deep(.el-scrollbar__view) {
-  height: calc(100% - 80px);
+.history-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
 }
 
 .loading {
@@ -492,7 +472,7 @@ function openAdd() {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--loadding-background);
+  background: var(--s-paper);
   z-index: 2;
 }
 
@@ -503,23 +483,8 @@ function openAdd() {
 
 .loading-hide {
   pointer-events: none;
-  transition: var(--loading-hide-transition);
+  transition: opacity 200ms ease;
   opacity: 0;
-}
-
-.container {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
-}
-
-:deep(.el-dialog) {
-  width: 400px !important;
-  @media (max-width: 440px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
 }
 
 .setting {
@@ -527,43 +492,65 @@ function openAdd() {
 }
 
 .gen-code {
-  color: #606266;
+  color: var(--s-muted);
   cursor: pointer;
 }
 
 .header-actions {
-  padding: 9px 15px;
+  padding: 10px 16px;
   display: flex;
-  gap: 18px;
+  gap: 14px;
   flex-wrap: wrap;
   align-items: center;
-  box-shadow: inset 0 -1px 0 0 rgba(100, 121, 143, 0.12);
+  border-bottom: 1px solid var(--s-line);
   font-size: 18px;
-  @media (max-width: 767px) {
-    gap: 15px;
-  }
+  background: var(--s-paper);
 
   .search-input {
     width: min(200px, calc(100vw - 140px));
   }
 
-  .search {
-    :deep(.el-input-group) {
-      height: 28px;
-    }
-
-    :deep(.el-input__inner) {
-      height: 28px;
-    }
-  }
-
   .icon {
     cursor: pointer;
+    color: var(--s-muted);
+    transition: color var(--s-ease);
+    &:hover {
+      color: var(--s-ink);
+    }
   }
 }
 
-:deep(.el-table__inner-wrapper:before) {
-  background: var(--el-bg-color);
+.s-date-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  background: var(--s-paper);
+  color: var(--s-ink);
+  font-family: var(--s-font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--s-ease);
+  &:focus {
+    border-color: var(--s-accent);
+  }
 }
 
+.s-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.s-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.s-form-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--s-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 </style>

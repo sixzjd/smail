@@ -1,79 +1,34 @@
 <template>
-  <div v-for="item in rows" style="background: var(--el-bg-color)">
-    <div :class="'email-row ' + type ">
-      <el-checkbox disabled :class=" props.type === 'all-email' ? 'all-email-checkbox' : 'checkbox'"
-      ></el-checkbox>
-      <div class="pc-star" v-if="showStar">
-        <Icon style="color: var(--el-border-color)" icon="solar:star-line-duotone" width="18" height="18"/>
+  <div class="s-email-skeleton">
+    <div v-for="item in rows" :key="item" :class="['skeleton-row', type]">
+      <div class="sk-checkbox-wrap">
+        <div class="sk-shimmer sk-checkbox-shim"></div>
       </div>
-      <div v-if="!showStar"></div>
-      <div class="title" :class="accountShow ? 'title-column' : 'title-column'">
-
-        <div class="email-sender">
-          <div class="email-status" v-if="showStatus">
-
-          </div>
-          <div v-else></div>
-          <span class="name">
-             <span>
-               <el-skeleton animated>
-                 <template #template>
-                   <el-skeleton-item variant="text" class="name-skeleton"/>
-                 </template>
-               </el-skeleton>
-             </span>
-             <span></span>
-          </span>
-          <span class="phone-time">
-            <el-skeleton animated>
-              <template #template>
-                <el-skeleton-item variant="text" style="width: 50px;height: 1rem;"/>
-              </template>
-            </el-skeleton>
-          </span>
+      <div class="sk-star-wrap" v-if="showStar">
+        <div class="sk-shimmer sk-star-shim"></div>
+      </div>
+      <div v-if="!showStar" class="sk-star-wrap"></div>
+      <div class="sk-content">
+        <div class="sk-sender-row">
+          <div class="sk-shimmer" style="width: 120px;"></div>
+          <div class="sk-shimmer sk-time-shim" style="width: 50px;"></div>
         </div>
-        <div>
-          <div class="email-text-skeleton">
-            <el-skeleton animated>
-              <template #template>
-                <el-skeleton-item variant="text" class="text-skeleton-one"/>
-                <el-skeleton-item variant="text" class="text-skeleton-two"/>
-              </template>
-            </el-skeleton>
-          </div>
-          <div class="user-info" v-if="showUserInfo">
-            <div class="user">
-              <el-skeleton animated>
-                <template #template>
-                  <el-skeleton-item variant="text"
-                                    style="width: 180px;margin-right: 5px;height: 1rem;margin-bottom: 4px;"/>
-                </template>
-              </el-skeleton>
-            </div>
-            <div class="account">
-              <el-skeleton animated>
-                <template #template>
-                  <el-skeleton-item variant="text"
-                                    style="width: 180px;margin-right: 5px;height: 1rem;margin-bottom: 4px;"/>
-                </template>
-              </el-skeleton>
-            </div>
-            <div class="del-status" v-if="item.isDel">
-              <el-tag type="danger" size="small">{{ $t('deleted') }}</el-tag>
-            </div>
-          </div>
+        <div class="sk-text-row">
+          <div class="sk-shimmer" style="width: 65%;"></div>
+          <div class="sk-shimmer sk-preview-shim" style="width: 30%;"></div>
+        </div>
+        <div class="sk-user-row" v-if="showUserInfo">
+          <div class="sk-shimmer" style="width: 180px;"></div>
+          <div class="sk-shimmer" style="width: 180px;"></div>
         </div>
       </div>
-      <div class="email-right-skeleton" :style="showUserInfo ? 'align-self: start;':''">
-        <el-skeleton animated>
-          <template #template>
-            <el-skeleton-item variant="text" style="width: 60px;margin-right: 15px;height: 1rem;"/>
-          </template>
-        </el-skeleton>
+      <div class="sk-date-wrap">
+        <div class="sk-shimmer" style="width: 60px;"></div>
       </div>
     </div>
   </div>
 </template>
+
 <script setup>
 const props = defineProps({
   rows: {
@@ -105,34 +60,130 @@ import {Icon} from "@iconify/vue";
 </script>
 
 <style scoped lang="scss">
-
-.phone-star {
-  display: none;
+.s-email-skeleton {
+  background: var(--s-paper);
 }
 
-.pc-star {
+.skeleton-row {
+  display: grid;
+  grid-template-columns: 40px 36px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--s-line-light);
+
+  &.all-email {
+    min-height: 68px;
+  }
+}
+
+.sk-checkbox-wrap {
   display: flex;
-  width: 40px;
+  justify-content: center;
+  padding: 0 4px;
 }
 
-:deep(.el-skeleton__item) {
-  position: relative;
-  top: 2px;
+.sk-star-wrap {
+  display: flex;
+  justify-content: center;
+  width: 36px;
+}
+
+.sk-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.sk-sender-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-text-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sk-user-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.sk-date-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.sk-shimmer {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--s-soft) 25%, var(--s-line-light) 50%, var(--s-soft) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.5s ease infinite;
+}
+
+.sk-checkbox-shim {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.sk-star-shim {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.sk-time-shim {
+  flex-shrink: 0;
+}
+
+.sk-preview-shim {
+  opacity: 0.6;
+}
+
+@keyframes sk-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @media (max-width: 1366px) {
-  .pc-star {
+  .skeleton-row {
+    grid-template-columns: 40px 1fr auto;
+    min-height: 80px;
+    gap: 6px;
+    padding: 10px 12px;
+
+    &.all-email {
+      min-height: 120px;
+    }
+  }
+
+  .sk-star-wrap {
     display: none;
   }
-  .phone-star {
-    display: block;
-    align-self: end;
-    padding-right: 16px;
-    padding-top: 8px;
+
+  .sk-date-wrap {
+    display: none;
   }
-  .star-pd {
-    padding-top: 6px !important;
+
+  .sk-time-shim {
+    display: block;
   }
 }
 
+@media (min-width: 1367px) {
+  .sk-time-shim {
+    display: none;
+  }
+}
 </style>

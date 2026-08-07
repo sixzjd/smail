@@ -1,25 +1,27 @@
 <template>
-  <emailScroll ref="scroll"
-               :allow-star="false"
-               :getEmailList="getEmailList"
-               :emailDelete="emailDelete"
-               :star-add="starAdd"
-               :star-cancel="starCancel"
-               @jump="jumpContent"
-               actionLeft="6px"
-               :show-account-icon="false"
-               :show-first-loading="false"
-               :showStar="false"
-               @delete-draft="deleteDraft"
-               :type="'draft'"
-  >
-    <template #name="props">
-      <span class="send-email">{{ props.email.receiveEmail?.join(',') || '(' + $t('noRecipient') + ')' }}</span>
-    </template>
-    <template #subject="props">
-      {{ props.email.subject || '(' + $t('noSubject') + ')' }}
-    </template>
-  </emailScroll>
+  <div class="draft-view">
+    <emailScroll ref="scroll"
+                 :allow-star="false"
+                 :getEmailList="getEmailList"
+                 :emailDelete="emailDelete"
+                 :star-add="starAdd"
+                 :star-cancel="starCancel"
+                 @jump="jumpContent"
+                 actionLeft="6px"
+                 :show-account-icon="false"
+                 :show-first-loading="false"
+                 :showStar="false"
+                 @delete-draft="deleteDraft"
+                 :type="'draft'"
+    >
+      <template #name="props">
+        <span class="draft-recipient">{{ props.email.receiveEmail?.join(',') || '(' + $t('noRecipient') + ')' }}</span>
+      </template>
+      <template #subject="props">
+        {{ props.email.subject || '(' + $t('noSubject') + ')' }}
+      </template>
+    </emailScroll>
+  </div>
 </template>
 
 <script setup>
@@ -89,8 +91,17 @@ async function jumpContent(email) {
 }
 
 </script>
-<style>
-.send-email {
-  font-weight: normal;
+
+<style scoped lang="scss">
+.draft-view {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.draft-recipient {
+  font-weight: 500;
+  color: var(--s-ink-secondary);
+  font-size: 14px;
 }
 </style>

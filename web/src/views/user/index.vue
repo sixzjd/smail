@@ -3,20 +3,14 @@
     <div class="header-actions">
       <Icon class="icon" icon="ion:add-outline" width="23" height="23" @click="openAdd"/>
       <div class="search">
-        <el-input
+        <s-input
             v-model="params.email"
             class="search-input"
             :placeholder="$t('searchByEmail')"
-        >
-        </el-input>
+        />
       </div>
-      <el-select v-model="params.status" placeholder="Select" class="status-select"
-                 :style="`width: ${locale === 'en' ? 95 : 80 }px`">
-        <el-option :key="-1" :label="$t('all')" :value="-1"/>
-        <el-option :key="0" :label="$t('active')" :value="0"/>
-        <el-option :key="1" :label="$t('banned')" :value="1"/>
-        <el-option :key="-2" :label="$t('deleted')" :value="-2"/>
-      </el-select>
+      <s-select v-model="params.status" :options="statusOptions" class="status-select"
+                 :style="`width: ${locale === 'en' ? 100 : 85 }px`"/>
       <Icon class="icon" icon="iconoir:search" @click="search" width="20" height="20"/>
       <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
             v-if="params.timeSort === 1" width="28" height="28"/>
@@ -25,347 +19,194 @@
       <Icon class="icon" icon="ion:reload" width="18" height="18" @click="refresh"/>
       <Icon class="icon" icon="uiw:delete" width="16" height="16" @click="delUser"/>
     </div>
-    <el-scrollbar ref="scrollbarRef" class="scrollbar">
+    <div class="scroll-area" ref="scrollbarRef">
       <div>
         <div class="loading" :class="tableLoading ? 'loading-show' : 'loading-hide'"
              :style="first ? 'background: transparent' : ''">
           <loading/>
         </div>
-        <el-table
-            @filter-change="tableFilter"
-            :empty-text="first ? '' : null"
+        <s-table
+            :columns="tableColumns"
             :data="users"
-            :preserve-expanded-content="preserveExpanded"
-            style="width: 100%;"
-            ref="tableRef"
-            @cell-contextmenu="handleContextmenu"
-            :cell-class-name="cellClassName"
+            selection
+            rowKey="userId"
+            @selection-change="onSelectionChange"
         >
-          <el-table-column :width="expandWidth" type="selection" :selectable="row => row.type !== 0" />
-          <el-table-column show-overflow-tooltip :tooltip-formatter="tableRowFormatter" :label="$t('tabEmailAddress')"
-                           :min-width="emailWidth">
-            <template #default="props">
-              <div style="display: flex;gap: 5px">
-                <div class="email-row">{{ props.row.email }}</div>
-                <el-tag type="warning" v-if="props.row.username">L</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column :formatter="formatterReceive" label-class-name="receive" column-key="receive"
-                           :filtered-value="filteredValue" :filters="filters" :width="receiveWidth"
-                           :label="$t('tabReceived')"
-                           prop="receiveEmailCount"/>
-          <el-table-column :formatter="formatterSend" label-class-name="send" column-key="send"
-                           :filtered-value="filteredValue" :filters="filters" v-if="sendNumShow" :label="$t('tabSent')"
-                           prop="sendEmailCount"/>
-          <el-table-column :formatter="formatterAccount" label-class-name="account" column-key="account"
-                           :filtered-value="filteredValue" :filters="filters" v-if="accountNumShow"
-                           :label="$t('tabMailboxes')"
-                           prop="accountCount"/>
-          <el-table-column v-if="createTimeShow" :label="$t('tabRegisteredAt')" min-width="160" prop="createTime">
-            <template #default="props">
-              {{ tzDayjs(props.row.createTime).format('YYYY-MM-DD HH:mm') }}
-            </template>
-          </el-table-column>
-          <el-table-column v-if="statusShow" min-width="60px" :label="$t('tabStatus')" prop="status">
-            <template #default="props">
-              <el-tag disable-transitions v-if="props.row.isDel === 1" type="info">{{ $t('deleted') }}</el-tag>
-              <el-tag disable-transitions v-else-if="props.row.status === 0" type="primary">{{ $t('active') }}</el-tag>
-              <el-tag disable-transitions v-else-if="props.row.status === 1" type="danger">{{ $t('banned') }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column v-if="typeShow" :label="$t('tabRole')" min-width="140" prop="type">
-            <template #default="props">
-              <div class="type">
-                {{ toRoleName(props.row.type) }}
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('tabSetting')" :width="settingWidth">
-            <template #default="props">
-              <el-button size="small" type="primary" v-if="(props.row.type === 0 && userStore.user.type !== 0)" >{{ $t('action') }}</el-button>
-              <el-dropdown v-else >
-                <el-button size="small" type="primary">{{ $t('action') }}</el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="openSetPwd(props.row)" >{{ $t('chgPwd') }}</el-dropdown-item>
-                    <el-dropdown-item @click="openSetType(props.row)" >{{ $t('perm') }}</el-dropdown-item>
-                    <template v-if="props.row.type !== 0">
-                      <el-dropdown-item v-if="props.row.isDel !== 1" @click="setStatus(props.row)">
-                        {{ setStatusName(props.row) }}
-                      </el-dropdown-item>
-                      <el-dropdown-item v-else @click="restore(props.row)">{{ $t('restore') }}</el-dropdown-item>
-                    </template>
-                    <el-dropdown-item @click="openAccountList(props.row.userId)" >{{ $t('account') }}</el-dropdown-item>
-                    <el-dropdown-item @click="openDetails(props.row)" >{{ $t('details') }}</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="pagination" v-if="total > 10">
-          <el-pagination
-              :size="pageSize"
-              :current-page="params.num"
-              :page-size="params.size"
-              :pager-count="pagerCount"
-              :page-sizes="[10, 15, 20, 25, 30, 50]"
-              background
-              :layout="layout"
-              :total="total"
-              @size-change="sizeChange"
-              @current-change="numChange"
-          />
-          <el-pagination
-              v-if="phonePageShow"
-              :size="pageSize"
-              :current-page="params.num"
-              :page-size="params.size"
-              :pager-count="pagerCount"
-              :page-sizes="[10, 15, 20, 25, 30, 50]"
-              background
-              layout="sizes, total"
-              :total="total"
-              @size-change="sizeChange"
-              @current-change="numChange"
-          />
-        </div>
-      </div>
-    </el-scrollbar>
-    <el-dialog class="dialog" v-model="setPwdShow" :title="$t('changePassword')" @closed="resetUserForm">
-      <div class="dialog-box">
-        <el-input v-model="userForm.password" type="password" :placeholder="$t('newPassword')" autocomplete="off">
-        </el-input>
-        <el-button class="btn" type="primary" :loading="settingLoading" @click="updatePwd"
-        >{{ $t('save') }}
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog class="dialog" v-model="setTypeShow" :title="$t('changePerm')" @closed="resetUserForm">
-      <div class="dialog-box">
-        <el-input disabled :model-value="$t('admin')" v-if="userForm.type === 0"/>
-        <el-select v-else v-model="userForm.type" placeholder="Select">
-          <el-option v-for="item in roleList" :label="item.name" :value="item.roleId" :key="item.roleId"/>
-        </el-select>
-        <el-button :disabled="userForm.type === 0" class="btn" :loading="settingLoading" type="primary" @click="setType"
-        >{{ $t('save') }}
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog v-model="showAdd" :title="$t('addUser')">
-      <div class="container">
-        <el-input v-model="addForm.email" type="text" :placeholder="$t('emailAccount')" autocomplete="off">
-          <template #append>
-            <div @click.stop="openSelect">
-              <el-select
-                  ref="mySelect"
-                  v-model="addForm.suffix"
-                  :placeholder="$t('select')"
-                  class="select"
-              >
-                <el-option
-                    v-for="item in domainList"
-                    :key="item"
-                    :label="item"
-                    :value="item"
-                />
-              </el-select>
-              <div>
-                <span>{{ addForm.suffix }}</span>
-                <Icon class="setting-icon" icon="mingcute:down-small-fill" width="20" height="20"/>
-              </div>
+          <template #emailAddress="{row}">
+            <div style="display: flex;gap: 5px;align-items:center">
+              <div class="email-row">{{ row.email }}</div>
+              <s-tag type="warning" v-if="row.username">L</s-tag>
             </div>
           </template>
-        </el-input>
-        <el-input type="password" v-model="addForm.password" :placeholder="$t('password')"/>
-        <el-select v-model="addForm.type" :placeholder="$t('perm')">
-          <el-option v-for="item in roleList" :label="item.name" :value="item.roleId" :key="item.roleId"/>
-        </el-select>
-        <el-button class="btn" type="primary" @click="submit" :loading="addLoading"
-        >{{ $t('add') }}
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog class="account-dialog" v-model="accountShow" :title="t('userAccount')" @closed="resetAccountList" >
-      <el-table :data="accountList" style="height: 480px" v-loading="accountLoading" element-loading-background="transparent" :empty-text="accountLoading ? '' : null">
-        <el-table-column property="email" :label="t('emailAccount')" >
-          <template #default="props">
-            <div class="email-row">{{ props.row.email }}</div>
+          <template #receiveEmailCount="{row}">
+            {{ formatterReceive(row) }}
           </template>
-        </el-table-column>
-        <el-table-column property="address" :label="t('tabStatus')"  :width="locale === 'en' ? 75 : 65" >
-          <template #default="props">
-            <el-tag type="primary" disable-transitions v-if="props.row.isDel === 0">{{$t('active')}}</el-tag>
-            <el-tag type="info" disable-transitions v-if="props.row.isDel === 1">{{$t('deleted')}}</el-tag>
+          <template #sendEmailCount="{row}">
+            {{ formatterSend(row) }}
           </template>
-        </el-table-column>
-        <el-table-column :label="t('action')" :width="locale === 'en' ? 75 : 65" >
-          <template #default="props">
-            <el-dropdown trigger="click">
-              <el-button type="primary" size="small">{{t('action')}}</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="deleteAccount(props.row)">{{ $t('delete') }}</el-dropdown-item>
-                </el-dropdown-menu>
+          <template #accountCount="{row}">
+            {{ formatterAccount(row) }}
+          </template>
+          <template #createTime="{row}">
+            {{ tzDayjs(row.createTime).format('YYYY-MM-DD HH:mm') }}
+          </template>
+          <template #status="{row}">
+            <s-tag v-if="row.isDel === 1" type="info">{{ $t('deleted') }}</s-tag>
+            <s-tag v-else-if="row.status === 0" type="accent">{{ $t('active') }}</s-tag>
+            <s-tag v-else-if="row.status === 1" type="danger">{{ $t('banned') }}</s-tag>
+          </template>
+          <template #type="{row}">
+            <div class="type">{{ toRoleName(row.type) }}</div>
+          </template>
+          <template #actions="{row}">
+            <s-button size="sm" type="primary" v-if="(row.type === 0 && userStore.user.type !== 0)">{{ $t('action') }}</s-button>
+            <s-dropdown v-else>
+              <template #trigger>
+                <s-button size="sm" type="primary">{{ $t('action') }}</s-button>
               </template>
-            </el-dropdown>
+              <s-dropdown-item @click="openSetPwd(row)">{{ $t('chgPwd') }}</s-dropdown-item>
+              <s-dropdown-item @click="openSetType(row)">{{ $t('perm') }}</s-dropdown-item>
+              <template v-if="row.type !== 0">
+                <s-dropdown-item v-if="row.isDel !== 1" @click="setStatus(row)">
+                  {{ setStatusName(row) }}
+                </s-dropdown-item>
+                <s-dropdown-item v-else @click="restore(row)">{{ $t('restore') }}</s-dropdown-item>
+              </template>
+              <s-dropdown-item @click="openAccountList(row.userId)">{{ $t('account') }}</s-dropdown-item>
+              <s-dropdown-item @click="openDetails(row)">{{ $t('details') }}</s-dropdown-item>
+            </s-dropdown>
           </template>
-        </el-table-column>
-      </el-table>
-      <div class="account-pagination">
-        <el-pagination
-            :disabled="accountLoading"
-            background
-
-            layout="prev, pager, next"
-            :pager-count="3"
-            :total="accountParams.total"
-            @current-change="accountCurChange"
-        />
+        </s-table>
+        <div class="pagination" v-if="total > 10">
+          <s-pagination
+              :current-page="params.num"
+              :page-size="params.size"
+              :total="total"
+              @update:currentPage="numChange"
+          />
+        </div>
       </div>
-    </el-dialog>
-    <el-dialog class="account-dialog" v-model="detailsShow" :title="t('userDetails')"  >
+    </div>
+
+    <!-- Change Password Modal -->
+    <s-modal v-model="setPwdShow" :title="$t('changePassword')" size="sm" @close="resetUserForm">
+      <div class="s-form">
+        <s-input v-model="userForm.password" type="password" :placeholder="$t('newPassword')"/>
+        <s-button type="primary" block :loading="settingLoading" @click="updatePwd">{{ $t('save') }}</s-button>
+      </div>
+    </s-modal>
+
+    <!-- Change Permission Modal -->
+    <s-modal v-model="setTypeShow" :title="$t('changePerm')" size="sm" @close="resetUserForm">
+      <div class="s-form">
+        <s-input v-if="userForm.type === 0" :modelValue="$t('admin')" disabled/>
+        <s-select v-else v-model="userForm.type" :options="roleOptions" placeholder="Select"/>
+        <s-button :disabled="userForm.type === 0" type="primary" block :loading="settingLoading" @click="setType">{{ $t('save') }}</s-button>
+      </div>
+    </s-modal>
+
+    <!-- Add User Modal -->
+    <s-modal v-model="showAdd" :title="$t('addUser')" size="sm">
+      <div class="s-form">
+        <div class="s-form-item">
+          <label>{{ $t('emailAccount') }}</label>
+          <div class="email-input-group">
+            <s-input v-model="addForm.email" type="text" :placeholder="$t('emailAccount')" style="flex:1"/>
+            <s-select v-model="addForm.suffix" :options="domainOptions" :placeholder="$t('select')"/>
+          </div>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('password') }}</label>
+          <s-input type="password" v-model="addForm.password" :placeholder="$t('password')"/>
+        </div>
+        <div class="s-form-item">
+          <label>{{ $t('perm') }}</label>
+          <s-select v-model="addForm.type" :options="roleOptions" :placeholder="$t('perm')"/>
+        </div>
+        <s-button type="primary" block @click="submit" :loading="addLoading">{{ $t('add') }}</s-button>
+      </div>
+    </s-modal>
+
+    <!-- Account List Modal -->
+    <s-modal v-model="accountShow" :title="t('userAccount')" size="md" @close="resetAccountList">
+      <div class="account-table-wrap">
+        <div class="loading" v-if="accountLoading" style="position:absolute;inset:0;z-index:2">
+          <loading/>
+        </div>
+        <s-table
+            :columns="accountColumns"
+            :data="accountList"
+            rowKey="accountId"
+        >
+          <template #email="{row}">
+            <div class="email-row">{{ row.email }}</div>
+          </template>
+          <template #isDel="{row}">
+            <s-tag type="accent" v-if="row.isDel === 0">{{$t('active')}}</s-tag>
+            <s-tag type="info" v-if="row.isDel === 1">{{$t('deleted')}}</s-tag>
+          </template>
+          <template #accountActions="{row}">
+            <s-dropdown>
+              <template #trigger>
+                <s-button type="primary" size="sm">{{t('action')}}</s-button>
+              </template>
+              <s-dropdown-item @click="deleteAccount(row)">{{ $t('delete') }}</s-dropdown-item>
+            </s-dropdown>
+          </template>
+        </s-table>
+        <div class="account-pagination" v-if="accountParams.total > 0">
+          <s-pagination
+              :current-page="accountParams.num"
+              :page-size="accountParams.size"
+              :total="accountParams.total"
+              @update:currentPage="accountCurChange"
+          />
+        </div>
+      </div>
+    </s-modal>
+
+    <!-- User Details Modal -->
+    <s-modal v-model="detailsShow" :title="t('userDetails')" size="md">
       <div class="details">
-        <div v-if="userDetails.username"><span class="details-item-title">LinuxDo:</span>
-          <el-avatar :src="userDetails.avatar" :size="30" class="linuxdo-avatar"  />
-          <span style="margin: 0 10px">用户名：{{userDetails.username}}</span>
-          <span>
-                    等级：<el-tag type="success">{{userDetails.trustLevel}}</el-tag>
-                  </span>
+        <div v-if="userDetails.username" class="details-row">
+          <span class="details-item-title">LinuxDo:</span>
+          <img v-if="userDetails.avatar" :src="userDetails.avatar" class="linuxdo-avatar" width="30" height="30"/>
+          <span style="margin: 0 10px">{{ $t('username') }}: {{userDetails.username}}</span>
+          <span>{{ $t('level') }}: <s-tag type="success">{{userDetails.trustLevel}}</s-tag></span>
         </div>
-        <div v-if="!sendNumShow"><span
-            class="details-item-title">{{ $t('tabSent') }}:</span>{{ userDetails.sendEmailCount }}
-        </div>
-        <div v-if="!accountNumShow"><span class="details-item-title">{{ $t('tabMailboxes') }}:</span>{{
-            userDetails.accountCount
-          }}
-        </div>
-        <div v-if="!createTimeShow"><span class="details-item-title">{{ $t('tabRegisteredAt') }}:</span>{{
-            tzDayjs(userDetails.createTime).format('YYYY-MM-DD HH:mm')
-          }}
-        </div>
-        <div v-if="!typeShow"><span class="details-item-title">{{ $t('perm') }}:</span>
-          {{ toRoleName(userDetails.type) }}
-        </div>
-        <div v-if="!statusShow">
+        <div v-if="!sendNumShow" class="details-row"><span class="details-item-title">{{ $t('tabSent') }}:</span>{{ userDetails.sendEmailCount }}</div>
+        <div v-if="!accountNumShow" class="details-row"><span class="details-item-title">{{ $t('tabMailboxes') }}:</span>{{ userDetails.accountCount }}</div>
+        <div v-if="!createTimeShow" class="details-row"><span class="details-item-title">{{ $t('tabRegisteredAt') }}:</span>{{ tzDayjs(userDetails.createTime).format('YYYY-MM-DD HH:mm') }}</div>
+        <div v-if="!typeShow" class="details-row"><span class="details-item-title">{{ $t('perm') }}:</span>{{ toRoleName(userDetails.type) }}</div>
+        <div v-if="!statusShow" class="details-row">
           <span class="details-item-title">{{ $t('tabStatus') }}:</span>
-          <el-tag disable-transitions v-if="userDetails.isDel === 1" type="info">{{ $t('deleted') }}</el-tag>
-          <el-tag disable-transitions v-else-if="userDetails.status === 0" type="primary">{{ $t('active') }}
-          </el-tag>
-          <el-tag disable-transitions v-else-if="userDetails.status === 1" type="danger">{{ $t('banned') }}
-          </el-tag>
+          <s-tag v-if="userDetails.isDel === 1" type="info">{{ $t('deleted') }}</s-tag>
+          <s-tag v-else-if="userDetails.status === 0" type="accent">{{ $t('active') }}</s-tag>
+          <s-tag v-else-if="userDetails.status === 1" type="danger">{{ $t('banned') }}</s-tag>
         </div>
-        <div><span class="details-item-title">{{ $t('registrationIp') }}:</span>{{
-            userDetails.createIp || $t('unknown')
-          }}
-        </div>
-        <div><span class="details-item-title">{{ $t('recentIP') }}:</span>{{
-            userDetails.activeIp || $t('unknown')
-          }}
-        </div>
-        <div><span class="details-item-title">{{ $t('recentActivity') }}:</span>{{
-            userDetails.activeTime ? tzDayjs(userDetails.activeTime).format('YYYY-MM-DD') : $t('unknown')
-          }}
-        </div>
-        <div><span
-            class="details-item-title">{{ $t('loginDevice') }}:</span>{{ userDetails.device || $t('unknown') }}
-        </div>
-        <div><span class="details-item-title">{{ $t('loginSystem') }}:</span>{{ userDetails.os || $t('unknown') }}
-        </div>
-        <div><span
-            class="details-item-title">{{ $t('browserLogin') }}:</span>{{ userDetails.browser || $t('unknown') }}
-        </div>
-        <div>
+        <div class="details-row"><span class="details-item-title">{{ $t('registrationIp') }}:</span>{{ userDetails.createIp || $t('unknown') }}</div>
+        <div class="details-row"><span class="details-item-title">{{ $t('recentIP') }}:</span>{{ userDetails.activeIp || $t('unknown') }}</div>
+        <div class="details-row"><span class="details-item-title">{{ $t('recentActivity') }}:</span>{{ userDetails.activeTime ? tzDayjs(userDetails.activeTime).format('YYYY-MM-DD') : $t('unknown') }}</div>
+        <div class="details-row"><span class="details-item-title">{{ $t('loginDevice') }}:</span>{{ userDetails.device || $t('unknown') }}</div>
+        <div class="details-row"><span class="details-item-title">{{ $t('loginSystem') }}:</span>{{ userDetails.os || $t('unknown') }}</div>
+        <div class="details-row"><span class="details-item-title">{{ $t('browserLogin') }}:</span>{{ userDetails.browser || $t('unknown') }}</div>
+        <div class="details-row">
           <span class="details-item-title">{{ $t('sendEmail') }}:</span>
           <span>{{ formatSendCount(userDetails) }}</span>
-          <el-tag style="margin-left: 10px" v-if="userDetails.sendAction.hasPerm">
-            {{ formatSendType(userDetails) }}
-          </el-tag>
-          <el-button size="small" style="margin-left: 10px"
+          <s-tag style="margin-left: 10px" v-if="userDetails.sendAction.hasPerm">{{ formatSendType(userDetails) }}</s-tag>
+          <s-button size="sm" style="margin-left: 10px"
                      v-if="userDetails.sendAction.hasPerm && userDetails.sendAction.sendCount"
                      @click="resetSendCount(userDetails)" type="primary">{{ $t('reset') }}
-          </el-button>
+          </s-button>
         </div>
       </div>
-    </el-dialog>
-    <el-dropdown
-        :show-timeout="0"
-        :hide-timeout="0"
-        ref="dropdownRef"
-        @visible-change="visibleChange"
-        :virtual-ref="triggerRef"
-        :show-arrow="false"
-        :popper-options="{
-      modifiers: [{ name: 'offset', options: { offset: [0, 0] } }],
-    }"
-        virtual-triggering
-        trigger="contextmenu"
-        placement="bottom-start"
-    >
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item @click="openSetPwd(rightClickUser)">
-            <template #default>
-              <div class="right-dropdown-item">
-                <icon icon="fluent:fingerprint-20-filled" width="22" height="22" />
-                <span>{{t('changePassword')}}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-          <el-dropdown-item @click="openSetType(rightClickUser)">
-            <template #default>
-              <div class="right-dropdown-item">
-                <icon icon="fluent:lock-closed-16-regular" width="21" height="21" />
-                <span>{{ t('setRole') }}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-          <el-dropdown-item v-if="rightClickUser.type !== 0">
-            <template #default>
-              <div class="right-dropdown-item" v-if="rightClickUser.isDel !== 1" @click="setStatus(rightClickUser)" >
-                <Icon icon="ion:reload" v-if="rightClickUser.status" style="margin-left: 1px;margin-right: 1px" width="19" height="19" />
-                <Icon icon="ion:ban-outline" v-else style="margin-left: 1px;margin-right: 1px" width="19" height="19" />
-                <span>{{ setRightStatusName(rightClickUser) }}</span>
-              </div>
-              <div class="right-dropdown-item" v-else @click="restore(rightClickUser)">
-                <Icon icon="ion:reload" style="margin-left: 1px;margin-right: 1px" width="19" height="19" />
-                <span>{{ t('restoreUser') }}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-          <el-dropdown-item @click="openAccountList(rightClickUser.userId)" >
-            <template #default>
-              <div class="right-dropdown-item" >
-                <Icon icon="hugeicons:mailbox-01" width="20" height="20" />
-                <span>{{ t('userEmail') }}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-          <el-dropdown-item @click="openDetails(rightClickUser)" >
-            <template #default>
-              <div class="right-dropdown-item" >
-                <Icon icon="si:user-alt-2-line" width="20" height="20" />
-                <span>{{ t('userDetails') }}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-          <el-dropdown-item v-if="rightClickUser.type !== 0" @click="delOneUser(rightClickUser)" >
-            <template #default>
-              <div class="right-dropdown-item" >
-                <Icon icon="uiw:delete" width="18" height="18" style="margin-left: 1px;margin-right: 1px" />
-                <span>{{ t('adminDeleteUser') }}</span>
-              </div>
-            </template>
-          </el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
+    </s-modal>
+
   </div>
 </template>
 
 <script setup>
-import {defineOptions, h, reactive, ref, watch} from 'vue'
+import {defineOptions, reactive, ref, watch, computed} from 'vue'
 import {
   userList,
   userDelete,
@@ -387,6 +228,8 @@ import {isEmail} from "@/utils/verify-utils.js";
 import {useRoleStore} from "@/store/role.js";
 import {useUserStore} from "@/store/user.js";
 import {useI18n} from 'vue-i18n';
+import {toast} from '@/components/ui/toast.js';
+import {confirm} from '@/components/ui/confirm.js';
 
 defineOptions({
   name: 'user'
@@ -413,27 +256,15 @@ const detailsShow = ref(false);
 const layout = ref('prev, pager, next,  sizes, total')
 const pageSize = ref('')
 const users = ref([])
+const selectedUsers = ref([])
 const tableRef = ref({})
 const userDetails = ref({})
 const total = ref(0)
 const first = ref(true)
 const scrollbarRef = ref(null)
 const accountLoading = ref(false)
-const dropdownRef = ref(null);
-const dropdownShow = ref(false);
 const rightClickUser = ref({});
-const position = ref(
-    DOMRect.fromRect({
-      x: 0,
-      y: 0,
-    })
-)
 
-const triggerRef = ref({
-  getBoundingClientRect() {
-    return position.value;
-  }
-})
 const domainList = settingStore.domainList
 
 const addForm = reactive({
@@ -475,6 +306,35 @@ const accountParams = reactive({
   userId: 0,
 })
 
+const statusOptions = computed(() => [
+  {label: t('all'), value: -1},
+  {label: t('active'), value: 0},
+  {label: t('banned'), value: 1},
+  {label: t('deleted'), value: -2}
+])
+
+const roleOptions = computed(() => roleList.map(item => ({label: item.name, value: item.roleId})))
+const domainOptions = computed(() => domainList.map(d => ({label: d, value: d})))
+
+const tableColumns = computed(() => {
+  const cols = []
+  cols.push({prop: 'emailAddress', label: t('tabEmailAddress'), width: emailWidth.value ? emailWidth.value + 'px' : undefined})
+  cols.push({prop: 'receiveEmailCount', label: t('tabReceived'), width: receiveWidth.value ? receiveWidth.value + 'px' : undefined})
+  if (sendNumShow.value) cols.push({prop: 'sendEmailCount', label: t('tabSent')})
+  if (accountNumShow.value) cols.push({prop: 'accountCount', label: t('tabMailboxes')})
+  if (createTimeShow.value) cols.push({prop: 'createTime', label: t('tabRegisteredAt'), width: '160px'})
+  if (statusShow.value) cols.push({prop: 'status', label: t('tabStatus'), width: '80px'})
+  if (typeShow.value) cols.push({prop: 'type', label: t('tabRole'), width: '140px'})
+  cols.push({prop: 'actions', label: t('tabSetting'), width: settingWidth.value ? settingWidth.value + 'px' : undefined})
+  return cols
+})
+
+const accountColumns = computed(() => [
+  {prop: 'email', label: t('emailAccount')},
+  {prop: 'isDel', label: t('tabStatus'), width: (locale.value === 'en' ? 75 : 65) + 'px'},
+  {prop: 'accountActions', label: t('action'), width: (locale.value === 'en' ? 75 : 65) + 'px'}
+])
+
 roleSelectUse().then(list => {
   roleList.length = 0
   roleList.push(...list)
@@ -514,57 +374,18 @@ const filterItem = reactive({
   receive: ['normal', 'del']
 })
 
-window.addEventListener('wheel', (event) => {
-  if (dropdownShow.value) {
-    dropdownRef.value.handleClose();
-  }
-})
-
-function visibleChange(e) {
-  dropdownShow.value = e;
-  if (!e) {
-    rightClickUser.value.checkedClass = '';
-  }
-}
-
-function cellClassName({ row }) {
-  return row.checkedClass;
-}
-
-const handleContextmenu = (row, column, cell, event) => {
-
-  if (row.type === 0 && userStore.user.type !== 0) {
-    return
-  }
-
-  rightClickUser.value.checkedClass = '';
-
-  const { clientX, clientY } = event
-  position.value = DOMRect.fromRect({
-    x: clientX,
-    y: clientY,
-  })
-  event.preventDefault()
-  dropdownRef.value?.handleOpen()
-
-  row.checkedClass = 'checked-row';
-  rightClickUser.value = row;
+function onSelectionChange(rows) {
+  selectedUsers.value = rows
 }
 
 function deleteAccount(account) {
-  ElMessageBox.confirm(t('delConfirm', {msg: account.email}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
-    userDeleteAccount(account.accountId).then(() => {
-      getAccountList()
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: "success",
-        plain: true
+  confirm(t('delConfirm', {msg: account.email})).then(ok => {
+    if (ok) {
+      userDeleteAccount(account.accountId).then(() => {
+        getAccountList()
+        toast(t('delSuccessMsg'), 'success')
       })
-    })
+    }
   });
 }
 function accountCurChange(e) {
@@ -694,47 +515,27 @@ function openAdd() {
 function submit() {
 
   if (!addForm.email) {
-    ElMessage({
-      message: t('emptyEmailMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyEmailMsg'), 'error')
     return
   }
 
   if (!isEmail(addForm.email + addForm.suffix)) {
-    ElMessage({
-      message: t('notEmailMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('notEmailMsg'), 'error')
     return
   }
 
   if (!addForm.password) {
-    ElMessage({
-      message: t('emptyPwdMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyPwdMsg'), 'error')
     return
   }
 
   if (addForm.password.length < 6) {
-    ElMessage({
-      message: t('pwdLengthMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('pwdLengthMsg'), 'error')
     return
   }
 
   if (!addForm.type) {
-    ElMessage({
-      message: t('emptyRole'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyRole'), 'error')
     return
   }
 
@@ -744,11 +545,7 @@ function submit() {
   userAdd(form).then(() => {
     addLoading.value = false
     showAdd.value = false
-    ElMessage({
-      message: t('addSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('addSuccessMsg'), 'success')
     resetAddForm()
     getUserList(false)
   }).finally(res => {
@@ -787,65 +584,51 @@ function toRoleName(type) {
 
   const index = roleList.findIndex(role => role.roleId === type)
   if (index > -1) {
-    return roleList[index].name
+    const name = roleList[index].name
+    // Translate known role names
+    if (name === '普通用户') {
+      return t('normalUser')
+    }
+    return name
   }
   return ""
 }
 
 function resetSendCount(user) {
 
-  ElMessageBox.confirm(t('reSendConfirm', {msg: user.email}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
-    userRestSendCount(user.userId).then(() => {
-      ElMessage({
-        message: t('reSuccessMsg'),
-        type: "success",
-        plain: true
+  confirm(t('reSendConfirm', {msg: user.email})).then(ok => {
+    if (ok) {
+      userRestSendCount(user.userId).then(() => {
+        toast(t('reSuccessMsg'), 'success')
+        user.sendCount = 0
       })
-      user.sendCount = 0
-    })
+    }
   });
 }
 
 function delUser(user) {
-  const rows = tableRef.value.getSelectionRows();
-  const userIds = rows.map(row => row.userId);
+  const userIds = selectedUsers.value.map(row => row.userId);
   if (userIds.length === 0) {
     return;
   }
-  ElMessageBox.confirm(t('delUsersConfirm'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
-    userDelete(userIds).then(() => {
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: "success",
-        plain: true
+  confirm(t('delUsersConfirm')).then(ok => {
+    if (ok) {
+      userDelete(userIds).then(() => {
+        toast(t('delSuccessMsg'), 'success')
+        getUserList(true)
       })
-      getUserList(true)
-    })
+    }
   });
 }
 
 function delOneUser(user) {
-  ElMessageBox.confirm(t('delConfirm', {msg: user.email}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
-    userDelete([user.userId]).then(() => {
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: "success",
-        plain: true
+  confirm(t('delConfirm', {msg: user.email})).then(ok => {
+    if (ok) {
+      userDelete([user.userId]).then(() => {
+        toast(t('delSuccessMsg'), 'success')
+        getUserList(true)
       })
-      getUserList(true)
-    })
+    }
   });
 }
 
@@ -853,29 +636,13 @@ function restore(user) {
 
   const type = ref(0)
 
-  ElMessageBox.confirm(null, {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    message: () => h('div', [
-      h('div', {class: 'mb-2'}, t('restoreConfirm', {msg: user.email}))
-      // h(ElRadioGroup, {
-      //   modelValue: type.value,
-      //   'onUpdate:modelValue': (val) => (type.value = val),
-      // }, [
-      //   h(ElRadio, {label: 'option1', value: 0}, t('normalRestore')),
-      //   h(ElRadio, {label: 'option2', value: 1}, t('allRestore')),
-      // ])
-    ]),
-    type: 'warning'
-  }).then(() => {
-    userRestore(user.userId, type.value).then(() => {
-      user.isDel = 0
-      ElMessage({
-        message: t('restoreSuccessMsg'),
-        type: "success",
-        plain: true
+  confirm(t('restoreConfirm', {msg: user.email})).then(ok => {
+    if (ok) {
+      userRestore(user.userId, type.value).then(() => {
+        user.isDel = 0
+        toast(t('restoreSuccessMsg'), 'success')
       })
-    })
+    }
   });
 }
 
@@ -887,11 +654,7 @@ function httpSetStatus(user) {
   let status = user.status ? 0 : 1
   userSetStatus({status: status, userId: user.userId}).then(() => {
     user.status = status
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
   })
 }
 
@@ -900,11 +663,7 @@ function setType() {
   userSetType({type: userForm.type, userId: userForm.userId}).then(() => {
     chooseUser.type = userForm.type
     setTypeShow.value = false
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
 
   }).finally(() => {
     settingLoading.value = false
@@ -925,31 +684,19 @@ function search() {
 function updatePwd() {
 
   if (!userForm.password) {
-    ElMessage({
-      message: t('emptyPwdMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('emptyPwdMsg'), 'error')
     return
   }
 
   if (userForm.password.length < 6) {
-    ElMessage({
-      message: t('pwdLengthMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('pwdLengthMsg'), 'error')
     return
   }
 
   settingLoading.value = true
   userSetPwd({password: userForm.password, userId: userForm.userId}).then(() => {
     setPwdShow.value = false
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
   }).finally(() => {
     settingLoading.value = false
   })
@@ -1007,7 +754,7 @@ function getUserList(loading = true) {
   userList(newParams).then(data => {
     users.value = data.list.map(item => ({...item, checkedClass: ''}))
     total.value = data.total
-    scrollbarRef.value?.setScrollTop(0);
+    if (scrollbarRef.value) scrollbarRef.value.scrollTop = 0
   }).finally(() => {
     tableLoading.value = false
     setTimeout(() => {
@@ -1041,80 +788,50 @@ function adjustWidth() {
 
 </script>
 
-<style>
-.el-message-box__container {
-  align-items: start !important;
-}
-
-.el-message-box__message {
-  word-break: break-all;
-}
-
-.el-table-filter__content {
-  min-width: 0;
-}
-</style>
-<style lang="scss" scoped>
-
-:deep(.el-table .checked-row) {
-  background: var(--el-color-warning-light-9);
-}
-
+<style scoped>
 .user-box {
   overflow: hidden;
   height: 100%;
-}
-
-:deep(.el-dialog) {
-  width: 400px !important;
-  @media (max-width: 440px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-:deep(.account-dialog) {
-  width: 500px !important;
-  @media (max-width: 540px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
+  font-family: var(--s-font-body);
+  color: var(--s-ink);
 }
 
 .header-actions {
-  padding: 9px 15px;
+  padding: 10px 16px;
   display: flex;
-  gap: 15px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  box-shadow: var(--header-actions-border);
+  border-bottom: 1px solid var(--s-line);
   font-size: 18px;
+  background: var(--s-paper);
 
   .search-input {
     width: min(200px, calc(100vw - 140px));
   }
 
-  .search {
-    :deep(.el-input-group) {
-      height: 28px;
-    }
-
-    :deep(.el-input__inner) {
-      height: 28px;
-    }
-  }
-
   .icon {
     cursor: pointer;
+    color: var(--s-muted);
+    transition: color var(--s-ease);
+    &:hover {
+      color: var(--s-ink);
+    }
   }
 }
 
-.container {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
+.status-select {
+  min-width: 80px;
+}
+
+.scroll-area {
+  width: 100%;
+  overflow: auto;
+  height: calc(100% - 50px);
+  position: relative;
+  @media (max-width: 464px) {
+    height: calc(100% - 90px);
+  }
 }
 
 .type {
@@ -1123,88 +840,69 @@ function adjustWidth() {
   text-overflow: ellipsis;
 }
 
-.choose-star {
-  color: var(--el-color-primary)
-}
-
-.scrollbar {
-  width: 100%;
-  overflow: auto;
-  height: calc(100% - 50px);
-  @media (max-width: 464px) {
-    height: calc(100% - 90px);
-  }
-}
-
-.details {
-  padding: 0 10px 10px 10px;
-  display: grid;
-  gap: 10px;
-  .details-item-title {
-    white-space: pre;
-    color: #909399;
-    font-weight: bold;
-    padding-right: 10px;
-  }
-}
-
-:deep(.linuxdo-avatar) {
-  position: relative !important;
-  top: 10px;
-}
-
-.account-pagination {
-  display: flex;
-  justify-content: end;
-  width: 100%;
-}
-
-.pagination {
-  margin-top: 15px;
-  margin-bottom: 20px;
-  padding-right: 30px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
-  gap: 10px;
-  @media (max-width: 767px) {
-    padding-right: 10px;
-  }
-
-  .el-pagination {
-    align-self: end;
-  }
-}
-
-
 .email-row {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.status-select {
-  :deep(.el-select__wrapper) {
-    min-height: 28px;
+.email-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  padding-right: 24px;
+  width: 100%;
+  display: flex;
+  justify-content: end;
+  @media (max-width: 767px) {
+    padding-right: 10px;
   }
 }
 
-.dialog {
-  .dialog-box {
-    .el-button {
-      width: 100%;
-      margin-top: 15px;
-    }
-  }
+.account-table-wrap {
+  position: relative;
+  min-height: 300px;
 }
 
-.select {
-  position: absolute;
-  right: 30px;
-  width: 100px;
-  opacity: 0;
-  pointer-events: none;
+.account-pagination {
+  display: flex;
+  justify-content: end;
+  width: 100%;
+  padding-top: 12px;
+}
+
+.details {
+  padding: 0 4px 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.details-row {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.details-item-title {
+  white-space: pre;
+  color: var(--s-muted);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding-right: 10px;
+}
+
+.linuxdo-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  vertical-align: middle;
+  border: 1px solid var(--s-line);
 }
 
 .loading {
@@ -1212,7 +910,7 @@ function adjustWidth() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--loadding-background);
+  background: var(--s-paper);
   left: 0;
   z-index: 2;
   top: 0;
@@ -1227,69 +925,26 @@ function adjustWidth() {
 
 .loading-hide {
   pointer-events: none;
-  transition: var(--loading-hide-transition);
+  transition: opacity 200ms ease;
   opacity: 0;
 }
 
-.setting-icon {
-  position: relative;
-  top: 6px;
-}
-
-.right-dropdown-item {
+.s-form {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 16px;
+}
+.s-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.s-form-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--s-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.btn {
-  width: 100%;
-}
-
-:deep(.el-pagination .el-select) {
-  width: 100px;
-  background: var(--el-bg-color);
-}
-
-:deep(.el-input-group__append) {
-  padding: 0 !important;
-  padding-left: 8px !important;
-  background: var(--el-bg-color);
-}
-
-:deep(.cell) {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-}
-
-:deep(.receive .cell) {
-  white-space: nowrap;
-}
-
-:deep(.send .cell) {
-  white-space: nowrap;
-}
-
-:deep(.account .cell) {
-  white-space: nowrap;
-}
-
-:deep(.el-table) {
-  @media (pointer: coarse) {
-    /* 触屏 */
-    user-select: none;
-  }
-}
-
-:deep(.el-table th.el-table__cell>.cell.highlight) {
-  color: #909399;
-}
-
-:deep(.el-table__inner-wrapper:before) {
-  background: var(--el-bg-color);
-}
-
-:deep(.el-message-box__container) {
-  align-items: start;
-}
 </style>

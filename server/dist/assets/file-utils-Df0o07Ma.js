@@ -1,0 +1,9 @@
+/*!
+ * Compressor.js v1.3.0
+ * https://fengyuanchen.github.io/compressorjs
+ *
+ * Copyright 2018-present Chen Fengyuan
+ * Released under the MIT license
+ *
+ * Date: 2026-04-06T07:12:45.816Z
+ */var p={exports:{}};(function(o){typeof window>"u"||(function(t){var r=t.HTMLCanvasElement&&t.HTMLCanvasElement.prototype,i=t.Blob&&(function(){try{return!!new Blob}catch{return!1}})(),l=i&&t.Uint8Array&&(function(){try{return new Blob([new Uint8Array(100)]).size===100}catch{return!1}})(),u=t.BlobBuilder||t.WebKitBlobBuilder||t.MozBlobBuilder||t.MSBlobBuilder,U=/^data:((.*?)(;charset=.*?)?)(;base64)?,/,f=(i||u)&&t.atob&&t.ArrayBuffer&&t.Uint8Array&&function(a){var e,n,s,h,B,b,m,c,v;if(e=a.match(U),!e)throw new Error("invalid data URI");for(n=e[2]?e[1]:"text/plain"+(e[3]||";charset=US-ASCII"),s=!!e[4],h=a.slice(e[0].length),s?B=atob(h):B=decodeURIComponent(h),b=new ArrayBuffer(B.length),m=new Uint8Array(b),c=0;c<B.length;c+=1)m[c]=B.charCodeAt(c);return i?new Blob([l?m:b],{type:n}):(v=new u,v.append(b),v.getBlob(n))};t.HTMLCanvasElement&&!r.toBlob&&(r.mozGetAsFile?r.toBlob=function(a,e,n){var s=this;setTimeout(function(){n&&r.toDataURL&&f?a(f(s.toDataURL(e,n))):a(s.mozGetAsFile("blob",e))})}:r.toDataURL&&f&&(r.msToBlob?r.toBlob=function(a,e,n){var s=this;setTimeout(function(){(e&&e!=="image/png"||n)&&r.toDataURL&&f?a(f(s.toDataURL(e,n))):a(s.msToBlob(e))})}:r.toBlob=function(a,e,n){var s=this;setTimeout(function(){a(f(s.toDataURL(e,n)))})})),o.exports?o.exports=f:t.dataURLtoBlob=f})(window)})(p);function d(o){const t=o.lastIndexOf(".");return t!==-1?o.slice(t+1).toLowerCase():""}function A(o){if(o===0)return"0 B";const t=1024,r=["B","KB","MB","GB","TB"],i=Math.floor(Math.log(o)/Math.log(t));return`${(o/Math.pow(t,i)).toFixed(2)} ${r[i]}`}function L(o,t=!1){return new Promise((r,i)=>{const l=new FileReader;l.readAsDataURL(o),l.onload=()=>{if(t){const u=l.result;r(u)}else{const u=l.result.split(",")[1];r(u)}},l.onerror=i})}export{L as a,A as f,d as g};

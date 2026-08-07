@@ -200,7 +200,7 @@ function destroyEditor() {
   padding-right: 15px;
   padding-left: 15px;
   padding-bottom: 15px;
-  background: var(--el-bg-color);
+  background: var(--s-paper);
   @media (max-width: 767px) {
     padding-right: 10px;
     padding-left: 10px;

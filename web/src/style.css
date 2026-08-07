@@ -4,7 +4,7 @@
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     scrollbar-width: thin;
-    scrollbar-color: var(--dark-border) transparent;
+    scrollbar-color: var(--s-line) transparent;
 }
 
 html, body {
@@ -17,24 +17,15 @@ html, body {
     height: 100%;
 }
 
-:deep(.el-input__inner:focus) {
-    background-color: transparent !important;
-    border-color: #dcdfe6 !important;
-}
-
-.el-table thead th {
-    font-weight: bold !important;
-}
-
 body {
-    font-family: -apple-system, Inter, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-family: var(--s-font-body);
     line-height: 1.5;
-    color: var(--el-text-color-primary);
+    color: var(--s-ink);
     font-size: 14px;
 }
 
 html, body {
-    background: var(--el-bg-color);
+    background: var(--s-body);
 }
 
 ul, ol {
@@ -59,26 +50,9 @@ button, input, select, textarea {
     outline: none;
 }
 
-.el-message {
-    white-space: nowrap !important;
-}
-
-.message-bottom {
-    top: auto !important;
-    bottom: 20px !important;
-
-    .el-icon {
-        display: none !important;
-    }
-}
-
-.el-input-group__append, .el-input-group__prepend {
-    color: var(--el-text-color-primary) !important;
-    background: var(--el-bg-color) !important;
-}
-
+/* TinyMCE overrides */
 .tox .tox-dialog__iframe.tox-dialog__iframe--opaque {
-    background-color: var(--el-bg-color) !important;
+    background-color: var(--s-paper) !important;
 }
 
 .tox .tox-dialog--width-lg {
@@ -106,111 +80,52 @@ button, input, select, textarea {
     max-height: 220px !important;
 }
 
+/* Legacy custom variables kept for backward compatibility */
 :root {
-    --el-color-primary: #8b5cf6;
-    --el-color-primary-dark-2: #7c3aed;
-    --el-color-primary-light-3: #a78bfa;
-    --el-color-primary-light-5: #c4b5fd;
-    --el-color-primary-light-7: #ddd6fe;
-    --el-color-primary-light-9: #f5f3ff;
-
     --extra-light-fill: #FAFCFF;
     --light-ill: #F5F7FA;
     --light-border: #E4E7ED;
-    --header-actions-border: inset 0 -1px 0 0 var(--el-border-color-lighter);
-    --aside-backgound: #F5F0FF;
+    --aside-backgound: var(--s-paper);
     --loadding-background: rgba(255, 255, 255, 0.8);
-    --dark-border: #CDD0D6;
+    --dark-border: var(--s-line);
     --base-fill: #F0F2F5;
-    --regular-text-color: #585d69;
-    --light-border-color: #e7e9ec;
+    --regular-text-color: var(--s-muted);
+    --light-border-color: var(--s-line-light);
     --aside-right-border: none;
-    --choose-account-background: var(--el-color-primary-light-8);
-    --el-text-color-regular: var(--el-text-color-primary);
     --email-scroll-content-color: rgba(25, 41, 59, 0.4);
-    --email-hover-background: #F5F0FF;
-    --login-border: none;
-    --form-desc-color: #71717a;
-    --login-switch-color: #8b5cf6;
-    --scrollbar-track-color: #A8ABB2;
-    --base-border-color: #DCDFE6;
-    --secondary-text-color: #909399;
-    --aside-text-color: #4a3560;
-    --aside-title-text: #ffffff;
+    --email-hover-background: var(--s-soft);
+    --form-desc-color: var(--s-muted);
+    --scrollbar-track-color: var(--s-muted);
+    --base-border-color: var(--s-line);
+    --secondary-text-color: var(--s-muted);
     --message-block-color: rgba(0, 0, 0, 0);
     --loading-hide-transition: all 200ms;
     --vt-x: 50%;
     --vt-y: 50%;
     --vt-duration: 520ms;
     --vt-easing: ease-out;
-    --gradient-accent: linear-gradient(135deg, #8b5cf6, #f59e0b);
-    --gradient-accent-hover: linear-gradient(135deg, #7c3aed, #d97706);
-    --email-right-checked-bg: #FDF6EC;
-    --login-bg-from: #f5f3ff;
-    --login-bg-to: #ede9fe;
-    --login-bg-mid: #faf5ff;
-    --login-glow-1: rgba(139, 92, 246, 0.06);
-    --login-glow-2: rgba(245, 158, 11, 0.04);
-    --login-glow-3: rgba(139, 92, 246, 0.05);
-    --login-form-bg: rgba(255, 255, 255, 0.85);
-    --login-form-bg-mobile: rgba(255, 255, 255, 0.9);
-    --login-form-border: rgba(139, 92, 246, 0.15);
-    --login-form-shadow: -10px 0 40px rgba(139, 92, 246, 0.08);
-    --login-input-bg: rgba(255, 255, 255, 0.8);
-    --login-input-border: rgba(139, 92, 246, 0.15);
 }
 
 .dark {
-    --extra-light-fill: #110022;
-    --light-ill: #1a0a2e;
-    --light-border: #2d1b4e;
-    --aside-backgound: #0c0015;
-    --header-actions-border: inset 0 -1px 0 0 #2d1b4e;
+    --extra-light-fill: #1a1614;
+    --light-ill: #231e1a;
+    --light-border: var(--s-line);
+    --aside-backgound: var(--s-paper);
     --loadding-background: rgba(0, 0, 0, 0.3);
-    --dark-border: #3d2a5c;
-    --base-fill: #1a0a2e;
-    --regular-text-color: #d4c8e8;
-    --light-border-color: #2d1b4e;
-    --aside-right-border: none;
-    --choose-account-background: #2d1b4e;
+    --dark-border: var(--s-line);
+    --base-fill: var(--s-soft);
+    --regular-text-color: var(--s-ink-secondary);
+    --light-border-color: var(--s-line-light);
     --email-scroll-content-color: rgba(255, 255, 255, 0.3);
-    --email-hover-background: #1f0e38;
-    --login-border: none;
-    --form-desc-color: #9f8fc0;
-    --login-switch-color: #a78bfa;
-    --scrollbar-track-color: #5b4a7a;
-    --base-border-color: #2d1b4e;
-    --secondary-text-color: #9f8fc0;
-    --aside-text-color: #e8dff5;
-    --aside-title-text: #ffffff;
+    --email-hover-background: var(--s-soft);
+    --form-desc-color: var(--s-muted);
+    --scrollbar-track-color: var(--s-muted);
+    --base-border-color: var(--s-line);
+    --secondary-text-color: var(--s-muted);
     --message-block-color: rgba(20, 10, 40, 0.2);
-    --el-color-primary-light-9: #1f0e38;
-    --el-color-primary-light-7: #2d1b4e;
-    --el-border-color: #2d1b4e !important;
-    --el-bg-color: #110022 !important;
-    --el-bg-color-overlay: #1a0a2e !important;
-    --el-text-color-primary: #e8dff5 !important;
-    --el-fill-color-blank: #110022 !important;
-    --email-right-checked-bg: rgba(139, 92, 246, 0.1);
-    --login-bg-from: #0c0015;
-    --login-bg-to: #1a0a2e;
-    --login-bg-mid: #110022;
-    --login-glow-1: rgba(139, 92, 246, 0.08);
-    --login-glow-2: rgba(245, 158, 11, 0.05);
-    --login-glow-3: rgba(139, 92, 246, 0.06);
-    --login-form-bg: rgba(17, 0, 34, 0.85);
-    --login-form-bg-mobile: rgba(17, 0, 34, 0.9);
-    --login-form-border: rgba(139, 92, 246, 0.15);
-    --login-form-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
-    --login-input-bg: rgba(26, 10, 46, 0.8);
-    --login-input-border: rgba(139, 92, 246, 0.1);
 }
 
-.el-input {
-    --el-input-text-color: var(--el-text-color-primary) !important;
-}
-
-/* 视图过渡，基于径向剪裁 */
+/* View transitions for dark mode toggle */
 html.dark,
 html:not(.dark) {
     view-transition-name: root;
@@ -222,19 +137,16 @@ html:not(.dark) {
     mix-blend-mode: normal;
 }
 
-/* 层级控制，确保对应方向动画在上层可见 */
 html[data-theme-to="dark"]::view-transition-new(root) { z-index: 2; }
 html[data-theme-to="dark"]::view-transition-old(root) { z-index: 1; }
 html[data-theme-to="light"]::view-transition-old(root) { z-index: 2; }
 html[data-theme-to="light"]::view-transition-new(root) { z-index: 1; }
 
-/* 切到暗色：新视图从点击点向外扩散 */
 html[data-theme-to="dark"]::view-transition-new(root) {
     clip-path: circle(0px at var(--vt-x) var(--vt-y));
     animation: vt-radial-in var(--vt-duration) var(--vt-easing) forwards;
 }
 
-/* 切到浅色：旧视图向点击点收缩 */
 html[data-theme-to="light"]::view-transition-old(root) {
     clip-path: circle(var(--vt-end-radius, 0px) at var(--vt-x) var(--vt-y));
     animation: vt-radial-out var(--vt-duration) var(--vt-easing) forwards;

@@ -1,479 +1,309 @@
 <template>
-  <div class="header" :class="!hasPerm('email:send') ? 'not-send' : ''">
-    <div class="header-btn">
-      <hanburger @click="changeAside"></hanburger>
-      <span class="breadcrumb-item">{{ $t(route.meta.title) }}</span>
+  <div class="topbar-inner">
+    <!-- Left: hamburger + breadcrumb -->
+    <div class="topbar-left">
+      <button class="hamburger" @click="uiStore.asideShow = !uiStore.asideShow" aria-label="菜单">
+        <Icon icon="ci:hamburger" width="22" height="22" />
+      </button>
+      <span class="breadcrumb">{{ $t(route.meta.title) }}</span>
     </div>
-    <div v-perm="'email:send'" class="writer-box" @click="openSend">
-      <div class="writer">
-        <Icon icon="material-symbols:edit-outline-sharp" width="22" height="22"/>
+
+    <!-- Center: search (decorative for now) -->
+    <div class="topbar-center">
+      <div class="search-bar">
+        <Icon icon="ci:search" width="16" height="16" class="search-icon" />
+        <input type="text" :placeholder="$t('search') || '搜索邮件'" class="search-input" />
+        <span class="search-shortcut">⌘ K</span>
       </div>
     </div>
-    <div class="toolbar">
-      <div v-if="uiStore.dark" class="sun-icon icon-item" @click="openDark($event)">
-        <Icon icon="mingcute:sun-fill"/>
-      </div>
-      <div v-else class="dark-icon icon-item" @click="openDark($event)">
-        <Icon icon="solar:moon-linear"/>
-      </div>
-      <div class="notice icon-item" @click="openNotice">
-        <Icon icon="streamline-plump:announcement-megaphone"/>
-      </div>
-      <el-dropdown ref="userinfoRef" @visible-change="e => userInfoShow = e" :teleported="false" popper-class="detail-dropdown">
-        <div class="avatar" @click="userInfoHide" >
-          <div class="avatar-text">
-            <div>{{ formatName(userStore.user.email) }}</div>
-          </div>
-          <Icon class="setting-icon" icon="mingcute:down-small-fill" width="24" height="24"/>
-        </div>
-        <template #dropdown>
-          <div class="user-details">
-            <div class="details-avatar">
-              {{ formatName(userStore.user.email) }}
-            </div>
-            <div class="user-name">
-              {{ userStore.user.name }}
-            </div>
-            <div class="detail-email" @click="copyEmail(userStore.user.email)">
-              {{ userStore.user.email }}
-            </div>
-            <div class="detail-user-type">
-              <el-tag>{{ userStore.user.role.name }}</el-tag>
-            </div>
-            <div class="action-info">
-              <div>
-                <span style="margin-right: 10px">{{ $t('sendCount') }}</span>
-                <span style="margin-right: 10px">{{ $t('accountCount') }}</span>
-              </div>
-              <div>
-                <div>
-                  <span v-if="sendCount" style="margin-right: 5px">{{ sendCount }}</span>
-                  <el-tag v-if="!hasPerm('email:send')">{{ sendType }}</el-tag>
-                  <el-tag v-else>{{ sendType }}</el-tag>
-                </div>
-                <div>
-                  <el-tag v-if="settingStore.settings.manyEmail || settingStore.settings.addEmail">
-                    {{ $t('disabled') }}
-                  </el-tag>
-                  <span v-else-if="accountCount && hasPerm('account:add')"
-                        style="margin-right: 5px">{{ $t('totalUserAccount', {msg: accountCount}) }}</span>
-                  <el-tag v-else-if="!accountCount && hasPerm('account:add')">{{ $t('unlimited') }}</el-tag>
-                  <el-tag v-else-if="!hasPerm('account:add')">{{ $t('unauthorized') }}</el-tag>
-                </div>
-              </div>
-            </div>
-            <div class="logout">
-              <el-button type="primary" :loading="logoutLoading" @click="clickLogout">{{ $t('logOut') }}</el-button>
-            </div>
+
+    <!-- Right: actions -->
+    <div class="topbar-right">
+      <!-- Dark mode -->
+      <button class="icon-btn" @click="openDark($event)" :aria-label="uiStore.dark ? '浅色模式' : '深色模式'">
+        <Icon v-if="uiStore.dark" icon="mingcute:sun-fill" width="20" height="20" />
+        <Icon v-else icon="solar:moon-linear" width="20" height="20" />
+      </button>
+
+      <!-- Notice -->
+      <button class="icon-btn" @click="uiStore.showNotice()">
+        <Icon icon="streamline-plump:announcement-megaphone" width="20" height="20" />
+      </button>
+
+      <!-- User dropdown -->
+      <s-dropdown ref="userDropdownRef">
+        <template #trigger>
+          <div class="user-trigger">
+            <div class="user-avatar">{{ formatName(userStore.user.email) }}</div>
+            <Icon icon="mingcute:down-small-fill" width="18" height="18" class="user-arrow" />
           </div>
         </template>
-      </el-dropdown>
+        <div class="user-panel">
+          <div class="panel-avatar">{{ formatName(userStore.user.email) }}</div>
+          <div class="panel-name">{{ userStore.user.name }}</div>
+          <div class="panel-email" @click="copyEmail(userStore.user.email)">{{ userStore.user.email }}</div>
+          <div class="panel-role"><s-tag>{{ userStore.user.role.name }}</s-tag></div>
+          <div class="panel-stats">
+            <div class="stat-row">
+              <span>{{ $t('sendCount') }}</span>
+              <span>{{ $t('accountCount') }}</span>
+            </div>
+            <div class="stat-row">
+              <span v-if="sendCount" class="stat-val">{{ sendCount }}</span>
+              <s-tag v-if="!hasPerm('email:send')" type="danger">{{ sendType }}</s-tag>
+              <s-tag v-else type="accent">{{ sendType }}</s-tag>
+              <span>
+                <s-tag v-if="settingStore.settings.manyEmail || settingStore.settings.addEmail" type="default">{{ $t('disabled') }}</s-tag>
+                <span v-else-if="accountCount && hasPerm('account:add')" class="stat-val">{{ $t('totalUserAccount', {msg: accountCount}) }}</span>
+                <s-tag v-else-if="!accountCount && hasPerm('account:add')" type="info">{{ $t('unlimited') }}</s-tag>
+                <s-tag v-else-if="!hasPerm('account:add')" type="default">{{ $t('unauthorized') }}</s-tag>
+              </span>
+            </div>
+          </div>
+          <div class="panel-logout">
+            <s-button type="primary" block :loading="logoutLoading" @click="clickLogout">{{ $t('logOut') }}</s-button>
+          </div>
+        </div>
+      </s-dropdown>
     </div>
   </div>
 </template>
 
 <script setup>
-import router from "@/router";
-import hanburger from '@/components/hamburger/index.vue'
-import {logout} from "@/request/login.js";
-import {Icon} from "@iconify/vue";
-import {useUiStore} from "@/store/ui.js";
-import {useUserStore} from "@/store/user.js";
-import {useRoute} from "vue-router";
-import {computed, ref} from "vue";
-import {useSettingStore} from "@/store/setting.js";
-import {hasPerm} from "@/perm/perm.js"
-import {useI18n} from "vue-i18n";
-import {setExtend} from "@/utils/day.js"
+import router from '@/router'
+import { logout } from '@/request/login.js'
+import { Icon } from '@iconify/vue'
+import { useUiStore } from '@/store/ui.js'
+import { useUserStore } from '@/store/user.js'
+import { useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useSettingStore } from '@/store/setting.js'
+import { hasPerm } from '@/perm/perm.js'
+import { useI18n } from 'vue-i18n'
+import { setExtend } from '@/utils/day.js'
+import { toast } from '@/components/ui/toast.js'
+import SDropdown from '@/components/ui/s-dropdown.vue'
+import SButton from '@/components/ui/s-button.vue'
+import STag from '@/components/ui/s-tag.vue'
 
-const {t} = useI18n();
-const route = useRoute();
-const settingStore = useSettingStore();
-const userStore = useUserStore();
-const uiStore = useUiStore();
+const { t } = useI18n()
+const route = useRoute()
+const settingStore = useSettingStore()
+const userStore = useUserStore()
+const uiStore = useUiStore()
 const logoutLoading = ref(false)
-const userInfoShow = ref(false)
-const userinfoRef = ref({})
+const userDropdownRef = ref(null)
 
-const accountCount = computed(() => {
-  return userStore.user.role.accountCount
-})
+const accountCount = computed(() => userStore.user.role.accountCount)
 
 const sendType = computed(() => {
-
-  if (settingStore.settings.send === 1) {
-    return t('disabled')
-  }
-
-  if (!hasPerm('email:send')) {
-    return t('unauthorized')
-  }
-
-  if (userStore.user.role.sendType === 'ban') {
-    return t('sendBanned')
-  }
-
-  if (userStore.user.role.sendType === 'internal') {
-    return t('sendInternal')
-  }
-
-  if (!userStore.user.role.sendCount) {
-    return t('unlimited')
-  }
-
-  if (userStore.user.role.sendType === 'day') {
-    return t('daily')
-  }
-
-  if (userStore.user.role.sendType === 'count') {
-    return t('total')
-  }
+  if (settingStore.settings.send === 1) return t('disabled')
+  if (!hasPerm('email:send')) return t('unauthorized')
+  if (userStore.user.role.sendType === 'ban') return t('sendBanned')
+  if (userStore.user.role.sendType === 'internal') return t('sendInternal')
+  if (!userStore.user.role.sendCount) return t('unlimited')
+  if (userStore.user.role.sendType === 'day') return t('daily')
+  if (userStore.user.role.sendType === 'count') return t('total')
 })
 
 const sendCount = computed(() => {
-
-
-  if (!hasPerm('email:send')) {
-    return null
-  }
-
-  if (userStore.user.role.sendType === 'ban') {
-    return null
-  }
-
-  if (userStore.user.role.sendType === 'internal') {
-    return null
-  }
-
-  if (!userStore.user.role.sendCount) {
-    return null
-  }
-
-  if (settingStore.settings.send === 1) {
-    return null
-  }
-
+  if (!hasPerm('email:send')) return null
+  if (userStore.user.role.sendType === 'ban') return null
+  if (userStore.user.role.sendType === 'internal') return null
+  if (!userStore.user.role.sendCount) return null
+  if (settingStore.settings.send === 1) return null
   return userStore.user.sendCount + '/' + userStore.user.role.sendCount
 })
 
-function userInfoHide(e) {
-    if (userInfoShow.value) {
-        userinfoRef.value.handleClose()
-    } else {
-        userinfoRef.value.handleOpen()
-    }
-}
-
 async function copyEmail(email) {
   try {
-    await navigator.clipboard.writeText(email);
-    ElMessage({
-      message: t('copySuccessMsg'),
-      type: 'success',
-      plain: true,
-    })
+    await navigator.clipboard.writeText(email)
+    toast(t('copySuccessMsg'), 'success')
   } catch (err) {
-    console.error(`${t('copyFailMsg')}:`, err);
-    ElMessage({
-      message: t('copyFailMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('copyFailMsg'), 'error')
   }
 }
 
-function changeLang(lang) {
-  setExtend(lang === 'en' ? 'en' : 'zh-cn')
-  settingStore.lang = lang
-}
-
-function openNotice() {
-  uiStore.showNotice()
-}
-
 function openDark(e) {
-
   const nextIsDark = !uiStore.dark
   const root = document.documentElement
 
   if (!document.startViewTransition) {
-    switchDark(nextIsDark, root);
+    switchDark(nextIsDark, root)
     return
   }
 
-  const x = e.clientX
-  const y = e.clientY
-
+  const x = e.clientX, y = e.clientY
   const maxX = Math.max(x, window.innerWidth - x)
   const maxY = Math.max(y, window.innerHeight - y)
   const endRadius = Math.hypot(maxX, maxY)
 
-  // 标记切换目标，供 CSS 选择器使用
   root.setAttribute('data-theme-to', nextIsDark ? 'dark' : 'light')
   root.style.setProperty('--vt-x', `${x}px`)
   root.style.setProperty('--vt-y', `${y}px`)
   root.style.setProperty('--vt-end-radius', `${endRadius + 10}px`)
 
-  const transition = document.startViewTransition(() => {
-    switchDark(nextIsDark, root);
-  })
-
-  transition.finished.finally(() => {
-    // 清理标记
-    root.removeAttribute('data-theme-to')
-  })
+  const transition = document.startViewTransition(() => switchDark(nextIsDark, root))
+  transition.finished.finally(() => root.removeAttribute('data-theme-to'))
 }
 
 function switchDark(nextIsDark, root) {
   root.setAttribute('class', nextIsDark ? 'dark' : '')
-  const metaTag = document.getElementById('theme-color-meta');
-  const isMobile =  !window.matchMedia("(pointer: fine) and (hover: hover)").matches;
-  metaTag.setAttribute('content', nextIsDark ? (isMobile ? '#110022' : '#0c0015') : (isMobile ? '#FFFFFF' : '#F5F3FF'));
+  const metaTag = document.getElementById('theme-color-meta')
+  const isMobile = !window.matchMedia('(pointer: fine) and (hover: hover)').matches
+  metaTag?.setAttribute('content', nextIsDark ? (isMobile ? '#1a1614' : '#231e1a') : (isMobile ? '#eee5d8' : '#fbf6ee'))
   uiStore.dark = nextIsDark
-}
-
-function openSend() {
-  uiStore.writerRef.open()
-}
-
-function changeAside() {
-  uiStore.asideShow = !uiStore.asideShow
 }
 
 function clickLogout() {
   logoutLoading.value = true
   logout().then(() => {
-    localStorage.removeItem("token")
+    localStorage.removeItem('token')
     router.replace('/login')
-  }).finally(() => {
-    logoutLoading.value = false
-  })
+  }).finally(() => { logoutLoading.value = false })
 }
 
 function formatName(email) {
   return email[0]?.toUpperCase() || ''
 }
-
 </script>
-<style>
-.detail-dropdown {
-  color: var(--el-text-color-primary) !important;
-}
-</style>
-<style lang="scss" scoped>
 
-:deep(.el-popper.is-pure) {
-  border-radius: 6px;
-}
-
-.user-details {
-  width: 250px;
-  font-size: 14px;
+<style scoped>
+.topbar-inner {
   display: grid;
-  grid-template-columns: 1fr;
-  justify-items: center;
-
-  .user-name {
-    font-weight: bold;
-    margin-top: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    width: 250px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    text-align: center;
-  }
-
-  .detail-user-type {
-    margin-top: 10px;
-  }
-
-  .action-info {
-    width: 100%;
-    display: grid;
-    grid-template-columns: auto auto;
-    margin-top: 10px;
-
-    > div:first-child {
-      display: grid;
-      align-items: center;
-      gap: 10px;
-    }
-
-    > div:last-child {
-      display: grid;
-      gap: 10px;
-      text-align: center;
-
-      > div {
-        display: flex;
-        align-items: center;
-      }
-    }
-  }
-
-  .detail-email {
-    padding-left: 20px;
-    padding-right: 20px;
-    width: 250px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    text-align: center;
-    color: var(--regular-text-color);
-    cursor: pointer;
-  }
-
-  .logout {
-    margin-top: 20px;
-    width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 10px;
-
-    .el-button {
-      border-radius: 6px;
-      height: 28px;
-      width: 100%;
-    }
-  }
-
-  .details-avatar {
-    margin-top: 20px;
-    height: 40px;
-    width: 40px;
-    background: var(--el-bg-color);
-    color: var(--el-text-color-primary);
-    border: 1px solid var(--dark-border);
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-  }
-}
-
-
-.header {
-  text-align: right;
-  font-size: 12px;
-  display: grid;
-  height: 100%;
-  gap: 10px;
-  grid-template-columns: auto auto 1fr;
-}
-
-.header.not-send {
-  grid-template-columns: auto 1fr;
-}
-
-.writer-box {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 5px;
-
-  .writer {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    color: #ffffff;
-    background: linear-gradient(135deg, #8b5cf6, #f59e0b);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .writer-text {
-      margin-left: 15px;
-      font-size: 14px;
-      font-weight: bold;;
-    }
-  }
-}
-
-.header-btn {
-  display: inline-flex;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   height: 100%;
-  min-width: 0;
+  padding: 0 20px;
+  gap: 16px;
 }
 
-.breadcrumb-item {
-  font-weight: bold;
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.topbar-left {
+  display: flex; align-items: center; gap: 12px;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: end;
-  gap: 15px;
-  @media (max-width: 767px) {
-    gap: 10px;
-  }
+.hamburger {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--s-radius);
+  color: var(--s-muted);
+  transition: all var(--s-ease);
+}
+.hamburger:hover { background: var(--s-soft); color: var(--s-ink); }
 
-  .icon-item {
-    align-self: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .icon-item:hover {
-    background: var(--base-fill);
-  }
-
-  .notice {
-    font-size: 22px;
-    margin-right: 4px;
-  }
-
-  .dark-icon {
-    font-size: 20px;
-  }
-
-  .sun-icon {
-    font-size: 24px;
-  }
-
-  .avatar {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-
-    .avatar-text {
-      background: var(--el-bg-color);
-      color: var(--el-text-color-primary);
-      height: 30px;
-      width: 30px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 8px;
-      border: 1px solid var(--dark-border);
-    }
-
-    .setting-icon {
-      position: relative;
-      top: 0;
-      margin-right: 10px;
-      bottom: 10px;
-    }
-  }
-
+@media (max-width: 1024px) {
+  .hamburger { display: flex; }
 }
 
-.el-tooltip__trigger:first-child:focus-visible {
-  outline: unset;
+.breadcrumb {
+  font-family: var(--s-font-display);
+  font-weight: 700; font-size: 16px;
+  color: var(--s-ink);
+}
+
+.topbar-center { display: flex; justify-content: center; }
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--s-soft);
+  border-radius: var(--s-radius);
+  padding: 8px 14px;
+  max-width: 360px; width: 100%;
+}
+.search-icon { color: var(--s-muted); flex-shrink: 0; }
+.search-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  color: var(--s-ink); font-size: 14px;
+}
+.search-input::placeholder { color: var(--s-muted); }
+.search-shortcut {
+  font-size: 11px; color: var(--s-muted);
+  background: var(--s-line-light);
+  padding: 2px 6px; border-radius: 4px;
+  font-weight: 600;
+}
+
+@media (max-width: 800px) {
+  .topbar-center { display: none; }
+}
+
+.topbar-right {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.icon-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--s-radius);
+  color: var(--s-muted);
+  transition: all var(--s-ease);
+}
+.icon-btn:hover { background: var(--s-soft); color: var(--s-ink); }
+
+.user-trigger {
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer; padding: 4px;
+  border-radius: var(--s-radius);
+  transition: all var(--s-ease);
+}
+.user-trigger:hover { background: var(--s-soft); }
+.user-avatar {
+  width: 32px; height: 32px;
+  background: var(--s-accent-soft);
+  color: var(--s-accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--s-font-display);
+  font-weight: 700; font-size: 14px;
+}
+.user-arrow { color: var(--s-muted); }
+
+/* User panel */
+.user-panel {
+  width: 260px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 0;
+}
+.panel-avatar {
+  width: 44px; height: 44px;
+  background: var(--s-accent-soft);
+  color: var(--s-accent);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--s-font-display);
+  font-weight: 800; font-size: 20px;
+  margin-top: 8px;
+}
+.panel-name {
+  font-weight: 700; font-size: 15px;
+  margin-top: 10px;
+  color: var(--s-ink);
+  max-width: 220px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.panel-email {
+  font-size: 13px; color: var(--s-muted);
+  margin-top: 2px; cursor: pointer;
+  max-width: 220px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.panel-email:hover { color: var(--s-accent); }
+.panel-role { margin-top: 8px; }
+.panel-stats {
+  width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0 16px;
+}
+.stat-row {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--s-muted);
+}
+.stat-val { font-weight: 600; color: var(--s-ink); }
+.panel-logout {
+  width: 100%;
+  padding: 12px 16px 4px;
+  margin-top: 8px;
 }
 </style>

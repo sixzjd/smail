@@ -2,16 +2,14 @@
   <div v-if="analysisLoading" class="analysis-loading">
     <loading/>
   </div>
-  <el-scrollbar v-else style="height: 100%;">
+  <div v-else class="analysis-scroll">
     <div class="analysis" :key="boxKey">
       <div class="number">
         <div class="number-item">
           <div class="top">
             <div class="left">
-              <div>{{ $t('totalReceived') }}</div>
-              <div>
-                <el-statistic :formatter="value => Math.round(value)" :value="receiveData"/>
-              </div>
+              <div class="stat-label">{{ $t('totalReceived') }}</div>
+              <div class="stat-value">{{ Math.round(receiveData) }}</div>
             </div>
             <div class="right">
               <div class="count-icon">
@@ -27,10 +25,8 @@
         <div class="number-item">
           <div class="top">
             <div class="left">
-              <div>{{ $t('totalSent') }}</div>
-              <div>
-                <el-statistic :formatter="value => Math.round(value)" :value="sendData"/>
-              </div>
+              <div class="stat-label">{{ $t('totalSent') }}</div>
+              <div class="stat-value">{{ Math.round(sendData) }}</div>
             </div>
             <div class="right">
               <div class="count-icon">
@@ -46,10 +42,8 @@
         <div class="number-item">
           <div class="top">
             <div class="left">
-              <div>{{ $t('totalMailboxes') }}</div>
-              <div>
-                <el-statistic :formatter="value => Math.round(value)" :value="accountData"/>
-              </div>
+              <div class="stat-label">{{ $t('totalMailboxes') }}</div>
+              <div class="stat-value">{{ Math.round(accountData) }}</div>
             </div>
             <div class="right">
               <div class="count-icon">
@@ -65,10 +59,8 @@
         <div class="number-item">
           <div class="top">
             <div class="left">
-              <div>{{ $t('totalUsers') }}</div>
-              <div>
-                <el-statistic :formatter="value => Math.round(value)" :value="userData"/>
-              </div>
+              <div class="stat-label">{{ $t('totalUsers') }}</div>
+              <div class="stat-value">{{ Math.round(userData) }}</div>
             </div>
             <div class="right">
               <div class="count-icon">
@@ -87,10 +79,7 @@
           <div class="title" style="display: flex;justify-content: space-between;">
             <span>{{ $t('emailSource') }}</span>
             <span class="source-button" v-if="false">
-              <el-radio-group v-model="checkedSourceType">
-                <el-radio-button label="发件人" value="sender"/>
-                <el-radio-button label="邮箱" value="email"/>
-              </el-radio-group>
+              <s-radio-group v-model="checkedSourceType" :options="[{label:'发件人',value:'sender'},{label:'邮箱',value:'email'}]" buttonStyle/>
             </span>
           </div>
           <div class="sender-pie">
@@ -115,7 +104,7 @@
         </div>
       </div>
     </div>
-  </el-scrollbar>
+  </div>
 </template>
 
 <script setup>
@@ -143,6 +132,7 @@ const receiveTotal = ref(0)
 const sendTotal = ref(0)
 const accountTotal = ref(0)
 const userTotal = ref(0)
+const analysisLoaded = ref(true)
 const analysisLoading = ref(true)
 
 const numberCount = reactive({
@@ -723,20 +713,7 @@ function createSendGauge() {
 
 
 </script>
-<style>
-.percentage-value {
-  display: block;
-  margin-top: 10px;
-  font-size: 28px;
-}
-
-.percentage-label {
-  display: block;
-  margin-top: 10px;
-  font-size: 12px;
-}
-</style>
-<style scoped lang="scss">
+<style scoped>
 .analysis-loading {
   height: 100%;
   width: 100%;
@@ -745,42 +722,57 @@ function createSendGauge() {
   justify-content: center;
 }
 
-.analysis {
+.analysis-scroll {
   height: 100%;
-  padding: 20px 20px 30px;
+  overflow-y: auto;
+  background: var(--s-body);
+}
+
+.analysis {
+  min-height: 100%;
+  padding: 24px 24px 36px;
   gap: 20px;
-  background: var(--extra-light-fill);
   display: grid;
   grid-auto-rows: min-content;
+  font-family: var(--s-font-body);
+  color: var(--s-ink);
   @media (max-width: 1024px) {
-    padding: 15px 15px 30px;
-    gap: 15px
+    padding: 16px 16px 36px;
+    gap: 16px;
   }
 
   .title {
-    margin-top: 10px;
-    margin-left: 15px;
-    font-size: 18px;
-    font-weight: 500;
+    margin-top: 12px;
+    margin-left: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--s-font-display);
+    color: var(--s-ink);
+    letter-spacing: -0.01em;
   }
 
   .number {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
     @media (max-width: 1366px) {
       grid-template-columns: 1fr 1fr;
-      gap: 15px;
+      gap: 14px;
     }
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
     }
 
     .number-item {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      border: 1px solid var(--el-border-color);
-      padding: 21px 20px;
+      background: var(--s-paper);
+      border-radius: var(--s-radius-lg);
+      border: 1px solid var(--s-line);
+      padding: 20px;
+      transition: box-shadow var(--s-ease);
+
+      &:hover {
+        box-shadow: var(--s-shadow-sm);
+      }
 
       .top {
         display: grid;
@@ -790,19 +782,24 @@ function createSendGauge() {
 
         .left {
           display: grid;
-          gap: 5px;
+          gap: 6px;
           grid-auto-rows: min-content;
 
-          > div:first-child {
-            font-size: 15px;
+          .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--s-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
 
-          > div:last-child {
-            font-size: 13px;
-          }
-
-          :deep(.el-statistic__number) {
-            font-size: 26px;
+          .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--s-font-display);
+            color: var(--s-ink);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
           }
         }
 
@@ -815,66 +812,62 @@ function createSendGauge() {
             position: relative;
             display: grid;
             align-items: center;
-            padding: 14px;
-            border-radius: 8px;
-            background: var(--el-color-primary-light-9);
-            color: var(--el-color-primary);
+            padding: 12px;
+            border-radius: var(--s-radius);
+            background: var(--s-accent-soft);
+            color: var(--s-accent);
           }
         }
-
       }
 
       .delete-ratio {
         width: 100%;
         display: grid;
-        grid-template-columns:  auto auto;
+        grid-template-columns: auto auto;
         justify-content: start;
         gap: 20px;
-        padding-top: 5px;
-        font-size: 14px;
+        padding-top: 10px;
+        font-size: 13px;
+        color: var(--s-muted);
 
         .normal {
           width: fit-content;
-          color: var(--el-color-success);
-          font-weight: bold;;
-          margin-left: 3px;
+          color: var(--s-success);
+          font-weight: 700;
+          margin-left: 4px;
         }
 
         .deleted {
           width: fit-content;
-          color: var(--el-color-danger);
-          font-weight: bold;;
-          margin-left: 3px;
+          color: var(--s-danger);
+          font-weight: 700;
+          margin-left: 4px;
         }
       }
-
     }
   }
 
   .picture {
     display: grid;
     grid-template-columns: 500px 1fr;
-    gap: 20px;
+    gap: 16px;
     @media (max-width: 1620px) {
       grid-template-columns: 1fr;
     }
     @media (max-width: 1024px) {
-      gap: 15px;
+      gap: 14px;
     }
 
     .picture-item {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      border: 1px solid var(--el-border-color);
+      background: var(--s-paper);
+      border-radius: var(--s-radius-lg);
+      border: 1px solid var(--s-line);
+      overflow: hidden;
 
       .source-button {
         padding-right: 15px;
         display: flex;
         align-items: start;
-
-        :deep(.el-radio-button__inner) {
-          padding: 6px 10px;
-        }
       }
 
       .sender-pie {
@@ -896,16 +889,17 @@ function createSendGauge() {
   .picture-cs {
     display: grid;
     grid-template-columns: 1fr 500px;
-    gap: 20px;
+    gap: 16px;
     @media (max-width: 1620px) {
       grid-template-columns: 1fr;
-      gap: 15px;
+      gap: 14px;
     }
 
     .picture-cs-item {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      border: 1px solid var(--el-border-color);
+      background: var(--s-paper);
+      border-radius: var(--s-radius-lg);
+      border: 1px solid var(--s-line);
+      overflow: hidden;
 
       .send-count {
         height: 350px;
@@ -923,25 +917,4 @@ function createSendGauge() {
     }
   }
 }
-
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

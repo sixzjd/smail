@@ -3,7 +3,7 @@
     <div class="loading" :class="firstLoading ? 'loading-show' : 'loading-hide'">
       <loading/>
     </div>
-    <el-scrollbar class="scroll" v-if="!firstLoading">
+    <div class="scroll" v-if="!firstLoading">
       <div class="scroll-body">
         <div class="card-grid">
           <!-- Website Settings Card -->
@@ -12,63 +12,38 @@
             <div class="card-content">
               <div class="setting-item">
                 <div><span>{{ $t('websiteReg') }}</span></div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.register"/>
-                </div>
+                <div><s-switch v-model="registerBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('loginDomain') }}</span></div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="1" :inactive-value="0"
-                             v-model="setting.loginDomain"/>
-                </div>
+                <div><s-switch v-model="loginDomainBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('regKey') }}</span></div>
                 <div>
-                  <el-select
-                      @change="change"
-                      :style="`width: ${ locale === 'en' ?  100 : 80 }px;`"
-                      v-model="setting.regKey"
-                      placeholder="Select"
-                  >
-                    <el-option
-                        v-for="item in regKeyOptions"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                  </el-select>
+                  <s-select @change="change" :style="`width: ${ locale === 'en' ? 75 : 65 }px;`"
+                      v-model="setting.register" :options="regKeyOptions"/>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('addAccount') }}</span></div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.addEmail"/>
-                </div>
+                <div><s-switch v-model="addEmailBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div>
                   <span>{{ $t('multipleEmail') }}</span>
-                  <el-tooltip effect="dark" :content="$t('multipleEmailDesc')">
+                  <s-tooltip :content="$t('multipleEmailDesc')">
                     <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-                  </el-tooltip>
+                  </s-tooltip>
                 </div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.manyEmail"/>
-                </div>
+                <div><s-switch v-model="manyEmailBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
-                <div>
-                  <span>{{ $t('emailPrefix') }}</span>
-                </div>
+                <div><span>{{ $t('emailPrefix') }}</span></div>
                 <div class="forward">
-                  <el-button class="opt-button" size="small" type="primary" @click="openEmailPrefix">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openEmailPrefix">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -82,48 +57,34 @@
                 <div class="title-item"><span>{{ $t('websiteTitle') }}</span></div>
                 <div class="email-title">
                   <span>{{ setting.title }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="editTitleShow = true">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="editTitleShow = true">
                     <Icon icon="lsicon:edit-outline" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div class="title-item"><span>{{ $t('loginBoxOpacity') }}</span></div>
                 <div>
-                  <el-input-number size="small" v-model="loginOpacity" @change="opacityChange" :precision="2"
-                                   :step="0.01" :max="1" :min="0"/>
+                  <s-input-number v-model="loginOpacity" @update:modelValue="opacityChange" :step="0.01" :max="1" :min="0"/>
                 </div>
               </div>
               <div class="setting-item">
                 <div class="title-item"><span>{{ $t('backgroundDarken') }}</span></div>
                 <div>
-                  <el-input-number size="small" v-model="loginDarkenFactor" @change="darkenChange" :precision="2"
-                                   :step="0.01" :max="1" :min="0"/>
+                  <s-input-number v-model="loginDarkenFactor" @update:modelValue="darkenChange" :step="0.01" :max="1" :min="0"/>
                 </div>
               </div>
               <div class="setting-item personalized">
                 <div><span>{{ $t('loginBackground') }}</span></div>
                 <div>
-                  <el-image
-                      class="background"
-                      :src="cvtR2Url(setting.background)"
-                      :preview-src-list="[cvtR2Url(setting.background)]"
-                      show-progress
-                      fit="cover"
-                  >
-                    <template #error>
-                      <div class="error-image">
-                        <Icon icon="ph:image" width="24" height="24"/>
-                      </div>
-                    </template>
-                  </el-image>
+                  <img class="background" :src="cvtR2Url(setting.background)" alt="background" @error="$event.target.style.display='none'"/>
                   <div class="background-btn">
-                    <el-button class="opt-button" size="small" type="primary" @click="openSetBackground">
+                    <s-button class="opt-button" size="sm" type="ghost" @click="openSetBackground">
                       <Icon icon="lsicon:edit-outline" width="16" height="16"/>
-                    </el-button>
-                    <el-button class="opt-button" size="small" type="primary" @click="delBackground">
+                    </s-button>
+                    <s-button class="opt-button" size="sm" type="ghost" @click="delBackground">
                       <Icon icon="material-symbols:delete-outline-rounded" width="16" height="16"/>
-                    </el-button>
+                    </s-button>
                   </div>
                 </div>
               </div>
@@ -136,76 +97,51 @@
             <div class="card-content">
               <div class="setting-item">
                 <div><span>{{ $t('receiveEmail') }}</span></div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.receive"/>
-                </div>
+                <div><s-switch v-model="receiveBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div>
                   <span>{{ $t('autoRefresh') }}</span>
-                  <el-tooltip effect="dark" :content="$t('autoRefreshDesc')">
+                  <s-tooltip :content="$t('autoRefreshDesc')">
                     <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-                  </el-tooltip>
+                  </s-tooltip>
                 </div>
                 <div>
-                  <el-select
-                      @change="change"
-                      :style="`width: ${ locale === 'en' ? 100 : 80 }px;`"
-                      v-model="setting.autoRefresh"
-                      placeholder="Select"
-                  >
-                    <el-option
-                        v-for="item in authRefreshOptions"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                  </el-select>
+                  <s-select @change="change" :style="`width: ${ locale === 'en' ? 75 : 65 }px;`"
+                      v-model="setting.autoRefresh" :options="authRefreshOptions"/>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('sendEmail') }}</span></div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.send"/>
-                </div>
+                <div><s-switch v-model="sendBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div>
                   <span>{{ $t('noRecipientTitle') }}</span>
-                  <el-tooltip effect="dark" :content="$t('noRecipientDesc')">
+                  <s-tooltip :content="$t('noRecipientDesc')">
                     <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-                  </el-tooltip>
+                  </s-tooltip>
                 </div>
-                <div>
-                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.noRecipient"/>
-                </div>
+                <div><s-switch v-model="noRecipientBool" @update:modelValue="onToggleChange"/></div>
               </div>
               <div class="setting-item">
                 <div><span>{{ setting.hasCfEmail ? $t('cloudflareEmailSending') : $t('resendToken') }}</span></div>
-                <div v-if="setting.hasCfEmail">
-                  <span>{{ $t('enabled') }}</span>
-                </div>
+                <div v-if="setting.hasCfEmail"><span>{{ $t('enabled') }}</span></div>
                 <div v-else>
-                  <el-button class="opt-button" style="margin-top: 0" @click="openResendList" size="small"
-                             type="primary">
+                  <s-button class="opt-button" @click="openResendList" size="sm" type="ghost">
                     <Icon icon="ic:round-list" width="18" height="18"/>
-                  </el-button>
-                  <el-button class="opt-button" style="margin-top: 0" @click="openResendForm" size="small"
-                             type="primary">
+                  </s-button>
+                  <s-button class="opt-button" @click="openResendForm" size="sm" type="ghost">
                     <Icon icon="material-symbols:add-rounded" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('blackList') }}</span></div>
                 <div>
-                  <el-button class="opt-button" style="margin-top: 0" @click="openBlackListForm" size="small"
-                             type="primary">
+                  <s-button class="opt-button" @click="openBlackListForm" size="sm" type="ghost">
                     <Icon icon="fluent:settings-48-regular" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -218,35 +154,29 @@
               <div class="r2domain-item">
                 <div>
                   <span>{{ $t('osDomain') }}</span>
-                  <el-tooltip effect="dark" :content="$t('ossDomainDesc')">
+                  <s-tooltip :content="$t('ossDomainDesc')">
                     <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-                  </el-tooltip>
+                  </s-tooltip>
                 </div>
                 <div class="r2domain">
                   <span>{{ setting.r2Domain || '' }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="r2DomainShow = true">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="r2DomainShow = true">
                     <Icon icon="lsicon:edit-outline" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
-                <div>
-                  <span>{{ $t('s3Configuration') }}</span>
-                </div>
+                <div><span>{{ $t('s3Configuration') }}</span></div>
                 <div class="r2domain">
-                  <el-button class="opt-button" size="small" type="primary" @click="addS3Show = true">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="addS3Show = true">
                     <Icon icon="fluent:settings-48-regular" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
-                <div>
-                  <span>{{ $t('storageType') }}</span>
-                </div>
+                <div><span>{{ $t('storageType') }}</span></div>
                 <div class="r2domain">
-                  <div class="storage-type">
-                    <el-tag>{{ setting.storageType }}</el-tag>
-                  </div>
+                  <div class="storage-type"><s-tag>{{ setting.storageType }}</s-tag></div>
                 </div>
               </div>
             </div>
@@ -259,27 +189,27 @@
                 <div><span>{{ $t('tgBot') }}</span></div>
                 <div class="forward">
                   <span>{{ setting.tgBotStatus === 0 ? $t('enabled') : $t('disabled') }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="openTgSetting">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openTgSetting">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('otherEmail') }}</span></div>
                 <div class="forward">
                   <span>{{ setting.forwardStatus === 0 ? $t('enabled') : $t('disabled') }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="openThirdEmailSetting">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openThirdEmailSetting">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('forwardingRules') }}</span></div>
                 <div class="forward">
                   <span>{{ setting.ruleType === 0 ? $t('forwardAll') : $t('rules') }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="openForwardRules">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openForwardRules">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -292,57 +222,39 @@
               <div class="setting-item">
                 <div><span>{{ $t('signUpVerification') }}</span></div>
                 <div>
-                  <el-button class="opt-button" size="small" type="primary" @click="openRegVerifyCount">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openRegVerifyCount">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
-                  <el-select
-                      @change="change"
-                      :style="`width: ${ locale === 'en' ? 100 : 80 }px;`"
-                      v-model="setting.registerVerify"
-                      placeholder="Select"
-                      class="bot-verify-select"
-                  >
-                    <el-option key="1" :value="0" :label="$t('enable')"/>
-                    <el-option key="1" :value="1" :label="$t('disable')"/>
-                    <el-option key="1" :value="2" :label="$t('rulesVerify')"/>
-                  </el-select>
+                  </s-button>
+                  <s-select @change="change" :style="`width: ${ locale === 'en' ? 75 : 65 }px;`"
+                      v-model="setting.registerVerify" :options="verifyOptions" class="bot-verify-select"/>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('addEmailVerification') }}</span></div>
                 <div>
-                  <el-button class="opt-button" size="small" type="primary" @click="openAddVerifyCount">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openAddVerifyCount">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
-                  <el-select
-                      @change="change"
-                      :style="`width: ${ locale === 'en' ? 100 : 80 }px;`"
-                      v-model="setting.addEmailVerify"
-                      placeholder="Select"
-                      class="bot-verify-select"
-                  >
-                    <el-option key="1" :value="0" :label="$t('enable')"/>
-                    <el-option key="1" :value="1" :label="$t('disable')"/>
-                    <el-option key="1" :value="2" :label="$t('rulesVerify')"/>
-                  </el-select>
+                  </s-button>
+                  <s-select @change="change" :style="`width: ${ locale === 'en' ? 75 : 65 }px;`"
+                      v-model="setting.addEmailVerify" :options="verifyOptions" class="bot-verify-select"/>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>Site Key</span></div>
                 <div class="bot-verify">
                   <span>{{ setting.siteKey }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="turnstileShow = true">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="turnstileShow = true">
                     <Icon icon="lsicon:edit-outline" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>Secret Key</span></div>
                 <div class="bot-verify">
-                  <span> {{ setting.secretKey }} </span>
-                  <el-button class="opt-button" size="small" type="primary" @click="turnstileShow = true">
+                  <span>{{ setting.secretKey }}</span>
+                  <s-button class="opt-button" size="sm" type="ghost" @click="turnstileShow = true">
                     <Icon icon="lsicon:edit-outline" width="16" height="16"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -355,17 +267,17 @@
                 <div><span>{{ $t('noticePopup') }}</span></div>
                 <div class="forward">
                   <span>{{ setting.notice === 0 ? $t('enabled') : $t('disabled') }}</span>
-                  <el-button class="opt-button" size="small" type="primary" @click="openNoticePopupSetting">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openNoticePopupSetting">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('popUp') }}</span></div>
                 <div class="forward">
-                  <el-button class="opt-button" size="small" type="primary" @click="openNoticePopup">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openNoticePopup">
                     <Icon icon="mynaui:click-solid" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -376,17 +288,14 @@
             <div class="card-content">
               <div class="setting-item">
                 <div><span>{{ $t('codeRecognition') }}</span></div>
-                <div>
-                  <el-switch @change="changeField('aiCode', $event)" :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                             v-model="setting.aiCode"/>
-                </div>
+                <div><s-switch v-model="aiCodeBool" @update:modelValue="onAiCodeToggle"/></div>
               </div>
               <div class="setting-item">
                 <div><span>{{ $t('codeRecognitionRules') }}</span></div>
                 <div class="forward">
-                  <el-button class="opt-button" size="small" type="primary" @click="openAiCodeFilter">
+                  <s-button class="opt-button" size="sm" type="ghost" @click="openAiCodeFilter">
                     <Icon icon="fluent:settings-48-regular" width="18" height="18"/>
-                  </el-button>
+                  </s-button>
                 </div>
               </div>
             </div>
@@ -397,416 +306,292 @@
             <div class="card-content">
               <div class="concerning-item">
                 <span>{{ $t('version') }} :</span>
-                <el-badge is-dot :hidden="!hasUpdate">
-                  <el-button @click="jump('https://github.com/sixzjd/smail/releases')">
+                <s-badge :dot="hasUpdate">
+                  <s-button @click="jump('https://github.com/sixzjd/smail/releases')">
                     {{ currentVersion }}
-                    <template #icon>
-                      <Icon icon="qlementine-icons:version-control-16" style="font-size: 20px" color="#8b5cf6"/>
-                    </template>
-                  </el-button>
-                </el-badge>
+                  </s-button>
+                </s-badge>
               </div>
               <div class="concerning-item">
                 <span>{{ $t('community') }} : </span>
                 <div class="community">
-                  <el-button @click="jump('https://github.com/sixzjd/smail')">
-                    Github
-                    <template #icon>
-                      <Icon icon="codicon:github-inverted" width="22" height="22"/>
-                    </template>
-                  </el-button>
-                  <el-button @click="jump('https://t.me/smail_tg')">
-                    Telegram
-                    <template #icon>
-                      <Icon icon="logos:telegram" width="30" height="30"/>
-                    </template>
-                  </el-button>
+                  <s-button @click="jump('https://github.com/sixzjd/smail')">Github</s-button>
+                  <s-button @click="jump('https://t.me/smail_tg')">Telegram</s-button>
                 </div>
               </div>
               <div class="concerning-item">
                 <span>{{ $t('support') }} : </span>
-                <el-button @click="jump('https://doc.skymail.ink/support.html')">
-                  {{ t('supportDesc') }}
-                  <template #icon>
-                    <Icon color="#79D6B5" icon="simple-icons:buymeacoffee" width="20" height="20"/>
-                  </template>
-                </el-button>
+                <s-button>{{ t('supportDesc') }}</s-button>
               </div>
               <div class="concerning-item">
                 <span>{{ $t('help') }} : </span>
-                <el-button @click="jump('https://doc.skymail.ink')">
-                  {{ t('document') }}
-                  <template #icon>
-                    <Icon color="#79D6B5" icon="fluent-color:document-32" width="18" height="18"/>
-                  </template>
-                </el-button>
+                <s-button @click="jump('https://doc.skymail.ink')">{{ t('document') }}</s-button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Dialogs remain the same -->
-      <el-dialog v-model="editTitleShow" :title="$t('changeTitle')" width="340" @closed="editTitle = setting.title">
-        <form>
-          <el-input type="text" :placeholder="$t('websiteTitle')" v-model="editTitle"/>
-          <el-button type="primary" :loading="settingLoading" @click="saveTitle">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog v-model="resendTokenFormShow" :title="$t('resendToken')" width="340" @closed="cleanResendTokenForm">
-        <form>
-          <el-select style="margin-bottom: 15px" v-model="resendTokenForm.domain" placeholder="Select">
-            <el-option
-                v-for="item in settingStore.domainList"
-                :key="item"
-                :label="item"
-                :value="item"
-            />
-          </el-select>
-          <el-input type="text" :placeholder="$t('addResendTokenDesc')" v-model="resendTokenForm.token"/>
-          <el-button type="primary" :loading="settingLoading" @click="saveResendToken">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog v-model="r2DomainShow" :title="$t('addOsDomain')" width="340"
-                 @closed="r2DomainInput = setting.r2Domain">
-        <form>
-          <el-input type="text" :placeholder="$t('domainDesc')" v-model="r2DomainInput"/>
-          <el-button type="primary" :loading="settingLoading" @click="saveR2domain">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog v-model="turnstileShow" :title="$t('addTurnstileSecret')" width="340"
-                 @closed="turnstileForm.secretKey = '';turnstileForm.siteKey = ''">
-        <form>
-          <el-input type="text" placeholder="Site Key" v-model="turnstileForm.siteKey"/>
-          <el-input type="text" style="margin-top: 15px" placeholder="Secret Key" v-model="turnstileForm.secretKey"/>
-          <el-button type="primary" :loading="settingLoading" @click="saveTurnstileKey">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog
-          v-model="showSetBackground"
-          class="cut-dialog"
-          @closed="closedSetBackground"
-      >
-        <template #header>
-          <span style="font-size: 18px">
-            {{ $t('backgroundTitle') }}
-            <el-tooltip>
-              <template #content>
-                <span>{{ $t('backgroundWarning') }}</span>
-              </template>
-              <Icon class="title-icon  warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
-          </span>
-        </template>
-        <el-input :placeholder="$t('backgroundUrlDesc')" v-model="backgroundUrl" v-if="!localUpShow"
-                  class="background-url"/>
-        <el-image
-            v-if="localUpShow"
-            :preview-src-list="[backgroundImage]"
-            show-progress
-            class="cropper"
-            fit="cover"
-            :src="backgroundImage"
-        ></el-image>
-        <div class="cut-button">
-          <el-button type="primary" link @click="openCut" v-if="!localUpShow">
-            {{ $t('localUpload') }}
-          </el-button>
-          <el-button type="primary" link @click="localUpShow = false" v-if="localUpShow">
-            {{ $t('imageLink') }}
-          </el-button>
-          <el-button type="primary" :loading="settingLoading" @click="saveBackground">{{ $t('save') }}</el-button>
+      <!-- Dialog 1: Edit Title -->
+      <s-modal v-model="editTitleShow" :title="$t('changeTitle')" size="sm" @close="editTitle = setting.title">
+        <div class="s-form">
+          <s-input type="text" :placeholder="$t('websiteTitle')" v-model="editTitle"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveTitle">{{ $t('save') }}</s-button>
         </div>
-      </el-dialog>
-      <el-dialog
-          v-model="tgSettingShow"
-          class="forward-dialog"
-      >
-        <template #header>
-          <div class="forward-head">
-            <span class="forward-set-title">{{ $t('tgBot') }}</span>
-            <el-tooltip effect="dark" :content="$t('tgBotDesc')">
-              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
+      </s-modal>
+
+      <!-- Dialog 2: Resend Token Form -->
+      <s-modal v-model="resendTokenFormShow" :title="$t('resendToken')" size="sm" @close="cleanResendTokenForm">
+        <div class="s-form">
+          <div class="s-form-item">
+            <label>{{ $t('domain') }}</label>
+            <s-select v-model="resendTokenForm.domain" :options="domainSelectOptions"/>
           </div>
-        </template>
+          <s-input type="text" :placeholder="$t('addResendTokenDesc')" v-model="resendTokenForm.token"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveResendToken">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 3: R2 Domain -->
+      <s-modal v-model="r2DomainShow" :title="$t('addOsDomain')" size="sm" @close="r2DomainInput = setting.r2Domain">
+        <div class="s-form">
+          <s-input type="text" :placeholder="$t('domainDesc')" v-model="r2DomainInput"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveR2domain">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 4: Turnstile -->
+      <s-modal v-model="turnstileShow" :title="$t('addTurnstileSecret')" size="sm" @close="turnstileForm.secretKey = '';turnstileForm.siteKey = ''">
+        <div class="s-form">
+          <s-input type="text" placeholder="Site Key" v-model="turnstileForm.siteKey"/>
+          <s-input type="text" placeholder="Secret Key" v-model="turnstileForm.secretKey"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveTurnstileKey">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 5: Set Background -->
+      <s-modal v-model="showSetBackground" :title="$t('backgroundTitle')" size="lg" @close="closedSetBackground">
+        <div>
+          <s-tooltip :content="$t('backgroundWarning')">
+            <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+          </s-tooltip>
+        </div>
+        <s-input :placeholder="$t('backgroundUrlDesc')" v-model="backgroundUrl" v-if="!localUpShow" class="background-url"/>
+        <img v-if="localUpShow" class="cropper" :src="backgroundImage" alt="background"/>
+        <div class="cut-button">
+          <s-button type="ghost" @click="openCut" v-if="!localUpShow">{{ $t('localUpload') }}</s-button>
+          <s-button type="ghost" @click="localUpShow = false" v-if="localUpShow">{{ $t('imageLink') }}</s-button>
+          <s-button type="primary" :loading="settingLoading" @click="saveBackground">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 6: Telegram Bot -->
+      <s-modal v-model="tgSettingShow" :title="$t('tgBot')" size="md">
         <div class="forward-set-body">
-          <el-input :placeholder="setting.tgBotToken || $t('tgBotToken')" v-model="tgBotToken"></el-input>
-          <el-input-tag tag-type="warning" :placeholder="$t('toBotTokenDesc')" v-model="tgChatId"
-                        @add-tag="addChatTag"></el-input-tag>
-          <el-input tag-type="warning" :placeholder="$t('customDomainDesc')" v-model="customDomain" ></el-input>
+          <div class="forward-head">
+            <s-tooltip :content="$t('tgBotDesc')">
+              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+            </s-tooltip>
+          </div>
+          <s-input :placeholder="setting.tgBotToken || $t('tgBotToken')" v-model="tgBotToken"/>
+          <s-input-tag tag-type="warning" :placeholder="$t('toBotTokenDesc')" v-model="tgChatId" @add-tag="addChatTag"/>
+          <s-input :placeholder="$t('customDomainDesc')" v-model="customDomain"/>
           <div class="tg-msg-label">
             <span>{{t('from')}}</span>
-            <el-select  v-model="tgMsgFrom" >
-              <el-option
-                  v-for="item in tgMsgFromOption"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-              />
-            </el-select>
+            <s-select v-model="tgMsgFrom" :options="tgMsgFromOption"/>
           </div>
           <div class="tg-msg-label">
             <span>{{t('recipient')}}</span>
-            <el-select  v-model="tgMsgTo" >
-              <el-option
-                  v-for="item in tgMsgToOption"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-              />
-            </el-select>
+            <s-select v-model="tgMsgTo" :options="tgMsgToOption"/>
           </div>
           <div class="tg-msg-label">
             <span>{{t('emailText')}}</span>
-            <el-select  v-model="tgMsgText" >
-              <el-option
-                  v-for="item in tgMsgTextOption"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-              />
-            </el-select>
+            <s-select v-model="tgMsgText" :options="tgMsgTextOption"/>
           </div>
         </div>
         <template #footer>
           <div class="dialog-footer">
-            <el-switch v-model="tgBotStatus" :active-value="0" :inactive-value="1" :active-text="$t('enable')"
-                       :inactive-text="$t('disable')"/>
-            <el-button :loading="settingLoading" type="primary" @click="tgBotSave">
-              {{ $t('save') }}
-            </el-button>
+            <s-switch v-model="tgBotEnabled"/>
+            <s-button :loading="settingLoading" type="primary" @click="tgBotSave">{{ $t('save') }}</s-button>
           </div>
         </template>
-      </el-dialog>
-      <el-dialog
-          v-model="thirdEmailShow"
-          class="forward-dialog"
-      >
-        <template #header>
-          <div class="forward-head">
-            <span class="forward-set-title">{{ $t('otherEmail') }}</span>
-            <el-tooltip effect="dark" :content="$t('otherEmailDesc')">
-              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
-          </div>
-        </template>
+      </s-modal>
+
+      <!-- Dialog 7: Third Email -->
+      <s-modal v-model="thirdEmailShow" :title="$t('otherEmail')" size="md">
         <div class="forward-set-body">
-          <el-input-tag tag-type="warning" :placeholder="$t('otherEmailInputDesc')" v-model="forwardEmail"
-                        @add-tag="emailAddTag"></el-input-tag>
-        </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-switch v-model="forwardStatus" :active-value="0" :inactive-value="1" :active-text="$t('enable')"
-                       :inactive-text="$t('disable')"/>
-            <el-button :loading="settingLoading" type="primary" @click="forwardEmailSave">
-              {{ $t('save') }}
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
-      <el-dialog
-          v-model="forwardRulesShow"
-          class="forward-dialog"
-      >
-        <template #header>
           <div class="forward-head">
-            <span class="forward-set-title">{{ $t('forwardingRules') }}</span>
-            <el-tooltip effect="dark" :content="$t('forwardingRulesDesc')">
+            <s-tooltip :content="$t('otherEmailDesc')">
               <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
+            </s-tooltip>
           </div>
-        </template>
-        <div class="forward-set-body">
-          <el-input-tag :placeholder="$t('ruleEmailsInputDesc')" tag-type="success" v-model="ruleEmail"
-                        @add-tag="ruleEmailAddTag"/>
+          <s-input-tag tag-type="warning" :placeholder="$t('otherEmailInputDesc')" v-model="forwardEmail" @add-tag="emailAddTag"/>
         </div>
         <template #footer>
           <div class="dialog-footer">
-            <el-radio-group v-model="ruleType">
-              <el-radio :value="0">{{ $t('forwardAll') }}</el-radio>
-              <el-radio :value="1">{{ $t('rules') }}</el-radio>
-            </el-radio-group>
-            <el-button :loading="settingLoading" type="primary" @click="ruleEmailSave">
-              {{ $t('save') }}
-            </el-button>
+            <s-switch v-model="forwardEnabled"/>
+            <s-button :loading="settingLoading" type="primary" @click="forwardEmailSave">{{ $t('save') }}</s-button>
           </div>
         </template>
-      </el-dialog>
-      <el-dialog class="resend-table" v-model="showResendList" :title="$t('resendTokenList')">
-        <el-table :data="resendList">
-          <el-table-column :min-width="emailColumnWidth" property="key" :label="$t('domain')"
-                           :show-overflow-tooltip="true"/>
-          <el-table-column :width="tokenColumnWidth" property="value" label="Token" fixed="right"
-                           :show-overflow-tooltip="true"/>
-        </el-table>
-      </el-dialog>
-      <el-dialog v-model="regVerifyCountShow" :title="$t('rulesVerifyTitle',{count: regVerifyCount})"
-                 @closed="regVerifyCount = setting.regVerifyCount">
-        <form>
-          <el-input-number type="text" v-model="regVerifyCount" :min="1">
-          </el-input-number>
-          <el-button type="primary" :loading="settingLoading" @click="saveRegVerifyCount">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog v-model="addVerifyCountShow" :title="$t('rulesVerifyTitle',{count: addVerifyCount})"
-                 @closed="addVerifyCount = setting.addVerifyCount">
-        <form>
-          <el-input-number type="text" v-model="addVerifyCount" :min="1"/>
-          <el-button type="primary" :loading="settingLoading" @click="saveAddVerifyCount">{{ $t('save') }}</el-button>
-        </form>
-      </el-dialog>
-      <el-dialog top="5vh" v-model="noticePopupShow" :title="$t('noticePopup')" class="notice-popup"
-                 @closed="resetNoticeForm">
-        <form>
-          <el-input v-model="noticeForm.noticeTitle" :placeholder="t('titleDesc')"/>
+      </s-modal>
+
+      <!-- Dialog 8: Forward Rules -->
+      <s-modal v-model="forwardRulesShow" :title="$t('forwardingRules')" size="md">
+        <div class="forward-set-body">
+          <div class="forward-head">
+            <s-tooltip :content="$t('forwardingRulesDesc')">
+              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+            </s-tooltip>
+          </div>
+          <s-input-tag :placeholder="$t('ruleEmailsInputDesc')" tag-type="success" v-model="ruleEmail" @add-tag="ruleEmailAddTag"/>
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <s-radio-group v-model="ruleType" :options="[{label:$t('forwardAll'),value:0},{label:$t('rules'),value:1}]"/>
+            <s-button :loading="settingLoading" type="primary" @click="ruleEmailSave">{{ $t('save') }}</s-button>
+          </div>
+        </template>
+      </s-modal>
+
+      <!-- Dialog 9: Resend List -->
+      <s-modal v-model="showResendList" :title="$t('resendTokenList')" size="md">
+        <s-table :columns="resendColumns" :data="resendList" rowKey="key"/>
+      </s-modal>
+
+      <!-- Dialog 10: Reg Verify Count -->
+      <s-modal v-model="regVerifyCountShow" :title="$t('rulesVerifyTitle',{count: regVerifyCount})" size="sm" @close="regVerifyCount = setting.regVerifyCount">
+        <div class="s-form">
+          <s-input-number v-model="regVerifyCount" :min="1"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveRegVerifyCount">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 11: Add Verify Count -->
+      <s-modal v-model="addVerifyCountShow" :title="$t('rulesVerifyTitle',{count: addVerifyCount})" size="sm" @close="addVerifyCount = setting.addVerifyCount">
+        <div class="s-form">
+          <s-input-number v-model="addVerifyCount" :min="1"/>
+          <s-button type="primary" block :loading="settingLoading" @click="saveAddVerifyCount">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 12: Notice Popup -->
+      <s-modal v-model="noticePopupShow" :title="$t('noticePopup')" size="xl" @close="resetNoticeForm">
+        <div class="s-form">
+          <s-input v-model="noticeForm.noticeTitle" :placeholder="t('titleDesc')"/>
           <div class="notice-line-item">
-            <el-select v-model="noticeForm.noticeType">
-              <template #prefix>
-                <span style="margin-right: 10px">{{ $t('icon') }}</span>
-              </template>
-              <el-option key="none" label="None" value="none"/>
-              <el-option key="primary" label="Primary" value="primary"/>
-              <el-option key="success" label="Success" value="success"/>
-              <el-option key="warning" label="Warning" value="warning"/>
-              <el-option key="info" label="Info" value="info"/>
-            </el-select>
-            <el-select v-model="noticeForm.noticePosition">
-              <template #prefix>
-                <span style="margin-right: 10px">{{ $t('position') }}</span>
-              </template>
-              <el-option key="top-left" :label="t('topLeft')" value="top-left"/>
-              <el-option key="top-right" :label="t('topRight')" value="top-right"/>
-              <el-option key="bottom-left" :label="t('bottomLeft')" value="bottom-left"/>
-              <el-option key="bottom-right" :label="t('bottomRight')" value="bottom-right"/>
-            </el-select>
-            <el-input-number v-model="noticeForm.noticeWidth">
-              <template #prefix>
-                {{ $t('width') }}
-              </template>
-              <template #suffix>
-                px
-              </template>
-            </el-input-number>
-            <el-input-number v-model="noticeForm.noticeOffset">
-              <template #prefix>
-                {{ $t('offset') }}
-              </template>
-              <template #suffix>
-                px
-              </template>
-            </el-input-number>
-            <el-input-number v-model="noticeForm.noticeDuration">
-              <template #prefix>
-                {{ $t('duration') }}
-              </template>
-              <template #suffix>
-                ms
-              </template>
-            </el-input-number>
+            <div class="s-form-item">
+              <label>{{ $t('icon') }}</label>
+              <s-select v-model="noticeForm.noticeType" :options="noticeTypeOptions"/>
+            </div>
+            <div class="s-form-item">
+              <label>{{ $t('position') }}</label>
+              <s-select v-model="noticeForm.noticePosition" :options="noticePositionOptions"/>
+            </div>
+            <div class="s-form-item">
+              <label>{{ $t('width') }} (px)</label>
+              <s-input-number v-model="noticeForm.noticeWidth"/>
+            </div>
+            <div class="s-form-item">
+              <label>{{ $t('offset') }} (px)</label>
+              <s-input-number v-model="noticeForm.noticeOffset"/>
+            </div>
+            <div class="s-form-item">
+              <label>{{ $t('duration') }} (ms)</label>
+              <s-input-number v-model="noticeForm.noticeDuration"/>
+            </div>
           </div>
           <div class="notice-popup-item">
-            <el-input
-                v-model="noticeForm.noticeContent"
-                :autosize="{ minRows: 15, maxRows: 25 }"
-                type="textarea"
-                :placeholder="t('noticeContentDesc')"
-            />
+            <s-input v-model="noticeForm.noticeContent" type="textarea" :rows="15" :placeholder="t('noticeContentDesc')"/>
           </div>
-        </form>
+        </div>
         <template #footer>
           <div class="dialog-footer">
-            <el-switch v-model="noticeForm.notice" :active-value="0" :inactive-value="1" :active-text="$t('enable')"
-                       :inactive-text="$t('disable')"/>
+            <s-switch v-model="noticeEnabled"/>
             <div>
-              <el-button @click="previewNoticePopup">
-                {{ $t('preview') }}
-              </el-button>
-              <el-button :loading="settingLoading" type="primary" @click="saveNoticePopup">
-                {{ $t('save') }}
-              </el-button>
+              <s-button @click="previewNoticePopup">{{ $t('preview') }}</s-button>
+              <s-button :loading="settingLoading" type="primary" @click="saveNoticePopup">{{ $t('save') }}</s-button>
             </div>
           </div>
         </template>
-      </el-dialog>
-      <el-dialog v-model="addS3Show" :title="t('s3Configuration')" width="340" @closed="resetAddS3Form">
-        <form>
-          <el-input class="dialog-input" type="text" placeholder="Bucket" v-model="s3.bucket"/>
-          <el-input class="dialog-input" type="text" placeholder="Endpoint" v-model="s3.endpoint"/>
-          <el-input class="dialog-input" type="text" placeholder="Region" v-model="s3.region"/>
-          <el-input class="dialog-input" type="text" :placeholder="setting.s3AccessKey || 'Access Key'"
-                    v-model="s3.s3AccessKey"/>
-          <el-input style="margin-bottom: 10px" type="text" :placeholder="setting.s3SecretKey || 'Secret Key'" v-model="s3.s3SecretKey"/>
+      </s-modal>
+
+      <!-- Dialog 13: S3 Config -->
+      <s-modal v-model="addS3Show" :title="t('s3Configuration')" size="sm" @close="resetAddS3Form">
+        <div class="s-form">
+          <s-input type="text" placeholder="Bucket" v-model="s3.bucket"/>
+          <s-input type="text" placeholder="Endpoint" v-model="s3.endpoint"/>
+          <s-input type="text" placeholder="Region" v-model="s3.region"/>
+          <s-input type="text" :placeholder="setting.s3AccessKey || 'Access Key'" v-model="s3.s3AccessKey"/>
+          <s-input type="text" :placeholder="setting.s3SecretKey || 'Secret Key'" v-model="s3.s3SecretKey"/>
           <div class="force-path-style">
             <div class="force-path-style-left">
               <span>ForcePathStyle</span>
-              <el-tooltip effect="dark" :content="$t('forcePathStyleDesc')">
+              <s-tooltip :content="$t('forcePathStyleDesc')">
                 <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-              </el-tooltip>
+              </s-tooltip>
             </div>
-            <el-switch :before-change="beforeChange" :active-value="0" :inactive-value="1"
-                       v-model="s3.forcePathStyle"/>
+            <s-switch v-model="forcePathStyleBool"/>
           </div>
           <div class="s3-button">
-            <el-button :loading="clearS3Loading" @click="clearS3">{{ t('clear') }}</el-button>
-            <el-button type="primary" :loading="settingLoading && !clearS3Loading" @click="saveS3">{{ t('save') }}</el-button>
+            <s-button :loading="clearS3Loading" @click="clearS3">{{ t('clear') }}</s-button>
+            <s-button type="primary" :loading="settingLoading && !clearS3Loading" @click="saveS3">{{ t('save') }}</s-button>
           </div>
-        </form>
-      </el-dialog>
-      <el-dialog v-model="emailPrefixShow" :title="t('emailPrefix')"  @closed="resetEmailPrefix"  >
+        </div>
+      </s-modal>
+
+      <!-- Dialog 14: Email Prefix -->
+      <s-modal v-model="emailPrefixShow" :title="t('emailPrefix')" size="sm" @close="resetEmailPrefix">
         <div class="email-prefix">
           <div>{{ t('atLeast') }}</div>
-          <el-input-number v-model="minEmailPrefix" :min="1" :max="20" style="width: 150px" >
-            <template #suffix>
-              <span>{{ t('character') }}</span>
-            </template>
-          </el-input-number>
+          <s-input-number v-model="minEmailPrefix" :min="1" :max="20" style="width: 150px"/>
         </div>
         <div class="prefix-filter">
           <div style="margin-bottom: 10px;">{{ t('mustNotContain') }}</div>
-          <el-input-tag style="margin-bottom: 10px;" v-model="emailPrefixFilter"  />
+          <s-input-tag style="margin-bottom: 10px;" v-model="emailPrefixFilter"/>
         </div>
-        <el-button type="primary" style="width: 100%;" :loading="settingLoading" @click="saveEmailPrefix">{{ $t('save') }}</el-button>
-      </el-dialog>
-      <el-dialog v-model="blackFormShow" class="forward-dialog" @closed="resetBlackList">
-        <template #header>
-          <div class="forward-head">
-            <span class="forward-set-title">{{ $t('blackList') }}</span>
-            <el-tooltip effect="dark" :content="$t('blackListDesc')">
-              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
+        <s-button type="primary" block :loading="settingLoading" @click="saveEmailPrefix">{{ $t('save') }}</s-button>
+      </s-modal>
+
+      <!-- Dialog 15: Black List -->
+      <s-modal v-model="blackFormShow" :title="$t('blackList')" size="md" @close="resetBlackList">
+        <div class="forward-head" style="margin-bottom:12px">
+          <s-tooltip :content="$t('blackListDesc')">
+            <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+          </s-tooltip>
+        </div>
+        <div class="s-form">
+          <div class="s-form-item">
+            <label>{{ t('blackFromDesc') }}</label>
+            <s-input-tag v-model="blackListForm.blackFrom" @add-tag="banEmailAddTag"/>
           </div>
-        </template>
-        <el-form>
-          <el-form-item :label="t('blackFromDesc')" label-position="top">
-            <el-input-tag v-model="blackListForm.blackFrom" @add-tag="banEmailAddTag"  />
-          </el-form-item>
-          <el-form-item :label="t('blackSubjectDesc')" label-position="top">
-            <el-input-tag v-model="blackListForm.blackSubject"/>
-          </el-form-item>
-          <el-form-item :label="t('blackContentDesc')" label-position="top">
-            <el-input-tag v-model="blackListForm.blackContent"/>
-          </el-form-item>
-        </el-form>
-        <el-button type="primary" style="width: 100%;" :loading="settingLoading" @click="saveBlackList">{{ $t('save') }}</el-button>
-      </el-dialog>
-      <el-dialog v-model="aiCodeFilterShow" class="forward-dialog" @closed="resetAiCodeFilter">
-        <template #header>
-          <div class="forward-head">
-            <span class="forward-set-title">{{ $t('codeRecognitionRules') }}</span>
-            <el-tooltip effect="dark" :content="$t('codeRecognitionRulesDesc')">
-              <Icon class="warning" icon="fe:warning" width="18" height="18"/>
-            </el-tooltip>
+          <div class="s-form-item">
+            <label>{{ t('blackSubjectDesc') }}</label>
+            <s-input-tag v-model="blackListForm.blackSubject"/>
           </div>
-        </template>
-        <el-form>
-          <el-form-item :label="t('senderRules')" label-position="top">
-            <el-input-tag v-model="aiCodeFilter" @add-tag="aiCodeFilterAddTag"/>
-          </el-form-item>
-        </el-form>
-        <el-button type="primary" style="width: 100%;" :loading="settingLoading" @click="saveAiCodeFilter">{{ $t('save') }}</el-button>
-      </el-dialog>
-    </el-scrollbar>
+          <div class="s-form-item">
+            <label>{{ t('blackContentDesc') }}</label>
+            <s-input-tag v-model="blackListForm.blackContent"/>
+          </div>
+          <s-button type="primary" block :loading="settingLoading" @click="saveBlackList">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+
+      <!-- Dialog 16: AI Code Filter -->
+      <s-modal v-model="aiCodeFilterShow" :title="$t('codeRecognitionRules')" size="md" @close="resetAiCodeFilter">
+        <div class="forward-head" style="margin-bottom:12px">
+          <s-tooltip :content="$t('codeRecognitionRulesDesc')">
+            <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+          </s-tooltip>
+        </div>
+        <div class="s-form">
+          <div class="s-form-item">
+            <label>{{ t('senderRules') }}</label>
+            <s-input-tag v-model="aiCodeFilter" @add-tag="aiCodeFilterAddTag"/>
+          </div>
+          <s-button type="primary" block :loading="settingLoading" @click="saveAiCodeFilter">{{ $t('save') }}</s-button>
+        </div>
+      </s-modal>
+    </div>
   </div>
 </template>
 
@@ -827,6 +612,8 @@ import {getTextWidth} from "@/utils/text.js";
 import {fileToBase64} from "@/utils/file-utils.js"
 import {useI18n} from 'vue-i18n';
 import axios from "axios";
+import {toast} from '@/components/ui/toast.js';
+import {confirm} from '@/components/ui/confirm.js';
 
 defineOptions({
   name: 'sys-setting'
@@ -909,6 +696,12 @@ const regKeyOptions = computed(() => [
   {label: t('optional'), value: 2},
 ])
 
+const verifyOptions = computed(() => [
+  {label: t('enable'), value: 0},
+  {label: t('disable'), value: 1},
+  {label: t('rulesVerify'), value: 2},
+])
+
 const blackListForm = ref({
   blackSubject: [],
   blackContent: [],
@@ -923,6 +716,23 @@ const authRefreshOptions = computed(() => [
   {label: '10s', value: 10},
   {label: '15s', value: 15},
   {label: '20s', value: 20},
+])
+
+const domainSelectOptions = computed(() => settingStore.domainList.map(d => ({label: d, value: d})))
+
+const noticeTypeOptions = computed(() => [
+  {label: 'None', value: 'none'},
+  {label: 'Primary', value: 'primary'},
+  {label: 'Success', value: 'success'},
+  {label: 'Warning', value: 'warning'},
+  {label: 'Info', value: 'info'}
+])
+
+const noticePositionOptions = computed(() => [
+  {label: t('topLeft'), value: 'top-left'},
+  {label: t('topRight'), value: 'top-right'},
+  {label: t('bottomLeft'), value: 'bottom-left'},
+  {label: t('bottomRight'), value: 'bottom-right'}
 ])
 
 const tgChatId = ref([])
@@ -944,8 +754,39 @@ const tgMsgToOption = [{label: t('show'), value: 'show'}, {label: t('hide'), val
 const tgMsgTextOption = [{label: t('show'), value: 'show'}, {label: t('hide'), value: 'hide'}]
 const tgMsgLabelWidth = computed(() => locale.value === 'en' ? '120px' : '100px');
 
+// Boolean computed properties for s-switch (0=enabled, 1=disabled)
+const registerBool = computed({get: () => setting.value.register === 0, set: v => { setting.value.register = v ? 0 : 1 }})
+const loginDomainBool = computed({get: () => setting.value.loginDomain === 1, set: v => { setting.value.loginDomain = v ? 1 : 0 }})
+const addEmailBool = computed({get: () => setting.value.addEmail === 0, set: v => { setting.value.addEmail = v ? 0 : 1 }})
+const manyEmailBool = computed({get: () => setting.value.manyEmail === 0, set: v => { setting.value.manyEmail = v ? 0 : 1 }})
+const receiveBool = computed({get: () => setting.value.receive === 0, set: v => { setting.value.receive = v ? 0 : 1 }})
+const sendBool = computed({get: () => setting.value.send === 0, set: v => { setting.value.send = v ? 0 : 1 }})
+const noRecipientBool = computed({get: () => setting.value.noRecipient === 0, set: v => { setting.value.noRecipient = v ? 0 : 1 }})
+const aiCodeBool = computed({get: () => setting.value.aiCode === 0, set: v => { setting.value.aiCode = v ? 0 : 1 }})
+const tgBotEnabled = computed({get: () => tgBotStatus.value === 0, set: v => { tgBotStatus.value = v ? 0 : 1 }})
+const forwardEnabled = computed({get: () => forwardStatus.value === 0, set: v => { forwardStatus.value = v ? 0 : 1 }})
+const noticeEnabled = computed({get: () => noticeForm.notice === 0, set: v => { noticeForm.notice = v ? 0 : 1 }})
+const forcePathStyleBool = computed({get: () => s3.forcePathStyle === 0, set: v => { s3.forcePathStyle = v ? 0 : 1 }})
+
+const resendColumns = computed(() => [
+  {prop: 'key', label: t('domain'), width: emailColumnWidth.value ? emailColumnWidth.value + 'px' : undefined},
+  {prop: 'value', label: 'Token', width: tokenColumnWidth.value ? tokenColumnWidth.value + 'px' : undefined}
+])
+
 getSettings()
 getUpdate()
+
+function onToggleChange() {
+  if (!settingReady.value || settingLoading.value) return
+  backupSetting()
+  change()
+}
+
+function onAiCodeToggle() {
+  if (!settingReady.value || settingLoading.value) return
+  backupSetting()
+  changeField('aiCode', setting.value.aiCode)
+}
 
 function getSettings() {
   settingReady.value = false
@@ -1301,11 +1142,7 @@ function saveBlackList() {
 
   setBlackList(form).then(() => {
     getSettings()
-    ElMessage({
-      message: t('setSuccess'),
-      type: "success",
-      plain: true
-    })
+    toast(t('setSuccess'), 'success')
     blackFormShow.value = false;
   }).finally(() => {
     settingLoading.value = false;
@@ -1341,22 +1178,15 @@ function aiCodeFilterAddTag(val) {
 }
 
 
-function delBackground() {
-  ElMessageBox.confirm(t('delBackgroundConfirm'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
+async function delBackground() {
+  const ok = await confirm(t('delBackgroundConfirm'))
+  if (ok) {
     deleteBackground().then(() => {
       backgroundUrl.value = ''
       setting.value.background = null
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: "success",
-        plain: true
-      })
+      toast(t('delSuccessMsg'), 'success')
     })
-  })
+  }
 }
 
 function saveTurnstileKey() {
@@ -1374,11 +1204,7 @@ async function saveBackground() {
     image = await fileToBase64(backgroundFile, true);
   } else {
     if (backgroundUrl.value && !backgroundUrl.value.startsWith('http')) {
-      ElMessage({
-        message: t('imageLinkErrorMsg'),
-        type: "error",
-        plain: true
-      })
+      toast(t('imageLinkErrorMsg'), 'error')
       return
     }
     image = backgroundUrl.value
@@ -1388,11 +1214,7 @@ async function saveBackground() {
   setBackground(image).then(key => {
     setting.value.background = key
     showSetBackground.value = false
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
     localUpShow.value = false
     backgroundImage.value = ''
   }).finally(() => {
@@ -1455,12 +1277,6 @@ function cleanResendTokenForm() {
   resendTokenForm.token = ''
 }
 
-function beforeChange() {
-  if (!settingReady.value || settingLoading.value) return false
-  backupSetting()
-  return true
-}
-
 function change(e) {
   if (!settingReady.value) return
   const settingForm = {...setting.value}
@@ -1496,11 +1312,7 @@ function editSetting(settingForm, refreshStatus = true) {
 
   settingSet(settingForm).then(() => {
     settingLoading.value = false
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
     if (setting.value.manyEmail === 1) {
       accountStore.currentAccountId = userStore.user.account.accountId;
     }
@@ -1531,12 +1343,13 @@ function editSetting(settingForm, refreshStatus = true) {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .settings-container {
   height: 100%;
-  overflow: hidden;
-  background: var(--extra-light-fill) !important;
+  background: var(--s-body);
   position: relative;
+  font-family: var(--s-font-body);
+  color: var(--s-ink);
 
   .loading {
     display: flex;
@@ -1556,7 +1369,7 @@ function editSetting(settingForm, refreshStatus = true) {
   }
 
   .loading-hide {
-    transition: var(--loading-hide-transition);
+    transition: opacity 200ms ease;
     pointer-events: none;
     opacity: 0;
   }
@@ -1565,10 +1378,8 @@ function editSetting(settingForm, refreshStatus = true) {
 .scroll {
   width: 100%;
   min-height: 100%;
-
-  :deep(.el-scrollbar__view) {
-    height: 100%;
-  }
+  overflow-y: auto;
+  height: 100%;
 
   .scroll-body {
     min-height: 100%;
@@ -1579,25 +1390,100 @@ function editSetting(settingForm, refreshStatus = true) {
 }
 
 .card-grid {
-
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
   padding: 20px;
-  gap: 20px;
+  gap: 16px;
   @media (max-width: 500px) {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
   @media (max-width: 1023px) {
-    gap: 15px;
+    gap: 14px;
     padding: 15px;
   }
+}
+
+.settings-card {
+  background: var(--s-paper);
+  border-radius: var(--s-radius-lg);
+  border: 1px solid var(--s-line);
+  transition: box-shadow var(--s-ease);
+
+  &:hover {
+    box-shadow: var(--s-shadow-sm);
+  }
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--s-font-display);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--s-line);
+  color: var(--s-ink);
+  letter-spacing: -0.01em;
+}
+
+.card-content {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  font-weight: normal;
+  font-size: 14px;
+  align-items: center;
+
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal;
+  }
+}
+
+.r2domain-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  font-size: 14px;
+  align-items: center;
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.warning {
+  margin-left: 2px;
+  color: var(--s-muted);
+  cursor: pointer;
 }
 
 .background {
   width: 249px;
   height: 140px;
-  border-radius: 4px;
-  border: 1px solid var(--light-border);
+  border-radius: var(--s-radius);
+  border: 1px solid var(--s-line);
+  object-fit: cover;
   @media (max-width: 500px) {
     width: 160px;
     height: 90px;
@@ -1606,213 +1492,12 @@ function editSetting(settingForm, refreshStatus = true) {
 
 .background-btn {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-direction: column;
 }
 
 .bot-verify-select {
-  margin-left: 10px;
-}
-
-.settings-card {
-  background-color: var(--el-bg-color);
-  border-radius: 8px;
-  border: 1px solid var(--el-border-color);
-  transition: all 300ms;
-  overflow: hidden;
-}
-
-
-.card-title {
-  font-size: 15px;
-  font-weight: bold;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.card-content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.setting-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px;
-  font-weight: normal;
-
-  > div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  > div:last-child {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    justify-items: flex-end;
-    font-weight: normal;
-  }
-}
-
-.r2domain-item {
-  display: flex;
-  gap: 10px;
-  > div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  > div:last-child {
-    flex: 1;
-    text-align: right;
-  }
-}
-
-.title-icon.warning {
-  position: relative;
-  top: 2px;
-  cursor: pointer;
-  margin-left: 2px;
-}
-
-.warning {
-  margin-left: 2px;
-  color: grey;
-  cursor: pointer;
-}
-
-.cropper {
-  border-radius: 4px;
-  border: 1px solid #D4D7DE;
-  height: 397px;
-  width: 705px;
-  @media (max-width: 767px) {
-    width: calc(100vw - 60px);
-    height: calc((100vw - 60px) * 9 / 16);
-  }
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.notice-popup-item {
-  margin-top: 15px;
-}
-
-.notice-line-item {
-  margin-top: 15px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 15px;
-
-  > * {
-    width: 100%;
-  }
-
-  @media (max-width: 840px) {
-    grid-template-columns: 1fr 1fr;
-  }
-  @media (max-width: 580px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.background-url {
-  width: min(calc(100vw - 70px), 500px);
-}
-
-
-:deep(.el-dialog) {
-  width: 400px !important;
-  @media (max-width: 440px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-:deep(.resend-table.el-dialog) {
-  min-height: 300px;
-  width: 500px !important;
-  @media (max-width: 540px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-:deep(.notice-popup.el-dialog) {
-  min-height: 300px;
-  width: 820px !important;
-  @media (max-width: 860px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-:deep(.resend-table .el-dialog__header) {
-  padding-bottom: 5px;
-}
-
-:deep(.el-table__inner-wrapper:before) {
-  background: var(--el-bg-color);
-}
-
-:deep(.cut-dialog.el-dialog) {
-  width: fit-content !important;
-  height: fit-content !important;
-}
-
-
-:deep(.forward-dialog.el-dialog) {
-  width: 500px !important;
-  @media (max-width: 540px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-.forward-dialog {
-  .forward-head {
-    display: flex;
-    align-items: center;
-
-    .forward-set-title {
-      top: 1px;
-      padding-right: 5px;
-      position: relative;
-      font-size: 16px;
-      font-weight: bold;;
-    }
-  }
-}
-
-.error-image {
-  background: var(--light-ill);
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.cut-button {
-  padding-top: 15px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-
-  .el-button {
-    width: fit-content;
-  }
+  margin-left: 8px;
 }
 
 .bot-verify {
@@ -1830,34 +1515,6 @@ function editSetting(settingForm, refreshStatus = true) {
     text-overflow: ellipsis;
     min-width: 0;
   }
-
-  .el-button {
-    width: 48px;
-    margin: 0 0 0 10px;
-  }
-}
-
-.forward-set-body {
-  display: flex;
-  flex-direction: column;
-
-  .el-switch {
-    align-self: end;
-  }
-
-  > *:nth-child(-n+2) {
-    margin-bottom: 15px;
-  }
-
-  .tg-msg-label {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    .el-select {
-      width: v-bind(tgMsgLabelWidth);
-    }
-  }
 }
 
 .forward {
@@ -1865,34 +1522,28 @@ function editSetting(settingForm, refreshStatus = true) {
     display: flex;
     align-items: center;
   }
-
-  .el-button {
-    width: 48px;
-    margin: 0 0 0 10px;
-  }
 }
 
 .opt-button {
   width: fit-content !important;
+  margin-left: 8px;
 }
 
-.email-prefix {
-  display: flex;
-  justify-content: space-between;
+.setting-item .s-select {
+  margin-right: 16px;
 }
 
-.prefix-filter {
-  display: flex;
-  flex-direction: column;
-}
-
-.s3-button {
+.email-title {
+  font-weight: normal !important;
   display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 15px;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
 
-  .el-button {
-    margin-left: 0;
+  span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
@@ -1910,11 +1561,6 @@ function editSetting(settingForm, refreshStatus = true) {
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-
-  .el-button {
-    width: 48px;
-    margin: 0 0 0 10px;
-  }
 }
 
 .personalized {
@@ -1923,16 +1569,79 @@ function editSetting(settingForm, refreshStatus = true) {
   > div:last-child {
     display: flex;
     justify-content: end;
-
-    .el-button {
-      margin-left: 10px;
-      margin-top: 0;
-    }
   }
 }
 
-.dialog-input {
-  margin-bottom: 15px;
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notice-line-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  > * { width: 100%; }
+  @media (max-width: 840px) { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 580px) { grid-template-columns: 1fr; }
+}
+
+.notice-popup-item {
+  margin-top: 12px;
+}
+
+.background-url {
+  width: min(calc(100vw - 70px), 500px);
+}
+
+.cropper {
+  border-radius: var(--s-radius);
+  border: 1px solid var(--s-line);
+  height: 397px;
+  width: 705px;
+  object-fit: cover;
+  @media (max-width: 767px) {
+    width: calc(100vw - 60px);
+    height: calc((100vw - 60px) * 9 / 16);
+  }
+}
+
+.cut-button {
+  padding-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.forward-set-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.forward-head {
+  display: flex;
+  align-items: center;
+}
+
+.email-prefix {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prefix-filter {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.s3-button {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
 }
 
 .force-path-style {
@@ -1952,78 +1661,49 @@ function editSetting(settingForm, refreshStatus = true) {
 .concerning-item {
   display: flex;
   align-items: center;
+  font-size: 14px;
 
   .community {
     display: flex;
     row-gap: 10px;
     flex-wrap: wrap;
-  }
-
-  :deep(.el-button) {
-    padding: 0 10px;
-    font-weight: normal;
-
-    i {
-      font-size: 22px;
-    }
+    gap: 8px;
   }
 
   > span:first-child {
-    font-weight: normal;
-    padding-right: 20px;
+    font-weight: 600;
+    padding-right: 16px;
     white-space: nowrap;
+    color: var(--s-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
   }
 }
 
-.email-title {
-  font-weight: normal !important;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr auto;
+.tg-msg-label {
+  display: flex;
   align-items: center;
-
-  span {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .el-button {
-    margin-top: 0;
-  }
+  justify-content: space-between;
+  font-size: 14px;
+  .s-select { width: v-bind(tgMsgLabelWidth); }
 }
 
-.token-item {
-  padding-top: 0;
-
-  div:last-child {
-    font-weight: normal;
-  }
+.s-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-
-form .el-button {
-  margin-top: 10px;
-  width: 100%;
+.s-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-
-.el-switch {
-  height: 28px;
-}
-
-
-:deep(.el-button--small) {
-  margin-top: 2px !important;
-  margin-bottom: 2px !important;
-  height: 24px;
-}
-
-:deep(.el-select__wrapper) {
-  min-height: 28px;
-}
-
-</style>
-
-<style>
-.el-popper.is-dark {
+.s-form-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--s-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 </style>

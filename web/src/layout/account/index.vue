@@ -1,128 +1,127 @@
 <template>
   <div class="account-box">
-    <div class="head-opt">
-      <Icon v-perm="'account:add'" class="icon add" icon="ion:add-outline" width="23" height="23" @click="add"/>
-      <Icon class="icon refresh" icon="ion:reload" width="18" height="18" @click="refresh"/>
+    <!-- Top toolbar -->
+    <div class="account-toolbar">
+      <button class="toolbar-btn" v-perm="'account:add'" @click="add" :title="$t('addAccount')">
+        <Icon icon="ion:add-outline" width="20" height="20" />
+      </button>
+      <button class="toolbar-btn" @click="refresh" :title="$t('refresh')">
+        <Icon icon="ion:reload" width="16" height="16" />
+      </button>
     </div>
-    <el-scrollbar class="scrollbar" ref="scrollbarRef">
+
+    <!-- Scrollable list -->
+    <div class="account-scroll" ref="scrollbarRef">
       <div v-infinite-scroll="getAccountList" :infinite-scroll-distance="600" :infinite-scroll-immediate="false">
-        <el-card class="item" :class="itemBg(item.accountId)" v-for="(item, index) in accounts" :key="item.accountId"
-                 @click="changeAccount(item)">
-          <div class="account">
-            {{ item.email }}
-          </div>
-          <div class="opt">
-            <div class="send-email" @click.stop>
-              <Icon @click="setAllReceive(item)" v-if="!item.allReceive" icon="eva:email-fill" width="22" height="22" color="#fccb1a"/>
-              <Icon @click="setAllReceive(item)" v-else icon="flat-color-icons:folder" width="22" height="22" color="#23c4f1" />
+
+        <!-- Account cards -->
+        <div
+          class="account-card"
+          :class="{ 'account-card--active': accountStore.currentAccountId === item.accountId }"
+          v-for="(item, index) in accounts"
+          :key="item.accountId"
+          @click="changeAccount(item)"
+        >
+          <div class="account-card-email">{{ item.email }}</div>
+          <div class="account-card-actions">
+            <div class="account-card-left" @click.stop>
+              <button class="card-icon-btn" @click="setAllReceive(item)" :title="item.allReceive === 1 ? 'All receive on' : 'All receive off'">
+                <Icon v-if="!item.allReceive" icon="eva:email-fill" width="18" height="18" class="icon-warn" />
+                <Icon v-else icon="flat-color-icons:folder" width="18" height="18" />
+              </button>
             </div>
-            <div class="settings" @click.stop>
-              <Icon icon="fluent-color:clipboard-24" width="22" height="22" @click.stop="copyAccount(item.email)"/>
-              <Icon icon="fluent:settings-24-filled" width="21" height="21" color="#909399"
-                    v-if="showNullSetting(item)"/>
-              <el-dropdown v-else>
-                <Icon icon="fluent:settings-24-filled" width="21" height="21" color="#909399"/>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item v-if="hasPerm('email:send')" @click="openSetName(item)">{{ $t('rename') }}</el-dropdown-item>
-                    <el-dropdown-item v-if="item.accountId !== userStore.user.account.accountId" @click="setAsTop(item, index)">{{ $t('pin') }}</el-dropdown-item>
-                    <el-dropdown-item v-if="item.accountId !== userStore.user.account.accountId && hasPerm('account:delete')"
-                                      @click="remove(item)">{{ $t('delete') }}
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
+            <div class="account-card-right" @click.stop>
+              <s-tooltip :content="$t('copy')">
+                <button class="card-icon-btn" @click.stop="copyAccount(item.email)">
+                  <Icon icon="fluent-color:clipboard-24" width="18" height="18" />
+                </button>
+              </s-tooltip>
+              <template v-if="showNullSetting(item)">
+                <span class="card-settings-dot"></span>
+              </template>
+              <s-dropdown v-else>
+                <template #trigger>
+                  <button class="card-icon-btn">
+                    <Icon icon="fluent:settings-24-filled" width="17" height="17" class="icon-muted" />
+                  </button>
                 </template>
-              </el-dropdown>
+                <s-dropdown-item v-if="hasPerm('email:send')" @click="openSetName(item)">{{ $t('rename') }}</s-dropdown-item>
+                <s-dropdown-item v-if="item.accountId !== userStore.user.account.accountId" @click="setAsTop(item, index)">{{ $t('pin') }}</s-dropdown-item>
+                <s-dropdown-item
+                  v-if="item.accountId !== userStore.user.account.accountId && hasPerm('account:delete')"
+                  :danger="true"
+                  @click="remove(item)"
+                >{{ $t('delete') }}</s-dropdown-item>
+              </s-dropdown>
             </div>
           </div>
-        </el-card>
-
-        <!-- Initial Loading Skeleton -->
-        <template v-if="loading">
-          <el-skeleton v-for="i in skeletonRows" :key="i" animated>
-            <template #template>
-              <el-card class="item">
-                <el-skeleton-item variant="p" style="width: 70%; height: 20px; margin-bottom: 25px"/>
-                <div style="display: flex; justify-content: space-between">
-                  <el-skeleton-item variant="text" style="width: 20px"/>
-                  <el-skeleton-item variant="text" style="width: 20px"/>
-                </div>
-              </el-card>
-            </template>
-          </el-skeleton>
-        </template>
-
-        <!-- Follow Loading Skeleton -->
-        <template v-if="accounts.length > 0 && !noLoading">
-          <el-skeleton animated>
-            <template #template>
-              <el-card class="item">
-                <el-skeleton-item variant="p" style="width: 70%; height: 20px; margin-bottom: 20px"/>
-                <div style="display: flex; justify-content: space-between">
-                  <el-skeleton-item variant="text" style="width: 20px"/>
-                  <el-skeleton-item variant="text" style="width: 20px"/>
-                </div>
-              </el-card>
-            </template>
-          </el-skeleton>
-        </template>
-
-        <div class="noLoading" v-if="noLoading && accounts.length > 0">
-          <div>{{ $t('noMoreData') }}</div>
         </div>
-        <div class="empty" v-if="noLoading && accounts.length === 0">
-          <el-empty :description="$t('noMessagesFound')"/>
+
+        <!-- Initial loading skeleton -->
+        <template v-if="loading">
+          <div class="skeleton-card" v-for="i in skeletonRows" :key="'sk-'+i">
+            <s-skeleton :rows="3" />
+          </div>
+        </template>
+
+        <!-- Follow loading skeleton -->
+        <template v-if="accounts.length > 0 && !noLoading">
+          <div class="skeleton-card">
+            <s-skeleton :rows="3" />
+          </div>
+        </template>
+
+        <!-- End of list -->
+        <div class="end-label" v-if="noLoading && accounts.length > 0">
+          {{ $t('noMoreData') }}
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-wrap" v-if="noLoading && accounts.length === 0">
+          <s-empty :description="$t('noMessagesFound')" />
         </div>
       </div>
+    </div>
 
-    </el-scrollbar>
-    <el-dialog v-model="showAdd" :title="$t('addAccount')">
-      <div class="container">
-        <el-input v-model="addForm.email" ref="addRef" type="text" :placeholder="$t('emailAccount')" autocomplete="off">
-          <template #append>
-            <div @click.stop="openSelect">
-              <el-select
-                  ref="mySelect"
-                  v-model="addForm.suffix"
-                  :placeholder="$t('select')"
-                  class="select"
-              >
-                <el-option
-                    v-for="item in domainList"
-                    :key="item"
-                    :label="item"
-                    :value="item"
-                />
-              </el-select>
-              <div>
-                <span>{{ addForm.suffix }}</span>
-                <Icon class="setting-icon" icon="mingcute:down-small-fill" width="20" height="20"/>
-              </div>
+    <!-- Add account dialog -->
+    <s-modal v-model="showAdd" :title="$t('addAccount')" size="sm">
+      <div class="modal-form">
+        <div class="input-group">
+          <s-input v-model="addForm.email" ref="addRef" :placeholder="$t('emailAccount')" />
+          <div class="domain-suffix">
+            <s-select
+              ref="mySelect"
+              v-model="addForm.suffix"
+              :options="domainOptions"
+              :placeholder="$t('select')"
+              class="domain-select-hidden"
+            />
+            <div class="domain-display" @click.stop="openSelect">
+              <span>{{ addForm.suffix }}</span>
+              <Icon icon="mingcute:down-small-fill" width="16" height="16" />
             </div>
-          </template>
-        </el-input>
-        <el-button class="btn" type="primary" @click="submit" :loading="addLoading"
-        >{{ $t('add') }}
-        </el-button>
+          </div>
+        </div>
+        <s-button type="primary" block @click="submit" :loading="addLoading">{{ $t('add') }}</s-button>
       </div>
       <div
-          class="add-email-turnstile"
-          :class="verifyShow ? 'turnstile-show' : 'turnstile-hide'"
-          :data-sitekey="settingStore.settings.siteKey"
-          data-callback="onTurnstileSuccess"
-          data-error-callback="onTurnstileError"
+        class="add-email-turnstile"
+        :class="verifyShow ? 'turnstile-show' : 'turnstile-hide'"
+        :data-sitekey="settingStore.settings.siteKey"
+        data-callback="onTurnstileSuccess"
+        data-error-callback="onTurnstileError"
       >
-        <span style="font-size: 12px;color: #F56C6C" v-if="botJsError">{{ $t('verifyModuleFailed') }}</span>
+        <span style="font-size: 12px; color: var(--s-danger)" v-if="botJsError">{{ $t('verifyModuleFailed') }}</span>
       </div>
-    </el-dialog>
-    <el-dialog v-model="setNameShow" :title="$t('changeUserName')">
-      <div class="container">
-        <el-input v-model="accountName" type="text" :placeholder="$t('username')" autocomplete="off">
-        </el-input>
-        <el-button class="btn" type="primary" @click="setName" :loading="setNameLoading"
-        >{{ $t('save') }}
-        </el-button>
+    </s-modal>
+
+    <!-- Rename dialog -->
+    <s-modal v-model="setNameShow" :title="$t('changeUserName')" size="sm">
+      <div class="modal-form">
+        <s-input v-model="accountName" :placeholder="$t('username')" />
+        <s-button type="primary" block @click="setName" :loading="setNameLoading">{{ $t('save') }}</s-button>
       </div>
-    </el-dialog>
+    </s-modal>
   </div>
 </template>
 <script setup>
@@ -145,6 +144,17 @@ import {useUserStore} from "@/store/user.js";
 import {hasPerm} from "@/perm/perm.js"
 import {useI18n} from "vue-i18n";
 import {AccountAllReceiveEnum} from "@/enums/account-enum.js";
+import { toast } from '@/components/ui/toast.js'
+import { confirm } from '@/components/ui/confirm.js'
+import SButton from '@/components/ui/s-button.vue'
+import SInput from '@/components/ui/s-input.vue'
+import SSelect from '@/components/ui/s-select.vue'
+import SModal from '@/components/ui/s-modal.vue'
+import STooltip from '@/components/ui/s-tooltip.vue'
+import SDropdown from '@/components/ui/s-dropdown.vue'
+import SDropdownItem from '@/components/ui/s-dropdown-item.vue'
+import SSkeleton from '@/components/ui/s-skeleton.vue'
+import SEmpty from '@/components/ui/s-empty.vue'
 
 const {t} = useI18n();
 const userStore = useUserStore();
@@ -154,6 +164,7 @@ const emailStore = useEmailStore();
 const showAdd = ref(false)
 const addLoading = ref(false);
 const domainList = computed(() => settingStore.domainList)
+const domainOptions = computed(() => settingStore.domainList.map(d => ({ value: d, label: d })))
 const accounts = reactive([])
 const noLoading = ref(false)
 const loading = ref(false)
@@ -163,7 +174,7 @@ const setNameShow = ref(false)
 const setNameLoading = ref(false)
 const accountName = ref(null)
 const addRef = ref({})
-const scrollbarRef = ref({})
+const scrollbarRef = ref(null)
 let account = null
 let turnstileId = null
 const botJsError = ref(false)
@@ -237,11 +248,7 @@ function setName() {
   }
 
   if (!name) {
-    ElMessage({
-      message: t('emptyUserNameMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('emptyUserNameMsg'), 'error')
     return;
   }
 
@@ -254,11 +261,7 @@ function setName() {
       userStore.user.name = name
     }
 
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('saveSuccessMsg'), 'success')
   }).finally(() => {
     setNameLoading.value = false
   })
@@ -279,11 +282,7 @@ function setAllReceive(account) {
     if (allReceiveAccount) allReceiveAccount.allReceive = AccountAllReceiveEnum.ENABLED;
   }).then(() => {
     if (account.allReceive === AccountAllReceiveEnum.ENABLED) {
-      ElMessage({
-        message: t('setSuccess'),
-        type: 'success',
-        plain: true,
-      })
+      toast(t('setSuccess'), 'success')
     }
     changeAccount(account);
     emailStore.emailScroll?.refreshList();
@@ -296,29 +295,16 @@ function showNullSetting(item) {
   return !hasPerm('email:send') && !(item.accountId !== userStore.user.account.accountId && hasPerm('account:delete'))
 }
 
-function itemBg(accountId) {
-  return accountStore.currentAccountId === accountId ? 'item-choose' : ''
-}
-
-
-
 function remove(account) {
-  ElMessageBox.confirm(t('delConfirm', {msg: account.email}), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
+  confirm(t('delConfirm', {msg: account.email}), t('confirm')).then(ok => {
+    if (!ok) return
     accountDelete(account.accountId).then(() => {
       const index = accounts.findIndex(item => item.accountId === account.accountId);
       accounts.splice(index, 1);
       if (accounts.length < queryParams.size) {
         getAccountList()
       }
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: 'success',
-        plain: true,
-      })
+      toast(t('delSuccessMsg'), 'success')
     })
   });
 }
@@ -333,7 +319,7 @@ function refresh() {
   queryParams.accountId = 0
   queryParams.lastSort = null
   getSkeletonRows();
-  scrollbarRef.value.setScrollTop(0)
+  if (scrollbarRef.value) scrollbarRef.value.scrollTop = 0
   accounts.splice(0, accounts.length)
   getAccountList()
 }
@@ -353,11 +339,7 @@ function add() {
 
 function setAsTop(account, index) {
   accountSetAsTop(account.accountId).then(() => {
-    ElMessage({
-      message: t('setSuccess'),
-      type: 'success',
-      plain: true,
-    })
+    toast(t('setSuccess'), 'success')
 
     const [item] = accounts.splice(index, 1);
     accounts.splice(1, 0, item);
@@ -368,18 +350,10 @@ function setAsTop(account, index) {
 async function copyAccount(account) {
   try {
     await navigator.clipboard.writeText(account);
-    ElMessage({
-      message: t('copySuccessMsg'),
-      type: 'success',
-      plain: true,
-    })
+    toast(t('copySuccessMsg'), 'success')
   } catch (err) {
     console.error(`${t('copyFailMsg')}:`, err);
-    ElMessage({
-      message: t('copyFailMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('copyFailMsg'), 'error')
   }
 }
 
@@ -428,29 +402,17 @@ function getAccountList() {
 function submit() {
 
   if (!addForm.email) {
-    ElMessage({
-      message: t('emptyEmailMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('emptyEmailMsg'), 'error')
     return
   }
 
   if (addForm.email.length < settingStore.settings.minEmailPrefix) {
-    ElMessage({
-      message: t('minEmailPrefix', {msg: settingStore.settings.minEmailPrefix}),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('minEmailPrefix', {msg: settingStore.settings.minEmailPrefix}), 'error')
     return
   }
 
   if (!isEmail(addForm.email + addForm.suffix)) {
-    ElMessage({
-      message: t('notEmailMsg'),
-      type: "error",
-      plain: true
-    })
+    toast(t('notEmailMsg'), 'error')
     return
   }
 
@@ -470,11 +432,7 @@ function submit() {
         }
       })
     } else if (!botJsError.value) {
-      ElMessage({
-        message: t('botVerifyMsg'),
-        type: "error",
-        plain: true
-      })
+      toast(t('botVerifyMsg'), 'error')
     }
     return;
   }
@@ -487,11 +445,7 @@ function submit() {
     accounts.push(account)
     verifyToken = ''
     settingStore.settings.addVerifyOpen = account.addVerifyOpen
-    ElMessage({
-      message: t('addSuccessMsg'),
-      type: "success",
-      plain: true
-    })
+    toast(t('addSuccessMsg'), 'success')
     verifyShow.value = false
     userStore.refreshUserInfo()
   }).catch(res => {
@@ -517,151 +471,234 @@ path[fill="#ffdda1"] {
 </style>
 <style scoped lang="scss">
 .account-box {
-
-  border-right: 1px solid var(--el-border-color) !important;
-  background-color: var(--el-bg-color);
+  border-right: 1px solid var(--s-line);
+  background: var(--s-paper);
   height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
 
-  .head-opt {
-    display: flex;
-    align-items: center;
-    height: 38px;
-    box-shadow: var(--header-actions-border);
-    padding-left: 10px;
-    padding-right: 10px;
+/* ── Toolbar ── */
+.account-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--s-line);
+  flex-shrink: 0;
+}
 
-    .icon {
-      cursor: pointer;
-    }
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--s-radius);
+  color: var(--s-muted);
+  cursor: pointer;
+  transition: all var(--s-ease);
 
-    .refresh {
-      margin-left: 10px;
-    }
-
-    .add {
-      margin-left: 2px;
-    }
-
-    .head-opt:not(.add) .refresh {
-      margin-left: 5px;
-    }
+  &:hover {
+    background: var(--s-soft);
+    color: var(--s-ink);
   }
+}
 
-  .scrollbar {
-    width: 100%;
-    height: calc(100% - 38px);
-    overflow: auto;
-    @media (max-width: 767px) {
-      height: calc(100% - 98px);
-    }
+/* ── Scroll area ── */
+.account-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 8px;
 
-    .empty {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-
-    .noLoading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px 0;
-      color: var(--secondary-text-color);
-    }
+  @media (max-width: 767px) {
+    height: calc(100% - 60px);
   }
+}
 
-  .btn {
-    width: 100%;
-    margin-top: 15px;
-  }
+/* ── Account card ── */
+.account-card {
+  padding: 12px 14px;
+  margin: 8px 10px 0;
+  border-radius: var(--s-radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--s-ease);
 
-  .item {
-    background-color: var(--el-bg-color);
-    border-radius: 8px;
-    padding: 12px 10px;
-    margin-bottom: 10px;
-    margin-left: 10px;
-    margin-right: 10px;
-    cursor: pointer;
-
-    .account {
-      font-weight: 600;
-      margin-bottom: 20px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    .opt {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #888;
-
-      .settings {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .send-email {
-        display: flex;
-        align-items: center;
-      }
-    }
-
-    :deep(.el-card__body) {
-      padding: 0;
-    }
-  }
-
-  .item:first-child {
+  &:first-child {
     margin-top: 10px;
   }
 
-  .item-choose {
-    background: var(--choose-account-background);
+  &:hover {
+    background: var(--s-soft);
+  }
+
+  &--active {
+    background: var(--s-soft);
+    border-color: var(--s-line);
   }
 }
 
+.account-card-email {
+  font-family: var(--s-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--s-ink);
+  margin-bottom: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
-.setting-icon {
+.account-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-card-left,
+.account-card-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: var(--s-radius);
+  cursor: pointer;
+  color: var(--s-muted);
+  transition: all var(--s-ease);
+
+  &:hover {
+    background: var(--s-line);
+    color: var(--s-ink);
+  }
+}
+
+.icon-warn {
+  color: #e0b800;
+}
+
+.icon-muted {
+  color: var(--s-muted);
+}
+
+.card-settings-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--s-line);
+}
+
+/* ── Skeleton card ── */
+.skeleton-card {
+  padding: 14px;
+  margin: 8px 10px 0;
+  border-radius: var(--s-radius-lg);
+  border: 1px solid var(--s-line);
+  background: var(--s-soft);
+}
+
+/* ── End label ── */
+.end-label {
+  text-align: center;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--s-muted);
+}
+
+/* ── Empty ── */
+.empty-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* ── Modal form ── */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Input group (email + domain) ── */
+.input-group {
+  display: flex;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  overflow: hidden;
+  transition: border-color var(--s-ease);
+
+  &:focus-within {
+    border-color: var(--s-accent);
+  }
+
+  :deep(.s-input-wrap) {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+  }
+  :deep(.s-input-wrap--error) {
+    border: none;
+  }
+}
+
+.domain-suffix {
   position: relative;
-  top: 6px;
+  flex-shrink: 0;
 }
 
-:deep(.el-input-group__append) {
-  padding: 0 !important;
-  padding-left: 8px !important;
-  background: var(--el-bg-color);
-}
-
-:deep(.el-dialog) {
-  width: 400px !important;
-  @media (max-width: 440px) {
-    width: calc(100% - 40px) !important;
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-  }
-}
-
-.select {
+.domain-select-hidden {
   position: absolute;
-  right: 30px;
-  width: 100px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   pointer-events: none;
+  z-index: 2;
+
+  /* Re-enable pointer events on the trigger area only */
+  :deep(.s-select-trigger) {
+    pointer-events: auto;
+  }
 }
 
-:deep(.el-pagination .el-select) {
-  width: 100px;
-  background: var(--el-bg-color);
+.domain-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  height: 100%;
+  font-size: 14px;
+  color: var(--s-body);
+  background: var(--s-soft);
+  border-left: 1px solid var(--s-line);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--s-line);
+  }
 }
 
+/* ── Turnstile ── */
 .add-email-turnstile {
-  margin-top: 15px;
+  margin-top: 14px;
 }
 
 .turnstile-show {
@@ -673,5 +710,4 @@ path[fill="#ffdda1"] {
   pointer-events: none;
   position: fixed;
 }
-
 </style>

@@ -1,0 +1,1 @@
+import{_ as t,c as a,b as s,j as c}from"./index-w_dq6dkw.js";const o={},r={class:"test-page"};function d(n,e){return c(),a("div",r,[...e[0]||(e[0]=[s("h1",{class:"test-title"},"Test Page",-1),s("p",{class:"test-desc"},"Editorial design system test area.",-1)])])}const i=t(o,[["render",d],["__scopeId","data-v-d2f80480"]]);export{i as default};

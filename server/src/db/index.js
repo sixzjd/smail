@@ -14,16 +14,19 @@ export class D1Wrapper {
   }
 
   prepare(sql) {
-    const stmt = this._sqlite.prepare(sql);
-    const self = this;
+    const sqlite = this._sqlite;
+    let _stmt = null;
+    // Lazy prepare: defer actual SQLite preparation until execution time.
+    // This allows batch() to run ALTER TABLE before UPDATE that references the new column,
+    // since better-sqlite3 validates column existence at prepare() time.
+    const getStmt = () => _stmt || (_stmt = sqlite.prepare(sql));
 
     return {
       bind(...params) {
-        // D1 bind can be called with individual args or a single array
         const flatParams = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
         return {
           async run() {
-            const result = stmt.run(...flatParams);
+            const result = getStmt().run(...flatParams);
             return {
               success: true,
               results: [],
@@ -31,17 +34,17 @@ export class D1Wrapper {
             };
           },
           async first(col) {
-            const row = stmt.get(...flatParams);
+            const row = getStmt().get(...flatParams);
             if (!row) return null;
             if (col) return row[col];
             return row;
           },
           async all() {
-            const rows = stmt.all(...flatParams);
+            const rows = getStmt().all(...flatParams);
             return { results: rows };
           },
           async raw() {
-            const rows = stmt.all(...flatParams);
+            const rows = getStmt().all(...flatParams);
             if (rows.length === 0) return [];
             return Object.values(rows[0]);
           }
@@ -49,7 +52,7 @@ export class D1Wrapper {
       },
 
       async run() {
-        const result = stmt.run();
+        const result = getStmt().run();
         return {
           success: true,
           results: [],
@@ -58,19 +61,19 @@ export class D1Wrapper {
       },
 
       async first(col) {
-        const row = stmt.get();
+        const row = getStmt().get();
         if (!row) return null;
         if (col) return row[col];
         return row;
       },
 
       async all() {
-        const rows = stmt.all();
+        const rows = getStmt().all();
         return { results: rows };
       },
 
       async raw() {
-        const rows = stmt.all();
+        const rows = getStmt().all();
         if (rows.length === 0) return [];
         return Object.values(rows[0]);
       }
@@ -81,12 +84,16 @@ export class D1Wrapper {
     const results = [];
     const transaction = this._sqlite.transaction(() => {
       for (const stmt of statements) {
-        // Each statement is a prepared statement with bind already called
-        // In D1 batch, you pass promises from prepare().run() etc.
+        // Each statement is a wrapper object with .run() etc.
+        // Execute them sequentially so ALTER TABLE runs before UPDATE
+        // that may reference the new column (lazy prepare defers validation).
         results.push(stmt);
+        if (typeof stmt.run === 'function') {
+          stmt.run();
+        }
       }
     });
-    transaction();
+    await transaction();
     return results;
   }
 

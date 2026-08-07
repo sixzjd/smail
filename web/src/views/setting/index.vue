@@ -1,67 +1,70 @@
 <template>
-  <div class="box">
-    <div class="container">
-      <div class="title">{{$t('profile')}}</div>
-      <div class="item">
-        <div>{{$t('username')}}</div>
-        <div>
-          <span v-if="setNameShow" class="edit-name-input">
-            <el-input v-model="accountName"  ></el-input>
-            <span class="edit-name" @click="setName">
-             {{$t('save')}}
+  <div class="settings-page">
+    <!-- Profile Section -->
+    <section class="settings-card">
+      <h2 class="card-title">{{ $t('profile') }}</h2>
+      <div class="card-body">
+        <div class="field-row">
+          <span class="field-label">{{ $t('username') }}</span>
+          <div class="field-value">
+            <span v-if="setNameShow" class="edit-name-input">
+              <s-input v-model="accountName" :placeholder="$t('username')" />
+              <button class="link-btn" @click="setName">{{ $t('save') }}</button>
             </span>
-          </span>
-          <span v-else class="user-name">
-            <span >{{ userStore.user.name }}</span>
-            <span class="edit-name" @click="showSetName">
-             {{$t('change')}}
+            <span v-else class="user-name">
+              <span class="name-text">{{ userStore.user.name }}</span>
+              <button class="link-btn" @click="showSetName">{{ $t('change') }}</button>
             </span>
-          </span>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">{{ $t('emailAccount') }}</span>
+          <span class="field-value muted">{{ userStore.user.email }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">{{ $t('password') }}</span>
+          <div class="field-value">
+            <s-button type="primary" size="sm" @click="pwdShow = true">{{ $t('changePwdBtn') }}</s-button>
+          </div>
         </div>
       </div>
-      <div class="item">
-        <div>{{$t('emailAccount')}}</div>
-        <div>{{ userStore.user.email }}</div>
-      </div>
-      <div class="item">
-        <div>{{$t('password')}}</div>
-        <div>
-          <el-button type="primary" @click="pwdShow = true">{{$t('changePwdBtn')}}</el-button>
-        </div>
-      </div>
-    </div>
-    <div class="language">
-      <div class="title">{{$t('language')}}</div>
-      <el-select
+    </section>
+
+    <!-- Language Section -->
+    <section class="settings-card">
+      <h2 class="card-title">{{ $t('language') }}</h2>
+      <div class="card-body">
+        <s-select
           :model-value="langSelect"
-          class="language-select"
-          placeholder="Select"
+          :options="langOptions"
+          :placeholder="$t('select')"
           @change="changeLang"
-      >
-        <el-option label="中文" value="zh" @pointerdown.prevent.stop="changeLang('zh')"/>
-        <el-option label="English" value="en" @pointerdown.prevent.stop="changeLang('en')"/>
-      </el-select>
-    </div>
-    <div class="del-email" v-perm="'my:delete'">
-      <div class="title">{{$t('deleteUser')}}</div>
-      <div style="color: var(--regular-text-color);">
-        {{$t('delAccountMsg')}}
+        />
       </div>
-      <div>
-        <el-button type="primary" @click="deleteConfirm">{{$t('deleteUserBtn')}}</el-button>
+    </section>
+
+    <!-- Danger Zone -->
+    <section class="settings-card danger-zone" v-perm="'my:delete'">
+      <h2 class="card-title danger-title">{{ $t('deleteUser') }}</h2>
+      <div class="card-body">
+        <p class="danger-text">{{ $t('delAccountMsg') }}</p>
+        <s-button type="danger" @click="deleteConfirm">{{ $t('deleteUserBtn') }}</s-button>
       </div>
-    </div>
-    <el-dialog v-model="pwdShow" :title="$t('changePassword')" width="340">
-      <div class="update-pwd">
-        <el-input type="password" :placeholder="$t('newPassword')" v-model="form.password" autocomplete="off"/>
-        <el-input type="password" :placeholder="$t('confirmPassword')" v-model="form.newPwd" autocomplete="off"/>
-        <el-button type="primary" :loading="setPwdLoading" @click="submitPwd">{{$t('save')}}</el-button>
+    </section>
+
+    <!-- Change Password Modal -->
+    <s-modal v-model="pwdShow" :title="$t('changePassword')" size="sm">
+      <div class="pwd-form">
+        <s-input type="password" :placeholder="$t('newPassword')" v-model="form.password" />
+        <s-input type="password" :placeholder="$t('confirmPassword')" v-model="form.newPwd" />
+        <s-button type="primary" block :loading="setPwdLoading" @click="submitPwd">{{ $t('save') }}</s-button>
       </div>
-    </el-dialog>
+    </s-modal>
   </div>
 </template>
+
 <script setup>
-import {reactive, ref, defineOptions} from 'vue'
+import {reactive, ref, computed, defineOptions} from 'vue'
 import {resetPassword, userDelete} from "@/request/my.js";
 import {useUserStore} from "@/store/user.js";
 import router from "@/router/index.js";
@@ -69,6 +72,12 @@ import {accountSetName} from "@/request/account.js";
 import {useAccountStore} from "@/store/account.js";
 import {useI18n} from "vue-i18n";
 import {useSettingStore} from "@/store/setting.js";
+import { toast } from '@/components/ui/toast.js';
+import { confirm } from '@/components/ui/confirm.js';
+import SInput from '@/components/ui/s-input.vue';
+import SButton from '@/components/ui/s-button.vue';
+import SModal from '@/components/ui/s-modal.vue';
+import SSelect from '@/components/ui/s-select.vue';
 
 const { t } = useI18n()
 const accountStore = useAccountStore()
@@ -78,6 +87,11 @@ const setPwdLoading = ref(false)
 const setNameShow = ref(false)
 const accountName = ref(null)
 const langSelect = ref(settingStore.lang)
+
+const langOptions = computed(() => [
+  { label: '中文', value: 'zh' },
+  { label: 'English', value: 'en' }
+])
 
 defineOptions({
   name: 'setting'
@@ -91,11 +105,7 @@ function showSetName() {
 function setName() {
 
   if (!accountName.value) {
-    ElMessage({
-      message: t('emptyUserNameMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('emptyUserNameMsg'), 'error')
     return;
   }
 
@@ -109,11 +119,7 @@ function setName() {
   userStore.user.name = accountName.value
 
   accountSetName(userStore.user.account.accountId,name).then(() => {
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: 'success',
-      plain: true,
-    })
+    toast(t('saveSuccessMsg'), 'success')
 
     accountStore.changeUserAccountName = name
 
@@ -139,61 +145,38 @@ const form = reactive({
   newPwd: '',
 })
 
-const deleteConfirm = () => {
-  ElMessageBox.confirm(t('delAccountConfirm'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
+const deleteConfirm = async () => {
+  const ok = await confirm(t('delAccountConfirm'), t('confirm'))
+  if (ok) {
     userDelete().then(() => {
       localStorage.removeItem('token');
       router.replace('/login');
-      ElMessage({
-        message: t('delSuccessMsg'),
-        type: 'success',
-        plain: true,
-      })
+      toast(t('delSuccessMsg'), 'success')
     })
-  })
+  }
 }
 
 
 function submitPwd() {
 
   if (!form.password) {
-    ElMessage({
-      message: t('emptyPwdMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('emptyPwdMsg'), 'error')
     return
   }
 
   if (form.password.length < 6) {
-    ElMessage({
-      message: t('pwdLengthMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('pwdLengthMsg'), 'error')
     return
   }
 
   if (form.password !== form.newPwd) {
-    ElMessage({
-      message: t('confirmPwdFailMsg'),
-      type: 'error',
-      plain: true,
-    })
+    toast(t('confirmPwdFailMsg'), 'error')
     return
   }
 
   setPwdLoading.value = true
   resetPassword(form.password).then(() => {
-    ElMessage({
-      message: t('saveSuccessMsg'),
-      type: 'success',
-      plain: true,
-    })
+    toast(t('saveSuccessMsg'), 'success')
     pwdShow.value = false
     setPwdLoading.value = false
     form.password = ''
@@ -205,92 +188,147 @@ function submitPwd() {
 }
 
 </script>
+
 <style scoped lang="scss">
-.box {
-  padding: 40px 40px;
+.settings-page {
+  padding: 40px;
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 60px;
 
   @media (max-width: 767px) {
-    padding: 30px 30px;
-  }
-
-  .update-pwd {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .title {
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .container {
-    font-size: 14px;
-    display: grid;
-    gap: 20px;
-    margin-bottom: 40px;
-
-    .item {
-      display: grid;
-      grid-template-columns: 50px 1fr;
-      gap: 140px;
-      position: relative;
-      .user-name {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        span:first-child {
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-        }
-      }
-
-      .edit-name-input {
-        position: absolute;
-        bottom: -6px;
-        .el-input {
-          width: min(200px,calc(100vw - 222px));
-        }
-      }
-
-      .edit-name {
-        color: #4dabff;
-        padding-left: 10px;
-        cursor: pointer;
-      }
-
-      @media (max-width: 767px) {
-        gap: 70px;
-      }
-
-      div:first-child {
-        font-weight: bold;
-      }
-
-      div:last-child {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-    }
-  }
-
-  .language {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 40px;
-
-    .language-select {
-      width: 100px;
-    }
-  }
-
-  .del-email {
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
+    padding: 24px 20px;
+    padding-bottom: 40px;
     gap: 20px;
   }
+}
+
+.settings-card {
+  background: var(--s-paper);
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius-lg);
+  transition: box-shadow var(--s-ease);
+
+  &:hover {
+    box-shadow: var(--s-shadow-sm);
+  }
+}
+
+.card-title {
+  font-family: var(--s-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--s-ink);
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--s-line-light);
+  margin: 0;
+}
+
+.card-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--s-ink-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.field-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--s-ink);
+  min-width: 0;
+}
+
+.field-value.muted {
+  color: var(--s-muted);
+}
+
+.user-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--s-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  transition: color var(--s-ease);
+
+  &:hover {
+    color: var(--s-accent-hover);
+  }
+}
+
+.edit-name-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+
+  .s-input-wrap {
+    flex: 1;
+  }
+}
+
+/* Danger zone */
+.danger-zone {
+  border-color: var(--s-danger-soft);
+
+  .danger-title {
+    color: var(--s-danger);
+  }
+}
+
+.danger-text {
+  font-size: 13px;
+  color: var(--s-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Password form */
+.pwd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 </style>

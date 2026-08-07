@@ -1,83 +1,119 @@
 <template>
-  <div class="box">
-    <div class="header-actions">
-      <Icon class="icon" icon="material-symbols-light:arrow-back-ios-new" width="20" height="20" @click="handleBack"/>
-      <Icon v-perm="'email:delete'" class="icon" icon="uiw:delete" width="16" height="16" @click="handleDelete"/>
-      <span class="star" v-if="emailStore.contentData.showStar">
-        <Icon class="icon" @click="changeStar" v-if="email.isStar" icon="fluent-color:star-16" width="20" height="20"/>
-        <Icon class="icon" @click="changeStar" v-else icon="solar:star-line-duotone" width="18" height="18"/>
-      </span>
-      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openReply" icon="la:reply" width="21" height="21" />
-      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openForward" icon="iconoir:arrow-up-right" width="20" height="20" />
+  <div class="content-box">
+    <!-- Action bar -->
+    <div class="content-toolbar">
+      <div class="toolbar-left">
+        <button class="toolbar-btn" @click="handleBack" aria-label="Back">
+          <Icon icon="material-symbols-light:arrow-back-ios-new" width="18" height="18" />
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <button class="toolbar-btn" v-perm="'email:delete'" @click="handleDelete" aria-label="Delete">
+          <Icon icon="uiw:delete" width="15" height="15" />
+        </button>
+        <span class="toolbar-divider" v-if="emailStore.contentData.showStar"></span>
+        <button class="toolbar-btn toolbar-star" v-if="emailStore.contentData.showStar" @click="changeStar" aria-label="Star">
+          <Icon v-if="email.isStar" icon="fluent-color:star-16" width="18" height="18" />
+          <Icon v-else icon="solar:star-line-duotone" width="16" height="16" />
+        </button>
+        <button class="toolbar-btn" v-if="emailStore.contentData.showReply" v-perm="'email:send'" @click="openReply" aria-label="Reply">
+          <Icon icon="la:reply" width="18" height="18" />
+        </button>
+        <button class="toolbar-btn" v-if="emailStore.contentData.showReply" v-perm="'email:send'" @click="openForward" aria-label="Forward">
+          <Icon icon="iconoir:arrow-up-right" width="17" height="17" />
+        </button>
+      </div>
     </div>
-    <div></div>
-    <el-scrollbar class="scrollbar">
-      <div class="container">
-        <div class="email-title">
-          {{ email.subject }}
-        </div>
-        <div class="content">
-          <div class="email-info">
-            <div>
-              <div class="send"><span class="send-source">{{$t('from')}}</span>
-                <div class="send-name">
-                  <span class="send-name-title">{{ email.name }}</span>
-                  <span><{{ email.sendEmail }}></span>
-                </div>
-              </div>
-              <div class="receive"><span class="source">{{$t('recipient')}}</span><span class="receive-email">{{  formateReceive(email.recipient) }}</span></div>
-              <div class="date">
-                <div>{{ formatDetailDate(email.createTime) }}</div>
-              </div>
-            </div>
-            <el-alert v-if="email.status === 3" :closable="false" :title="toMessage(email.message)" class="email-msg" type="error" show-icon />
-            <el-alert v-if="email.status === 4" :closable="false" :title="$t('complained')" class="email-msg" type="warning" show-icon />
-            <el-alert v-if="email.status === 5" :closable="false" :title="$t('delayed')" class="email-msg" type="warning" show-icon />
-          </div>
-          <el-scrollbar class="htm-scrollbar" :class="email.attList.length === 0 ? 'bottom-distance' : ''">
-            <ShadowHtml class="shadow-html" :html="formatImage(email.content)" v-if="email.content" />
-            <pre v-else class="email-text" >{{email.text}}</pre>
-          </el-scrollbar>
-          <div class="att" v-if="email.attList.length > 0">
-            <div class="att-title">
-              <span>{{$t('attachments')}}</span>
-              <span>{{$t('attCount',{total: email.attList.length})}}</span>
-            </div>
-            <div class="att-box">
 
-              <div class="att-item" v-for="att in email.attList" :key="att.attId">
-                <div class="att-icon" @click="showImage(att.key)">
-                  <Icon v-bind="getIconByName(att.filename)" />
-                </div>
-                <div class="att-name" @click="showImage(att.key)">
-                  {{ att.filename }}
-                </div>
-                <div class="att-size">{{ formatBytes(att.size) }}</div>
-                <div class="opt-icon att-icon">
-                  <Icon v-if="isImage(att.filename)" icon="hugeicons:view" width="22" height="22" @click="showImage(att.key)"/>
-                  <a :href="cvtR2Url(att.key)" download>
-                    <Icon icon="system-uicons:push-down" width="22" height="22"/>
-                  </a>
-                </div>
+    <!-- Scrollable content area -->
+    <div class="content-scroll">
+      <div class="content-inner">
+        <!-- Subject -->
+        <h1 class="email-subject">{{ email.subject }}</h1>
+
+        <!-- Sender info -->
+        <div class="sender-card">
+          <div class="sender-avatar">
+            <s-avatar :alt="email.name || email.sendEmail" size="lg" />
+          </div>
+          <div class="sender-meta">
+            <div class="sender-row">
+              <span class="sender-name">{{ email.name }}</span>
+              <span class="sender-addr">&lt;{{ email.sendEmail }}&gt;</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">{{ $t('from') }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">{{ $t('recipient') }}</span>
+              <span class="meta-value">{{ formateReceive(email.recipient) }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-value meta-date">{{ formatDetailDate(email.createTime) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status banners -->
+        <div v-if="email.status === 3" class="status-banner status-banner--error">
+          <s-tag type="danger">Error</s-tag>
+          <span>{{ toMessage(email.message) }}</span>
+        </div>
+        <div v-if="email.status === 4" class="status-banner status-banner--warn">
+          <s-tag type="warning">{{ $t('complained') }}</s-tag>
+        </div>
+        <div v-if="email.status === 5" class="status-banner status-banner--warn">
+          <s-tag type="warning">{{ $t('delayed') }}</s-tag>
+        </div>
+
+        <!-- Email body -->
+        <div class="email-body" :class="{ 'email-body--no-att': email.attList.length === 0 }">
+          <ShadowHtml class="email-html" :html="formatImage(email.content)" v-if="email.content" />
+          <pre v-else class="email-text">{{ email.text }}</pre>
+        </div>
+
+        <!-- Attachments -->
+        <div class="attachments" v-if="email.attList.length > 0">
+          <div class="att-header">
+            <span class="att-label">{{ $t('attachments') }}</span>
+            <span class="att-count">{{ $t('attCount', { total: email.attList.length }) }}</span>
+          </div>
+          <div class="att-grid">
+            <div class="att-card" v-for="att in email.attList" :key="att.attId">
+              <div class="att-card-icon" @click="showImage(att.key)">
+                <Icon v-bind="getIconByName(att.filename)" />
+              </div>
+              <div class="att-card-name" @click="showImage(att.key)" :title="att.filename">
+                {{ att.filename }}
+              </div>
+              <div class="att-card-size">{{ formatBytes(att.size) }}</div>
+              <div class="att-card-actions">
+                <Icon v-if="isImage(att.filename)" icon="hugeicons:view" width="18" height="18" @click="showImage(att.key)" />
+                <a :href="cvtR2Url(att.key)" download>
+                  <Icon icon="system-uicons:push-down" width="18" height="18" />
+                </a>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </el-scrollbar>
-    <el-image-viewer
-        v-if="showPreview"
-        :url-list="srcList"
-        show-progress
-        @close="showPreview = false"
-    />
+    </div>
+
+    <!-- Image preview overlay -->
+    <Teleport to="body">
+      <div v-if="showPreview" class="img-preview-mask" @click="showPreview = false">
+        <button class="img-preview-close" @click="showPreview = false">&times;</button>
+        <img :src="srcList[0]" class="img-preview-img" @click.stop />
+      </div>
+    </Teleport>
   </div>
 </template>
 <script setup>
 import ShadowHtml from '@/components/shadow-html/index.vue'
 import {reactive, ref, watch, onMounted, onUnmounted} from "vue";
 import {useRouter} from 'vue-router'
-import {ElMessage, ElMessageBox} from 'element-plus'
+import { toast } from '@/components/ui/toast.js'
+import { confirm } from '@/components/ui/confirm.js'
 import {emailDelete, emailRead} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
@@ -92,6 +128,8 @@ import {allEmailDelete} from "@/request/all-email.js";
 import {useUiStore} from "@/store/ui.js";
 import {useI18n} from "vue-i18n";
 import {EmailUnreadEnum} from "@/enums/email-enum.js";
+import SAvatar from '@/components/ui/s-avatar.vue'
+import STag from '@/components/ui/s-tag.vue'
 
 const uiStore = useUiStore();
 const settingStore = useSettingStore();
@@ -183,234 +221,216 @@ const handleBack = () => {
   router.back()
 }
 
-const handleDelete = () => {
-  ElMessageBox.confirm(t('delEmailConfirm'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning'
-  }).then(() => {
-    if (emailStore.contentData.delType === 'logic') {
-      emailDelete(email.emailId).then(() => {
-        ElMessage({
-          message: t('delSuccessMsg'),
-          type: 'success',
-          plain: true,
-        })
-        emailStore.deleteIds = [email.emailId]
-      })
-    } else  {
-
-      allEmailDelete(email.emailId).then(() => {
-        ElMessage({
-          message: t('delSuccessMsg'),
-          type: 'success',
-          plain: true,
-        })
-        emailStore.deleteIds = [email.emailId]
-      })
-    }
-
-    router.back()
-  })
+const handleDelete = async () => {
+  const ok = await confirm(t('delEmailConfirm'), t('confirm'))
+  if (!ok) return
+  if (emailStore.contentData.delType === 'logic') {
+    emailDelete(email.emailId).then(() => {
+      toast(t('delSuccessMsg'), 'success')
+      emailStore.deleteIds = [email.emailId]
+    })
+  } else {
+    allEmailDelete(email.emailId).then(() => {
+      toast(t('delSuccessMsg'), 'success')
+      emailStore.deleteIds = [email.emailId]
+    })
+  }
+  router.back()
 }
 </script>
 <style scoped lang="scss">
-.box {
+.content-box {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--s-paper);
   overflow: hidden;
 }
 
-.header-actions {
-  padding: 9px 15px;
+/* ── Toolbar ── */
+.content-toolbar {
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: var(--header-actions-border);
-  font-size: 18px;
-  .star {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 21px;
-  }
-  .icon {
-    cursor: pointer;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--s-line);
+  flex-shrink: 0;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: var(--s-radius);
+  color: var(--s-muted);
+  cursor: pointer;
+  transition: all var(--s-ease);
+
+  &:hover {
+    background: var(--s-soft);
+    color: var(--s-ink);
   }
 }
 
-
-.scrollbar {
-  height: calc(100% - 38px);
-  width: 100%;
+.toolbar-star:hover {
+  color: #d4a017;
 }
 
-.container {
-  font-size: 14px;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 10px;
-  @media (max-width: 1023px) {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
+.toolbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--s-line);
+  margin: 0 4px;
+}
 
-  .email-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
+/* ── Scroll area ── */
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
-  .htm-scrollbar {
-  }
+.content-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
 
-  .content {
-    display: flex;
-    flex-direction: column;
-
-    .att {
-      margin-top: 30px;
-      margin-bottom: 30px;
-      border: 1px solid var(--light-border-color);
-      padding: 14px;
-      border-radius: 6px;
-      width: fit-content;
-      .att-box {
-        min-width: min(410px,calc(100vw - 60px));
-        max-width: 600px;
-        display: grid;
-        gap: 12px;
-        grid-template-rows: 1fr;
-      }
-
-      .att-title {
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        span:first-child {
-          font-weight: bold;
-        }
-      }
-
-      .att-item {
-        cursor: pointer;
-        div {
-          align-self: center;
-        }
-        background: var(--light-ill);
-        padding: 5px 7px;
-        border-radius: 4px;
-        align-self: start;
-        display: grid;
-        grid-template-columns: auto 1fr auto auto;
-        .att-icon {
-          display: grid;
-        }
-
-        .att-size {
-          color: var(--secondary-text-color);
-        }
-
-        .att-name {
-          margin-left: 8px;
-          margin-right: 8px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          word-break: break-all;
-        }
-
-        .att-image {
-          width: 60px;
-          height: 60px;
-          object-fit: contain;
-        }
-
-        .opt-icon {
-          padding-left: 10px;
-          color: var(--secondary-text-color);
-          align-items: center;
-          display: flex;
-          gap: 8px;
-          cursor: pointer;
-          a {
-            color: var(--secondary-text-color);
-            align-items: center;
-            display: flex;
-          }
-        }
-      }
-    }
-
-    .email-info {
-
-      border-bottom: 1px solid var(--light-border-color);
-      margin-bottom: 20px;
-      padding-bottom: 8px;
-      @media (max-width: 1024px) {
-        margin-bottom: 15px;
-      }
-      .date {
-        color: var(--regular-text-color);
-        margin-bottom: 6px;
-      }
-
-      .email-msg {
-        max-width: 400px;
-        width: fit-content;
-        margin-bottom: 15px;
-      }
-
-      .send {
-        display: flex;
-        margin-bottom: 6px;
-
-        .send-name {
-          color: var(--regular-text-color);
-          display: flex;
-          flex-wrap: wrap;
-        }
-
-        .send-name-title {
-          padding-right: 5px;
-        }
-      }
-
-      .receive {
-        margin-bottom: 6px;
-        display: flex;
-        .receive-email {
-          max-width: 700px;
-          word-break: break-word;
-        }
-        span:nth-child(2) {
-          color: var(--regular-text-color);
-        }
-      }
-
-      .send-source {
-        white-space: nowrap;
-        font-weight: bold;
-        padding-right: 10px;
-      }
-
-      .source {
-        white-space: nowrap;
-        font-weight: bold;
-        padding-right: 10px;
-      }
-    }
+  @media (max-width: 768px) {
+    padding: 20px 16px 36px;
   }
 }
 
-.shadow-html::after  {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--message-block-color); /* 半透明黑色蒙层 */
-  pointer-events: none; /* 不影响点击 */
+/* ── Subject ── */
+.email-subject {
+  font-family: var(--s-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--s-ink);
+  margin: 0 0 24px;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 768px) {
+    font-size: 21px;
+    margin-bottom: 18px;
+  }
+}
+
+/* ── Sender card ── */
+.sender-card {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--s-line);
+}
+
+.sender-avatar {
+  flex-shrink: 0;
+}
+
+.sender-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sender-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.sender-name {
+  font-family: var(--s-font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--s-ink);
+}
+
+.sender-addr {
+  font-size: 13px;
+  color: var(--s-muted);
+}
+
+.meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.meta-label {
+  color: var(--s-muted);
+  white-space: nowrap;
+  min-width: 70px;
+  font-weight: 500;
+}
+
+.meta-value {
+  color: var(--s-body);
+  word-break: break-word;
+}
+
+.meta-date {
+  color: var(--s-muted);
+}
+
+/* ── Status banners ── */
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--s-radius);
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+
+  &--error {
+    background: color-mix(in srgb, var(--s-danger) 8%, var(--s-paper));
+    border: 1px solid color-mix(in srgb, var(--s-danger) 20%, transparent);
+    color: var(--s-danger);
+  }
+
+  &--warn {
+    background: color-mix(in srgb, #d4a017 8%, var(--s-paper));
+    border: 1px solid color-mix(in srgb, #d4a017 20%, transparent);
+    color: #8a6d0b;
+  }
+}
+
+/* ── Email body ── */
+.email-body {
+  font-family: var(--s-font-body);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--s-ink);
+  margin-bottom: 32px;
+
+  &--no-att {
+    margin-bottom: 48px;
+  }
+}
+
+.email-html {
+  position: relative;
 }
 
 .email-text {
@@ -420,9 +440,136 @@ const handleDelete = () => {
   margin: 0;
 }
 
-.bottom-distance {
-  margin-bottom: 30px;
+/* ── Attachments ── */
+.attachments {
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius-lg);
+  padding: 16px;
+  background: var(--s-soft);
+  width: fit-content;
+  max-width: 100%;
 }
 
+.att-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
 
+.att-label {
+  font-family: var(--s-font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--s-ink);
+}
+
+.att-count {
+  font-size: 12px;
+  color: var(--s-muted);
+}
+
+.att-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  min-width: min(400px, calc(100vw - 80px));
+  max-width: 600px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.att-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--s-paper);
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  cursor: pointer;
+  transition: box-shadow var(--s-ease);
+
+  &:hover {
+    box-shadow: var(--s-shadow-sm);
+  }
+}
+
+.att-card-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.att-card-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--s-ink);
+}
+
+.att-card-size {
+  font-size: 12px;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.att-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--s-muted);
+  padding-left: 4px;
+
+  a {
+    color: inherit;
+    display: flex;
+    align-items: center;
+  }
+
+  :deep(.iconify:hover) {
+    color: var(--s-accent);
+  }
+}
+
+/* ── Image preview overlay ── */
+.img-preview-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.img-preview-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.8);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 1;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.img-preview-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--s-radius);
+  cursor: default;
+}
 </style>
