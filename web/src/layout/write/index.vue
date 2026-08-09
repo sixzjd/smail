@@ -545,7 +545,7 @@ function close() {
   if (showAcDropdown.value) showAcDropdown.value = false;
 
   if (!form.content) {
-    form.content = editor.value.getContent();
+    try { form.content = editor.value.getContent(); } catch(e) { /* editor not ready */ }
   }
 
   if (form.draftId) {
@@ -563,7 +563,7 @@ function close() {
 
   if (backReply.sendType === 'reply' || backReply.sendType === 'forward') {
     let subjectFlag = form.subject === backReply.subject
-    let contentFlag = editor.value.getContent() === backReply.content
+    let contentFlag = true; try { contentFlag = editor.value.getContent() === backReply.content } catch(e) { /* editor not ready */ }
     let receiveFlag = form.receiveEmail.length === 1 && form.receiveEmail[0] === backReply.receiveEmail[0]
     if (backReply.sendType === 'forward' && form.receiveEmail.length === 0) {
       receiveFlag = true;

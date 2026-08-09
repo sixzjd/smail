@@ -1,0 +1,51 @@
+name = "smail"
+main = "server/src/index.js"
+compatibility_date = "2025-06-04"
+keep_vars = true
+
+[triggers]
+crons = ["*/30 * * * *", "0 16 * * *"]
+
+[observability]
+enabled = true
+
+[[routes]]
+pattern = "mail.sixzjd.sbs"
+zone_name = "sixzjd.sbs"
+custom_domain = true
+
+[[d1_databases]]
+binding = "db"
+database_name = "cloud-mail"
+database_id = "d3ce23a4-9e69-408a-813a-d734f7ad98c8"
+
+[[kv_namespaces]]
+binding = "kv"
+id = "cdcd4f3d3b3343eba0299196134d7085"
+
+[[r2_buckets]]
+binding = "r2"
+bucket_name = "cloudmail"
+
+#[[send_email]]
+#name = "email"			#CF发件, 配置后优先使用
+
+[ai]
+binding = "ai"
+
+[assets]
+binding = "assets"
+directory = "./web/dist"
+not_found_handling = "single-page-application"
+run_worker_first = true
+
+[vars]
+#ai_model = ""
+#analysis_cache = false
+#orm_log = false
+domain = ["sixzjd.sbs"]
+admin = "admin@sixzjd.sbs"
+jwt_secret = "testtesttest"
+
+#[build]
+#command = "cd web && npm install && npm run build"

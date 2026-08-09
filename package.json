@@ -9,9 +9,14 @@
     "dev:web": "cd web && npx vite --mode dev",
     "build": "cd web && npx vite build --mode release",
     "start": "cd server && NODE_ENV=production node src/index.js",
-    "init-db": "cd server && node src/init-db.js"
+    "init-db": "cd server && node src/init-db.js",
+    "deploy": "npx wrangler deploy",
+    "deploy:web": "cd web && npx vite build --mode release",
+    "deploy:all": "npm run deploy:web && npx wrangler deploy",
+    "dev:workers": "npx wrangler dev"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "wrangler": "^4.0.0"
   }
 }

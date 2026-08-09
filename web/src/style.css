@@ -161,3 +161,27 @@ html[data-theme-to="light"]::view-transition-old(root) {
     from { clip-path: circle(var(--vt-end-radius, 0px) at var(--vt-x) var(--vt-y)); }
     to   { clip-path: circle(0px at var(--vt-x) var(--vt-y)); }
 }
+
+/* ── Mobile optimizations ── */
+@media (max-width: 768px) {
+  html, body {
+    font-size: 16px;
+  }
+
+  body {
+    touch-action: manipulation;
+  }
+
+  /* Ensure minimum 44x44 touch targets */
+  .icon-btn,
+  .toolbar-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Sidebar nav items >= 44px height */
+  .nav-item {
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+}

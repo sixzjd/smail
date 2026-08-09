@@ -30,8 +30,8 @@
             <a v-if="settingStore.settings.projectLink" class="login-gh" href="https://github.com/sixzjd/smail" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
               <Icon icon="mingcute:github-line" width="18" height="18" />
             </a>
-            <a class="login-bmc" href="javascript:void(0)" aria-label="Buy me coffee" @click.prevent>
-              <Icon icon="mingcute:coffee-line" width="18" height="18" />
+            <a class="login-doc" href="javascript:void(0)" aria-label="Doc" @click.prevent="router.push('/doc')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             </a>
           </div>
         </div>
@@ -52,6 +52,7 @@
                 <s-input
                   v-model="form.email"
                   type="text"
+                  inputmode="email"
                   :placeholder="$t('emailAccount')"
                   class="login-email-input"
                 />
@@ -70,7 +71,9 @@
               <s-input
                 v-model="form.password"
                 type="password"
+                inputmode="text"
                 :placeholder="$t('password')"
+                class="login-pwd-input"
               />
             </div>
 
@@ -101,6 +104,7 @@
                 <s-input
                   v-model="registerForm.email"
                   type="text"
+                  inputmode="email"
                   :placeholder="$t('emailAccount')"
                   class="login-email-input"
                 />
@@ -116,12 +120,12 @@
 
             <div class="login-field">
               <label class="login-label">{{ $t('password') }}</label>
-              <s-input v-model="registerForm.password" type="password" :placeholder="$t('password')" />
+              <s-input v-model="registerForm.password" type="password" inputmode="text" :placeholder="$t('password')" class="login-pwd-input" />
             </div>
 
             <div class="login-field">
               <label class="login-label">{{ $t('confirmPwd') }}</label>
-              <s-input v-model="registerForm.confirmPassword" type="password" :placeholder="$t('confirmPwd')" />
+              <s-input v-model="registerForm.confirmPassword" type="password" inputmode="text" :placeholder="$t('confirmPwd')" class="login-pwd-input" />
             </div>
 
             <div class="login-field" v-if="settingStore.settings.regKey === 0">
@@ -743,7 +747,7 @@ function submitRegister() {
 }
 
 .login-gh,
-.login-bmc {
+.login-doc {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -757,7 +761,7 @@ function submitRegister() {
 }
 
 .login-gh:hover,
-.login-bmc:hover {
+.login-doc:hover {
   border-color: var(--s-accent, #d9543e);
   color: var(--s-accent, #d9543e);
 }
@@ -950,6 +954,15 @@ function submitRegister() {
 
   .login-domain-select {
     width: 120px;
+  }
+}
+
+/* ── Mobile: prevent iOS zoom on focus ── */
+@media (max-width: 520px) {
+  .login-email-input :deep(input),
+  .login-pwd-input :deep(input),
+  .login-domain-select :deep(input) {
+    font-size: 16px;
   }
 }
 </style>

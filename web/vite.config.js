@@ -22,9 +22,9 @@ export default defineConfig(({mode}) => {
                     theme_color: '#FFFFFF',
                     icons: [
                         {
-                            src: 'mail-pwa.png',
-                            sizes: '192x192',
-                            type: 'image/png',
+                            src: 'smail-icon.svg',
+                            sizes: 'any',
+                            type: 'image/svg+xml',
                         }
                     ],
                 },

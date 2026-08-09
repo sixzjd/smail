@@ -1,16 +1,16 @@
 import PostalMime from 'postal-mime';
-import emailService from '../service/email-service.js';
-import accountService from '../service/account-service.js';
-import settingService from '../service/setting-service.js';
-import attService from '../service/att-service.js';
-import constant from '../const/constant.js';
-import fileUtils from '../utils/file-utils.js';
-import { emailConst, isDel, settingConst } from '../const/entity-const.js';
-import emailUtils from '../utils/email-utils.js';
-import roleService from '../service/role-service.js';
-import userService from '../service/user-service.js';
-import telegramService from '../service/telegram-service.js';
-import aiService from '../service/ai-service.js';
+import emailService from '../../service/email-service.js';
+import accountService from '../../service/account-service.js';
+import settingService from '../../service/setting-service.js';
+import attService from '../../service/att-service.js';
+import constant from '../../const/constant.js';
+import fileUtils from '../../utils/file-utils.js';
+import { emailConst, isDel, settingConst } from '../../const/entity-const.js';
+import emailUtils from '../../utils/email-utils.js';
+import roleService from '../../service/role-service.js';
+import userService from '../../service/user-service.js';
+import telegramService from '../../service/telegram-service.js';
+import aiService from '../../service/ai-service.js';
 
 export async function email(message, env, ctx) {
 

@@ -55,6 +55,11 @@ const routes = [
 
     },
     {
+        path: '/doc',
+        name: 'doc',
+        component: () => import('@/views/doc/index.vue')
+    },
+    {
         path: '/login',
         name: 'login',
         component: () => import('@/views/login/index.vue')
@@ -78,9 +83,9 @@ const router = createRouter({
 })
 
 NProgress.configure({
-    showSpinner: false,   // 不显示旋转图标
-    trickleSpeed: 50,    // 自动递增速度
-    minimum: 0.1          // 最小百分比
+    showSpinner: false,
+    trickleSpeed: 50,
+    minimum: 0.1
 });
 
 let timer
@@ -100,13 +105,17 @@ router.beforeEach((to, from, next) => {
 
     const token = localStorage.getItem('token')
 
-    if (!token && to.name !== 'login') {
+    if (!token && to.name !== 'login' && to.name !== 'doc') {
         return next({name: 'login'})
     }
 
     if (!token && to.name === 'login') {
         loadBackground(next)
         return
+    }
+
+    if (!token && to.name === 'doc') {
+        return next()
     }
 
     if (token && to.name === 'login') {

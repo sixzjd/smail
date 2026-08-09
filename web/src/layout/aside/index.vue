@@ -2,7 +2,7 @@
   <div class="sidebar-inner" ref="sidebarRef">
     <!-- Brand -->
     <div class="brand">
-      <div class="brand-mark">S</div>
+      <img class="brand-mark" src="/smail-icon.png" alt="smail">
       <div class="brand-name"><span>s</span>mail</div>
     </div>
 
@@ -126,12 +126,8 @@ function openSend() {
 }
 .brand-mark {
   width: 34px; height: 34px;
-  background: var(--s-accent);
-  color: #fff;
   border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--s-font-display);
-  font-weight: 800; font-size: 18px;
+  object-fit: contain;
 }
 .brand-name {
   font-family: var(--s-font-display);
@@ -201,5 +197,18 @@ function openSend() {
   background: var(--s-accent-soft);
   color: var(--s-accent);
   font-weight: 600;
+}
+
+/* ── Mobile: larger touch targets ── */
+@media (max-width: 768px) {
+  .nav-item {
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .compose-btn {
+    padding: 13px 0;
+    min-height: 44px;
+  }
 }
 </style>

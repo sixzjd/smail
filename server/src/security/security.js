@@ -7,7 +7,6 @@ import userService from '../service/user-service.js';
 import permService from '../service/perm-service.js';
 import { t } from '../i18n/i18n.js'
 import app from '../hono.js';
-import envBindings from '../env.js';
 
 const exclude = [
 	'/api/login',
@@ -97,11 +96,6 @@ app.use('*', async (c, next) => {
 	// Skip security for non-API routes (frontend static files, SPA, etc.)
 	if (!path.startsWith('/api/')) {
 		return await next();
-	}
-
-	// Ensure env is available (middleware order safety)
-	if (!c.env) {
-		c.env = { ...envBindings };
 	}
 
 	const index = exclude.findIndex(item => {

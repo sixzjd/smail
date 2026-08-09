@@ -67,7 +67,7 @@
               <Icon v-if="item.isStar" icon="fluent-color:star-16" width="18" height="18" />
               <Icon v-else icon="solar:star-line-duotone" width="16" height="16" />
             </div>
-            <div v-if="!showStar"></div>
+            <div v-if="!showStar" class="email-row__star-placeholder"></div>
 
             <!-- Content -->
             <div class="email-row__content">
@@ -310,6 +310,10 @@ const contextY = ref(0);
 const rightClickEmail = ref({});
 const checkedEmailCount = ref(0);
 let timer = null
+
+const queryParam = reactive({
+  size: 50
+});
 
 defineExpose({
   refreshList,
@@ -983,7 +987,7 @@ function loadData() {
 
   /* Unread */
   &--unread {
-    background: #fffaf3;
+    background: var(--s-accent-soft);
 
     .email-row__name-text,
     .email-row__subject-text {
@@ -994,7 +998,7 @@ function loadData() {
 
   /* Hover */
   &:hover {
-    background: #fffaf5;
+    background: var(--s-soft);
   }
 
   /* Checked */
@@ -1051,6 +1055,13 @@ function loadData() {
     color: var(--s-warning);
   }
 
+  @media (max-width: 1366px) {
+    display: none;
+  }
+}
+
+/* ── Star placeholder (hidden on mobile to fix grid) ── */
+.email-row__star-placeholder {
   @media (max-width: 1366px) {
     display: none;
   }
@@ -1353,6 +1364,18 @@ function loadData() {
   .toolbar-btn,
   .email-row__star {
     transition: none;
+  }
+}
+
+/* ── Mobile touch optimizations ── */
+@media (max-width: 768px) {
+  .email-row {
+    touch-action: manipulation;
+  }
+
+  .toolbar-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 </style>

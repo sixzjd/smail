@@ -4,6 +4,7 @@ export const confirm = (message, title = '确认') => {
   return new Promise((resolve) => {
     const mask = document.createElement('div')
     mask.className = 's-modal-mask'
+    mask.style.zIndex = '3000'
 
     const modal = document.createElement('div')
     modal.className = 's-modal s-modal--sm'
