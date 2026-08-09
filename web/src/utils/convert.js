@@ -1,8 +1,13 @@
 import {useSettingStore} from "@/store/setting.js";
+
+export function formatImage(content) {
+    const { settings } = useSettingStore();
+    return (content || '').replace(/{{domain}}/g, toOssDomain(settings.r2Domain) + '/');
+}
 export function cvtR2Url(key) {
 
     if (!key) {
-        return + 'https://' + ''
+        return 'https://' + (key || '')
     }
 
     if (key.startsWith('https://')) {

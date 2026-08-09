@@ -29,6 +29,20 @@ app.post('/api/email/send', async (c) => {
 	return c.json(result.ok(email));
 });
 
+app.get('/api/email/detail', async (c) => {
+	const emailId = Number(c.req.query('emailId'));
+	const curUser = userContext.getUser(c);
+	const emailRow = await emailService.selectById(c, emailId);
+	if (!emailRow) {
+		return c.json(result.ok(null));
+	}
+	if (emailRow.userId !== curUser.userId && curUser.email !== c.env.admin) {
+		return c.json(result.ok(null));
+	}
+	await emailService.emailAddAtt(c, [emailRow]);
+	return c.json(result.ok(emailRow));
+});
+
 app.put('/api/email/read', async (c) => {
 	await emailService.read(c, await c.req.json(), userContext.getUserId(c));
 	return c.json(result.ok());

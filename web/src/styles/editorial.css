@@ -28,8 +28,8 @@
   --s-danger-soft: #f5d0d0;
   --s-info: #5b8ec4;
   --s-info-soft: #d6e5f5;
-  --s-shadow: 0 10px 30px rgba(110,73,50,.12);
-  --s-shadow-sm: 0 2px 8px rgba(110,73,50,.08);
+  --s-shadow: 0 10px 30px rgba(0,0,0,.10);
+  --s-shadow-sm: 0 2px 8px rgba(0,0,0,.06);
   --s-radius: 8px;
   --s-radius-sm: 6px;
   --s-radius-lg: 12px;
@@ -63,8 +63,8 @@ html.dark {
   --s-danger-soft: #331e1e;
   --s-info: #6ea0d4;
   --s-info-soft: #1e2833;
-  --s-shadow: 0 10px 30px rgba(0,0,0,.3);
-  --s-shadow-sm: 0 2px 8px rgba(0,0,0,.2);
+  --s-shadow: 0 10px 30px rgba(0,0,0,.28);
+  --s-shadow-sm: 0 2px 8px rgba(0,0,0,.18);
 }
 
 /* ── Reset & Base ── */

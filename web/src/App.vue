@@ -9,7 +9,7 @@ import { useSettingStore } from '@/store/setting.js'
 
 const settingStore = useSettingStore()
 const { locale } = useI18n()
-locale.value = settingStore.lang
+if (settingStore.lang) locale.value = settingStore.lang
 watch(() => settingStore.lang, () => locale.value = settingStore.lang)
 import('@/icons/index.js')
 </script>

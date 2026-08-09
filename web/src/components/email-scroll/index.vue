@@ -69,6 +69,12 @@
             </div>
             <div v-if="!showStar" class="email-row__star-placeholder"></div>
 
+            <!-- Sender column (all-email desktop only) -->
+            <div class="email-row__sender-col" v-if="type === 'all-email'" :title="item.accountEmail || ''">
+              <Icon icon="mdi-light:email" width="14" height="14" class="email-row__sender-icon" />
+              <span class="email-row__sender-text">{{ item.accountEmail || '\u200B' }}</span>
+            </div>
+
             <!-- Content -->
             <div class="email-row__content">
               <div class="email-row__sender-line"
@@ -219,7 +225,6 @@ import {computed, onActivated, reactive, ref, watch, nextTick, onMounted, onUnmo
 import {useEmailStore} from "@/store/email.js";
 import {useUiStore} from "@/store/ui.js";
 import {useSettingStore} from "@/store/setting.js";
-import {sleep} from "@/utils/time-utils.js"
 import {fromNow} from "@/utils/day.js";
 import {useI18n} from "vue-i18n";
 import {EmailUnreadEnum} from "@/enums/email-enum.js";
@@ -277,7 +282,7 @@ const props = defineProps({
   },
   showUnread: {
     type: Boolean,
-    default: false
+    default: true
   }
 })
 
@@ -300,7 +305,7 @@ let scrollTop = 0
 const latestEmail = ref(null)
 const scrollbarRef = ref(null)
 let reqLock = false
-let isMobile = ref(innerWidth < 1367)
+const isMobile = ref(innerWidth < 1367)
 let skeletonRows = 0
 const timePaddingRight = ref('');
 const keyCount = ref(0);
@@ -341,18 +346,26 @@ onMounted(() => {
     })
   }, 1000 * 60);
   document.addEventListener('click', closeContextMenu)
+  window.addEventListener('wheel', handleWheel)
+  window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
   clearInterval(timer)
   document.removeEventListener('click', closeContextMenu)
+  window.removeEventListener('wheel', handleWheel)
+  window.removeEventListener('resize', handleResize)
 })
 
-getEmailList()
-
-window.onresize = () => {
+function handleResize() {
   isMobile.value = innerWidth < 1367
 }
+
+function handleWheel() {
+  if (contextMenuVisible.value) closeContextMenu()
+}
+
+getEmailList()
 
 function onScroll(e) {
   scrollTop = e.target.scrollTop;
@@ -371,7 +384,7 @@ const itemHeight = computed(() => {
     if (props.type === 'all-email') {
       return isMobile.value ? 132 : 65;
     } else  {
-      return isMobile.value ? 83 : 48;
+      return isMobile.value ? 83 : 90;
     }
 })
 
@@ -396,7 +409,7 @@ watch(followLoading, (isFollowLoading) => {
     })
   } else {
     const index = expandList.findIndex(item => item.expand === 'loading')
-    expandList.splice(index, 1);
+    if (index > -1) expandList.splice(index, 1);
   }
 });
 
@@ -408,7 +421,7 @@ watch(noLoading, (isNoLoading) => {
     })
   } else {
     const index = expandList.findIndex(item => item.expand === 'noMoreData')
-    expandList.splice(index, 1);
+    if (index > -1) expandList.splice(index, 1);
   }
 })
 
@@ -452,12 +465,6 @@ watch(() => emailStore.addStarEmailId, () => {
       email.isStar = 1
     }
   })
-})
-
-window.addEventListener('wheel', (event) => {
-  if (contextMenuVisible.value) {
-    closeContextMenu()
-  }
 })
 
 function closeContextMenu() {
@@ -521,26 +528,18 @@ const accountShow = computed(() => {
 
 function htmlToText(email) {
   if (email.content) {
-
-    const tempDiv = document.createElement('div');
-
-    tempDiv.innerHTML = email.content.replace(
-        /<(img|iframe|object|embed|video|audio|source|link)[^>]*>/gi, ''
-    );
-
-    const scriptsAndStyles = tempDiv.querySelectorAll('script, style, title');
-    scriptsAndStyles.forEach(el => el.remove());
-    let text = tempDiv.textContent || tempDiv.innerText || '';
-    text = text.replace(/\s+/g, ' ').trim();
-    return cleanSpace(text)
+    return cleanSpace(
+      email.content
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+    )
   }
 
   if (email.text) {
     return cleanSpace(email.text)
-  } else {
-    return ''
   }
-
+  return ''
 }
 
 function cleanSpace(text) {
@@ -654,13 +653,8 @@ function handleDelete() {
 }
 
 function deleteEmail(emailIds) {
-  emailIds.forEach(emailId => {
-    emailList.forEach((item, index) => {
-      if (emailId === item.emailId) {
-        emailList.splice(index, 1);
-      }
-    })
-  })
+  const idSet = new Set(emailIds)
+  emailList.splice(0, emailList.length, ...emailList.filter(item => !idSet.has(item.emailId)))
   if (emailList.length < queryParam.size && !noLoading.value) {
     getEmailList()
   }
@@ -775,14 +769,7 @@ function getEmailList(refresh = false) {
   } else {
     followLoading.value = !refresh;
   }
-  let start = Date.now();
-
-  props.getEmailList(emailId, queryParam.size).then(async data => {
-    let end = Date.now();
-    let duration = end - start;
-    if (duration < 300 && !emailId) {
-        await sleep(300 - duration)
-    }
+  props.getEmailList(emailId, queryParam.size).then(data => {
     firstLoad.value = false
 
     let list = data.list.map(item => ({
@@ -812,23 +799,25 @@ function getEmailList(refresh = false) {
 }
 
 function handleList(list) {
+  const statusIconMap = {
+    0: { icon: 'ic:round-mark-email-read', color: '#51C76B', content: t('received') },
+    1: { icon: 'bi:send-arrow-up-fill',  color: '#51C76B', content: t('sent') },
+    2: { icon: 'bi:send-check-fill',     color: '#51C76B', content: t('delivered') },
+    3: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
+    8: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
+    4: { icon: 'bi:send-exclamation-fill', color: '#FBBD08', content: t('complained') },
+    5: { icon: 'bi:send-arrow-up-fill',  color: '#FBBD08', content: t('delayed') },
+    7: { icon: 'ic:round-mark-email-read', color: '#FBBD08', content: t('noRecipient') },
+  };
+  const delContent = t('selectDeleted');
+  const receivedText = t('received');
+
   list.forEach(email => {
     email.formatText = htmlToText(email)
     email.formatCreateTime = fromNow(email.createTime);
-    email.test = t('received')
-    const statusIconMap = {
-      0: { icon: 'ic:round-mark-email-read', color: '#51C76B', content: t('received') },
-      1: { icon: 'bi:send-arrow-up-fill',  color: '#51C76B', content: t('sent') },
-      2: { icon: 'bi:send-check-fill',     color: '#51C76B', content: t('delivered') },
-      3: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      8: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      4: { icon: 'bi:send-exclamation-fill', color: '#FBBD08', content: t('complained') },
-      5: { icon: 'bi:send-arrow-up-fill',  color: '#FBBD08', content: t('delayed') },
-      7: { icon: 'ic:round-mark-email-read', color: '#FBBD08', content: t('noRecipient') },
-    };
-
+    email.test = receivedText
     if (email.isDel) {
-      email.isDelContent = t('selectDeleted');
+      email.isDelContent = delContent;
     }
     email.statusIcon = statusIconMap[email.status];
   })
@@ -900,7 +889,7 @@ function loadData() {
   &__actions {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
   }
@@ -973,8 +962,9 @@ function loadData() {
   align-items: center;
   gap: 4px;
   padding: 0 16px;
-  min-height: 48px;
+  min-height: 90px;
   border-bottom: 1px solid var(--s-line-light);
+  border-left: 3px solid transparent;
   cursor: pointer;
   transition: background var(--s-ease);
   position: relative;
@@ -988,11 +978,17 @@ function loadData() {
   /* Unread */
   &--unread {
     background: var(--s-accent-soft);
+    border-left: 3px solid var(--s-accent);
+    padding-left: 16px;
 
     .email-row__name-text,
     .email-row__subject-text {
       font-weight: 700;
       color: var(--s-ink);
+    }
+
+    .email-row__preview {
+      color: var(--s-ink-secondary);
     }
   }
 
@@ -1005,12 +1001,13 @@ function loadData() {
   &[data-checked="true"] {
     background: var(--s-accent-soft);
     border-left: 3px solid var(--s-accent);
-    padding-left: 13px;
+    padding-left: 16px;
   }
 
   /* all-email type (taller rows) */
   &.all-email {
     min-height: 65px;
+    grid-template-columns: 40px 36px 130px 1fr auto;
   }
 
   @media (max-width: 1366px) {
@@ -1021,6 +1018,7 @@ function loadData() {
 
     &.all-email {
       min-height: 120px;
+      grid-template-columns: 36px 1fr auto;
     }
   }
 }
@@ -1065,6 +1063,33 @@ function loadData() {
   @media (max-width: 1366px) {
     display: none;
   }
+}
+
+/* ── Row: Sender column (all-email desktop) ── */
+.email-row__sender-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 4px 6px 0;
+  overflow: hidden;
+
+  @media (max-width: 1366px) {
+    display: none;
+  }
+}
+
+.email-row__sender-icon {
+  flex-shrink: 0;
+  color: var(--s-muted);
+}
+
+.email-row__sender-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--s-muted);
 }
 
 /* ── Row: Content ── */
@@ -1165,10 +1190,9 @@ function loadData() {
 
 .email-row__subject {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 5px;
   overflow: hidden;
-  white-space: nowrap;
   min-width: 0;
 
   @media (min-width: 1367px) {
@@ -1195,11 +1219,11 @@ function loadData() {
 
 .email-row__subject-text {
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   min-width: 0;
   font-weight: 500;
   color: var(--s-ink);
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .email-row__preview {

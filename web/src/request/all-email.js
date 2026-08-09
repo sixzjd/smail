@@ -13,5 +13,5 @@ export function allEmailBatchDelete(params) {
 }
 
 export function allEmailLatest(emailId) {
-    return http.get('/allEmail/latest', {params: {emailId}, noMsg: true, timeout: 35 * 1000})
+    return http.get('/allEmail/latest', {params: {emailId}, noMsg: true, timeout: 10 * 1000})
 }

@@ -19,13 +19,6 @@
 
     <!-- Right: actions -->
     <div class="topbar-right">
-      <!-- Doc -->
-      <button class="icon-btn" @click="router.push('/doc')" aria-label="文档">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-        </svg>
-      </button>
-
       <!-- Dark mode -->
       <button class="icon-btn" @click="openDark($event)" :aria-label="uiStore.dark ? '浅色模式' : '深色模式'">
         <Icon v-if="uiStore.dark" icon="mingcute:sun-fill" width="20" height="20" />
@@ -35,6 +28,11 @@
       <!-- Notice -->
       <button class="icon-btn" @click="uiStore.showNotice()">
         <Icon icon="streamline-plump:announcement-megaphone" width="20" height="20" />
+      </button>
+
+      <!-- Doc -->
+      <button class="icon-btn" @click="router.push('/doc')" aria-label="文档">
+        <Icon icon="ep:document" width="20" height="20" />
       </button>
 
       <!-- User dropdown -->
@@ -87,7 +85,6 @@ import { computed, ref } from 'vue'
 import { useSettingStore } from '@/store/setting.js'
 import { hasPerm } from '@/perm/perm.js'
 import { useI18n } from 'vue-i18n'
-import { setExtend } from '@/utils/day.js'
 import { toast } from '@/components/ui/toast.js'
 import SDropdown from '@/components/ui/s-dropdown.vue'
 import SButton from '@/components/ui/s-button.vue'

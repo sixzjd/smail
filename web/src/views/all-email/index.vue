@@ -11,7 +11,6 @@
                  actionLeft="4px"
                  :show-account-icon="false"
                  :time-sort="params.timeSort"
-                 :item-height="65"
                  @jump="jumpContent"
                  @refresh-before="refreshBefore"
                  @right-search="rightSearch"
@@ -40,12 +39,16 @@
           </template>
         </s-input>
         <s-select v-model="params.type" :options="typeOptions" class="status-select" @change="typeSelectChange"/>
-        <Icon class="icon" icon="iconoir:search" @click="search" width="20" height="20"/>
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
-              v-if="params.timeSort === 0" width="28" height="28"/>
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
-              width="28" height="28"/>
-        <Icon class="icon clear" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="openBathDelete"/>
+        <button class="toolbar-icon-btn" @click="search" :title="$t('search')">
+          <Icon icon="iconoir:search" width="18" height="18"/>
+        </button>
+        <button class="toolbar-icon-btn" @click="changeTimeSort" :title="params.timeSort === 0 ? 'Newest first' : 'Oldest first'">
+          <Icon v-if="params.timeSort === 0" icon="material-symbols-light:timer-arrow-down-outline" width="18" height="18"/>
+          <Icon v-else icon="material-symbols-light:timer-arrow-up-outline" width="18" height="18"/>
+        </button>
+        <button class="toolbar-icon-btn" @click="openBathDelete" :title="$t('clearEmail')">
+          <Icon icon="fluent:broom-sparkle-16-regular" width="18" height="18"/>
+        </button>
       </template>
     </emailScroll>
 
@@ -247,21 +250,11 @@ function rightSearch(type, value) {
 
 function refreshBefore() {
   searchValue.value = null
-  params.timeSort = 0
-  params.type = 'receive'
-  params.userEmail = null
-  params.accountEmail = null
-  params.name = null
-  params.subject = null
-  params.searchType = 'name'
+  Object.assign(params, { timeSort: 0, type: 'receive', userEmail: null, accountEmail: null, name: null, subject: null, searchType: 'name' })
 }
 
 function search() {
-
-  params.userEmail = null
-  params.accountEmail = null
-  params.name = null
-  params.subject = null
+  Object.assign(params, { userEmail: null, accountEmail: null, name: null, subject: null })
 
   if (params.searchType === 'user') {
     params.userEmail = searchValue.value
@@ -352,7 +345,6 @@ async function latest() {
       for (let email of list) {
 
         sysEmailScroll.value.addItem(email)
-        await sleep(50)
 
       }
 
@@ -439,20 +431,23 @@ async function latest() {
   width: 110px;
 }
 
-.icon {
-  cursor: pointer;
+.toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
   color: var(--s-muted);
-  transition: color var(--s-ease);
-  &:hover {
-    color: var(--s-ink);
-  }
-}
+  border-radius: var(--s-radius-sm);
+  cursor: pointer;
+  transition: all var(--s-ease);
+  flex-shrink: 0;
 
-.clear {
-  @media (max-width: 419px) {
-    position: absolute;
-    top: 41px;
-    left: 242px;
+  &:hover {
+    background: var(--s-soft);
+    color: var(--s-accent);
   }
 }
 

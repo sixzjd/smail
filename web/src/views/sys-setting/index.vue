@@ -316,16 +316,16 @@
                 <span>{{ $t('community') }} : </span>
                 <div class="community">
                   <s-button @click="jump('https://github.com/sixzjd/smail')">Github</s-button>
-                  <s-button @click="jump('https://t.me/smail_tg')">Telegram</s-button>
+                  <s-button @click.prevent>Telegram</s-button>
                 </div>
               </div>
               <div class="concerning-item">
                 <span>{{ $t('support') }} : </span>
-                <s-button @click="jump('/doc#sponsor')"><svg style="width:16px;height:16px;margin-right:6px;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="#d9543e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>{{ t('supportDesc') }}</s-button>
+                <s-button @click="jump('/doc#sponsor')"><svg style="width:16px;height:16px;margin-right:6px;vertical-align:middle;stroke:var(--s-accent);" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>{{ t('supportDesc') }}</s-button>
               </div>
               <div class="concerning-item">
                 <span>{{ $t('help') }} : </span>
-                <s-button @click="jump('/doc')">{{ t('document') }}</s-button>
+                <s-button @click="jump('/doc')"><Icon icon="ep:document" width="16" height="16" style="margin-right:4px;vertical-align:middle;"/>{{ t('document') }}</s-button>
               </div>
             </div>
           </div>

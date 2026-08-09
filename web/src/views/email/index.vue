@@ -112,8 +112,6 @@ async function latest() {
 
                 existIds.add(email.emailId)
                 scroll.value.addItem(email)
-
-                await sleep(50)
               }
 
             }

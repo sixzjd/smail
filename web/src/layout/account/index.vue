@@ -135,7 +135,6 @@ import {
   accountSetAllReceive,
   accountSetAsTop
 } from "@/request/account.js";
-import {sleep} from "@/utils/time-utils.js"
 import {isEmail} from "@/utils/verify-utils.js";
 import {useSettingStore} from "@/store/setting.js";
 import {useAccountStore} from "@/store/account.js";
@@ -367,18 +366,10 @@ function getAccountList() {
     followLoading.value = true
   }
 
-  let start = Date.now();
-
   const accountId = accounts.length > 0 ? accounts.at(-1).accountId : 0;
   const lastSort = accounts.length > 0 ? accounts.at(-1).sort : null;
 
-  accountList(accountId, queryParams.size, lastSort).then(async list => {
-
-    let end = Date.now();
-    let duration = end - start;
-    if (duration < 300) {
-      await sleep(300 - duration)
-    }
+  accountList(accountId, queryParams.size, lastSort).then(list => {
 
     if (list.length < queryParams.size) {
       noLoading.value = true

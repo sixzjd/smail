@@ -30,8 +30,24 @@ const dbInit = {
 		await this.v2_9DB(c);
 		await this.v3_0DB(c);
 		await this.v3_1DB(c);
+		await this.v3_2DB(c);
 		await settingService.refresh(c);
 		return c.text('success');
+	},
+
+	async v3_2DB(c) {
+		const indexSqls = [
+			`CREATE INDEX IF NOT EXISTS idx_email_list ON email(user_id, type, is_del, email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_star_user_email ON star(user_id, email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_att_email_type ON attachments(email_id, type);`
+		];
+		for (const sql of indexSqls) {
+			try {
+				await c.env.db.prepare(sql).run();
+			} catch (e) {
+				console.warn(`跳过索引创建：${e.message}`);
+			}
+		}
 	},
 
 	async v3_1DB(c) {

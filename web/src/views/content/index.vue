@@ -67,13 +67,13 @@
         </div>
 
         <!-- Email body -->
-        <div class="email-body" :class="{ 'email-body--no-att': email.attList.length === 0 }">
+        <div class="email-body" :class="{ 'email-body--no-att': !email.attList || email.attList.length === 0 }">
           <ShadowHtml class="email-html" :html="formatImage(email.content)" v-if="email.content" />
           <pre v-else class="email-text">{{ email.text }}</pre>
         </div>
 
         <!-- Attachments -->
-        <div class="attachments" v-if="email.attList.length > 0">
+        <div class="attachments" v-if="email.attList && email.attList.length > 0">
           <div class="att-header">
             <span class="att-label">{{ $t('attachments') }}</span>
             <span class="att-count">{{ $t('attCount', { total: email.attList.length }) }}</span>
@@ -114,16 +114,15 @@ import {reactive, ref, watch, onMounted, onUnmounted} from "vue";
 import {useRouter} from 'vue-router'
 import { toast } from '@/components/ui/toast.js'
 import { confirm } from '@/components/ui/confirm.js'
-import {emailDelete, emailRead} from "@/request/email.js";
+import {emailDelete, emailRead, emailDetail} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
 import {useAccountStore} from "@/store/account.js";
 import {formatDetailDate} from "@/utils/day.js";
 import {starAdd, starCancel} from "@/request/star.js";
 import {getExtName, formatBytes} from "@/utils/file-utils.js";
-import {cvtR2Url,toOssDomain} from "@/utils/convert.js";
+import {cvtR2Url, formatImage} from "@/utils/convert.js";
 import {getIconByName} from "@/utils/icon-utils.js";
-import {useSettingStore} from "@/store/setting.js";
 import {allEmailDelete} from "@/request/all-email.js";
 import {useUiStore} from "@/store/ui.js";
 import {useI18n} from "vue-i18n";
@@ -132,23 +131,34 @@ import SAvatar from '@/components/ui/s-avatar.vue'
 import STag from '@/components/ui/s-tag.vue'
 
 const uiStore = useUiStore();
-const settingStore = useSettingStore();
 const accountStore = useAccountStore();
 const emailStore = useEmailStore();
 const router = useRouter()
 const email = emailStore.contentData.email
 const showPreview = ref(false)
 const srcList = reactive([])
+const detailLoaded = ref(false)
 
 const { t } = useI18n()
+
 watch(() => accountStore.currentAccountId, () => {
   handleBack()
 })
 
-onMounted(() => {
+onMounted(async () => {
   if (emailStore.contentData.showUnread && email.unread === EmailUnreadEnum.UNREAD) {
     email.unread = EmailUnreadEnum.READ;
     emailRead([email.emailId]);
+  }
+  try {
+    const data = await emailDetail(email.emailId);
+    if (data) {
+      Object.assign(email, data);
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    detailLoaded.value = true;
   }
 })
 
@@ -166,12 +176,6 @@ function openForward() {
 
 function toMessage(message) {
   return  message ? JSON.parse(message).message : '';
-}
-
-function formatImage(content) {
-  content = content || '';
-  const domain = settingStore.settings.r2Domain;
-  return  content.replace(/{{domain}}/g, toOssDomain(domain) + '/');
 }
 
 function showImage(key) {

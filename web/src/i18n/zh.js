@@ -1,4 +1,6 @@
 const zh = {
+    compose: '写邮件',
+    search: '搜索邮件',
     inbox: '收件箱',
     drafts: '草稿箱',
     sent: '已发送',
@@ -87,6 +89,7 @@ const zh = {
     changePerm: '修改权限',
     from: '发件人',
     subject: '主题',
+    cc: '抄送',
     sender: '发件人',
     user: '用户',
     searchByContent: '输入内容查询',

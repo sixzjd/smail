@@ -1,4 +1,6 @@
 const en = {
+    compose: 'Compose',
+    search: 'Search emails',
     inbox: 'Inbox',
     drafts: 'Drafts',
     sent: 'Sent',
@@ -87,6 +89,7 @@ const en = {
     changePerm: 'Change Role',
     from: 'From',
     subject: 'Subject',
+    cc: 'CC',
     sender: 'Sender',
     user: 'User',
     searchByContent: 'Enter text to search',

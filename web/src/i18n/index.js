@@ -3,6 +3,7 @@ import en from './en.js'
 import zh from './zh.js'
 const i18n = createI18n({
     legacy: false,
+    locale: 'zh',
     messages: {
         zh,
         en

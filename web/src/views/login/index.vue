@@ -296,13 +296,9 @@ window.onTurnstileError = (e) => {
   }, 1500)
 };
 
-window.loadAfter = (e) => {
-  console.log('loadAfter')
-}
+window.loadAfter = () => {}
 
-window.loadBefore = (e) => {
-  console.log('loadBefore')
-}
+window.loadBefore = () => {}
 
 const loginOpacity = computed(() => {
   const opacity = settingStore.settings.loginOpacity
@@ -488,8 +484,6 @@ function submitRegister() {
     return
   }
 
-  console.log(registerForm.email)
-
   if (getEmailName(registerForm.email).length < settingStore.settings.minEmailPrefix) {
     toast(t('minEmailPrefix', {msg: settingStore.settings.minEmailPrefix}), 'error')
     return
@@ -537,7 +531,6 @@ function submitRegister() {
             turnstileId = window.turnstile.render('.register-turnstile')
           } catch (e) {
             botJsError.value = true
-            console.log('人机验证js加载失败')
           }
         } else {
           window.turnstile.reset('.register-turnstile')

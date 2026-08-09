@@ -8,6 +8,9 @@
         <div class="sk-shimmer sk-star-shim"></div>
       </div>
       <div v-if="!showStar" class="sk-star-wrap"></div>
+      <div class="sk-sender-col" v-if="type === 'all-email'">
+        <div class="sk-shimmer" style="width: 130px;"></div>
+      </div>
       <div class="sk-content">
         <div class="sk-sender-row">
           <div class="sk-shimmer" style="width: 120px;"></div>
@@ -70,11 +73,12 @@ import {Icon} from "@iconify/vue";
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  min-height: 52px;
+  min-height: 90px;
   border-bottom: 1px solid var(--s-line-light);
 
   &.all-email {
-    min-height: 68px;
+    min-height: 65px;
+    grid-template-columns: 40px 36px 130px 1fr auto;
   }
 }
 
@@ -88,6 +92,17 @@ import {Icon} from "@iconify/vue";
   display: flex;
   justify-content: center;
   width: 36px;
+}
+
+.sk-sender-col {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-right: 8px;
+
+  @media (max-width: 1366px) {
+    display: none;
+  }
 }
 
 .sk-content {
@@ -165,6 +180,7 @@ import {Icon} from "@iconify/vue";
 
     &.all-email {
       min-height: 120px;
+      grid-template-columns: 40px 1fr auto;
     }
   }
 

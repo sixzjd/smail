@@ -4,7 +4,8 @@
       <!-- Header -->
       <div class="compose-header">
         <div class="compose-header-left">
-          <Icon icon="hugeicons:quill-write-01" width="24" height="24" class="compose-logo" />
+          <img class="compose-logo-block" src="/smail-icon.svg" alt="smail" @error="$event.target.src='/smail-icon.png'" />
+          <div class="compose-logo-text"><span>s</span>mail</div>
           <span class="compose-sender-label">{{ $t('sender') }}:</span>
           <span class="compose-sender-name">{{ form.name }}</span>
           <span class="compose-sender-email">&lt;{{ form.sendEmail }}&gt;</span>
@@ -18,7 +19,6 @@
       <div class="compose-body">
         <!-- Recipients -->
         <div class="compose-field compose-field--recipients">
-          <label class="compose-label">{{ $t('recipient') }}</label>
           <div class="compose-tag-input">
             <div class="tag-input-area">
               <span class="recipient-tag" v-for="(email, idx) in form.receiveEmail" :key="idx">
@@ -32,7 +32,7 @@
                 @keydown="handleRecipientKeydown"
                 @focus="onRecipientFocus"
                 @blur="onRecipientBlur"
-                :placeholder="form.receiveEmail.length === 0 ? $t('recipient') : ''"
+                :placeholder="form.receiveEmail.length === 0 ? 'user@example.com' : ''"
                 ref="recipientInputRef"
               />
             </div>
@@ -47,6 +47,28 @@
                 :key="item"
                 @mousedown.prevent="selectRecipient(item)"
               >{{ item }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CC -->
+        <div class="compose-field compose-field--cc">
+          <div class="compose-tag-input">
+            <div class="tag-input-area">
+              <span class="recipient-tag" v-for="(email, idx) in form.cc" :key="'cc-'+idx">
+                {{ email }}
+                <button class="recipient-tag-rm" @click="form.cc.splice(idx, 1)" type="button">&times;</button>
+              </span>
+              <input
+                class="tag-text-input"
+                :value="ccQuery"
+                @input="ccQuery = $event.target.value; onCcInput()"
+                @keydown="handleCcKeydown"
+                @focus="onCcFocus"
+                @blur="onCcBlur"
+                :placeholder="form.cc.length === 0 ? ($t('cc') || '抄送') : ''"
+                ref="ccInputRef"
+              />
             </div>
           </div>
         </div>
@@ -86,9 +108,7 @@
             </div>
           </div>
           <div class="compose-actions-right">
-            <s-button type="primary" @click="sendEmail" v-if="form.sendType === 'reply'">{{ $t('reply') }}</s-button>
-            <s-button type="primary" @click="sendEmail" v-else-if="form.sendType === 'forward'">{{ $t('forward') }}</s-button>
-            <s-button type="primary" @click="sendEmail" v-else>{{ $t('send') }}</s-button>
+            <s-button type="primary" @click="sendEmail">{{ sendBtnText }}</s-button>
           </div>
         </div>
       </div>
@@ -124,9 +144,8 @@ import {useAccountStore} from "@/store/account.js";
 import {useEmailStore} from "@/store/email.js";
 import {fileToBase64, formatBytes} from "@/utils/file-utils.js";
 import {getIconByName} from "@/utils/icon-utils.js";
-import {toOssDomain} from "@/utils/convert.js";
+import {formatImage} from "@/utils/convert.js";
 import {formatDetailDate} from "@/utils/day.js";
-import {useSettingStore} from "@/store/setting.js";
 import {userDraftStore} from "@/store/draft.js";
 import {useWriterStore} from "@/store/writer.js";
 import db from "@/db/db.js";
@@ -149,7 +168,6 @@ defineExpose({
 const {t} = useI18n()
 const writerStore = useWriterStore();
 const draftStore = userDraftStore()
-const settingStore = useSettingStore()
 const emailStore = useEmailStore();
 const accountStore = useAccountStore()
 const editor = ref({})
@@ -161,11 +179,14 @@ const defValue = ref('')
 const contactsTabRef = ref(null)
 const showContacts = ref(false)
 const recipientInputRef = ref(null)
+const ccInputRef = ref(null)
 const recipientQuery = ref('')
+const ccQuery = ref('')
 const showAcDropdown = ref(false)
 let selectStatus = false
 const backReply = reactive({
   receiveEmail: [],
+  cc: [],
   subject: '',
   content: '',
   sendType: ''
@@ -173,6 +194,7 @@ const backReply = reactive({
 const form = reactive({
   sendEmail: '',
   receiveEmail: [],
+  cc: [],
   accountId: -1,
   name: '',
   subject: '',
@@ -185,6 +207,12 @@ const form = reactive({
 })
 
 const selectRecipientList = ref([])
+
+const sendBtnText = computed(() => {
+  if (form.sendType === 'reply') return t('reply')
+  if (form.sendType === 'forward') return t('forward')
+  return t('send')
+})
 
 const contacts = computed(() => writerStore.sendRecipientRecord.map(item => ({email: item})))
 
@@ -267,23 +295,36 @@ function selectRecipient(email) {
   recipientInputRef.value?.focus()
 }
 
-function handleRecipientKeydown(e) {
-  if (e.key === 'Enter' || e.key === ',') {
-    e.preventDefault()
-    const val = recipientQuery.value.trim()
-    if (!val) return
-    const emails = Array.from(new Set(
-      val.split(/[,，]/).map(item => item.trim()).filter(item => item)
-    ))
-    emails.forEach(email => {
-      if (isEmail(email) && !form.receiveEmail.includes(email)) {
-        form.receiveEmail.push(email)
-      }
-    })
-    recipientQuery.value = ''
+function handleTagKeydown(e, queryRef, targetList) {
+  if (e.key !== 'Enter' && e.key !== ',') return
+  e.preventDefault()
+  const val = queryRef.value.trim()
+  if (!val) return
+  const emails = [...new Set(val.split(/[,，]/).map(s => s.trim()).filter(Boolean))]
+  emails.forEach(email => {
+    if (isEmail(email) && !targetList.includes(email)) targetList.push(email)
+  })
+  queryRef.value = ''
+  if (queryRef === recipientQuery) {
     selectRecipientList.value = []
     showAcDropdown.value = false
   }
+}
+
+function handleRecipientKeydown(e) {
+  handleTagKeydown(e, recipientQuery, form.receiveEmail)
+}
+
+/* ── CC tag input ── */
+
+function onCcInput() {}
+
+function onCcFocus() {}
+
+function onCcBlur() {}
+
+function handleCcKeydown(e) {
+  handleTagKeydown(e, ccQuery, form.cc)
 }
 
 /* ── Content / attachments ── */
@@ -403,6 +444,7 @@ function addRecipientRecord() {
 
 function resetForm() {
   form.receiveEmail = []
+  form.cc = []
   form.subject = ''
   form.content = ''
   form.manyType = null
@@ -413,8 +455,10 @@ function resetForm() {
   backReply.content = ''
   backReply.subject = ''
   backReply.receiveEmail = []
+  backReply.cc = []
   backReply.sendType = ''
   recipientQuery.value = ''
+  ccQuery.value = ''
   editor.value.clearEditor()
 }
 
@@ -449,6 +493,7 @@ function openForward(email) {
       backReply.content = editor.value.getContent()
       backReply.subject = form.subject
       backReply.receiveEmail = form.receiveEmail
+      backReply.cc = form.cc
       backReply.sendType = form.sendType
     })
 
@@ -490,16 +535,11 @@ function openReply(email) {
       backReply.content = editor.value.getContent()
       backReply.subject = form.subject
       backReply.receiveEmail = form.receiveEmail
+      backReply.cc = form.cc
       backReply.sendType = form.sendType
     })
   })
 
-}
-
-function formatImage(content) {
-  content = content || '';
-  const domain = settingStore.settings.r2Domain;
-  return content.replace(/{{domain}}/g, toOssDomain(domain) + '/');
 }
 
 function open() {
@@ -555,7 +595,7 @@ function close() {
     return;
   }
 
-  if (!(form.content || form.subject || form.receiveEmail.length > 0)) {
+  if (!(form.content || form.subject || form.receiveEmail.length > 0 || form.cc.length > 0)) {
     show.value = false
     resetForm()
     return;
@@ -565,10 +605,11 @@ function close() {
     let subjectFlag = form.subject === backReply.subject
     let contentFlag = true; try { contentFlag = editor.value.getContent() === backReply.content } catch(e) { /* editor not ready */ }
     let receiveFlag = form.receiveEmail.length === 1 && form.receiveEmail[0] === backReply.receiveEmail[0]
+    let ccFlag = JSON.stringify(form.cc) === JSON.stringify(backReply.cc)
     if (backReply.sendType === 'forward' && form.receiveEmail.length === 0) {
       receiveFlag = true;
     }
-    if (subjectFlag && contentFlag && receiveFlag) {
+    if (subjectFlag && contentFlag && receiveFlag && ccFlag) {
       resetForm();
       close()
       return;
@@ -647,9 +688,24 @@ function close() {
   min-width: 0;
 }
 
-.compose-logo {
-  color: var(--s-accent);
+.compose-logo-block {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: cover;
   flex-shrink: 0;
+}
+
+.compose-logo-text {
+  font-family: var(--s-font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--s-ink);
+  flex-shrink: 0;
+}
+
+.compose-logo-text span {
+  color: var(--s-accent);
 }
 
 .compose-sender-label {
@@ -704,18 +760,9 @@ function close() {
 }
 
 /* ── Recipients ── */
-.compose-field--recipients {
+.compose-field--recipients,
+.compose-field--cc {
   position: relative;
-}
-
-.compose-label {
-  font-family: var(--s-font-display);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--s-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 10px;
 }
 
 .compose-tag-input {
@@ -847,19 +894,22 @@ function close() {
 /* ── Subject ── */
 .compose-subject {
   width: 100%;
-  border: none;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
   outline: none;
-  font-family: var(--s-font-display);
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--s-font-body);
+  font-size: 14px;
   color: var(--s-ink);
-  background: transparent;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--s-line);
+  background: var(--s-paper);
+  padding: 8px 10px;
+  transition: border-color var(--s-ease);
+
+  &:focus {
+    border-color: var(--s-accent);
+  }
 
   &::placeholder {
     color: var(--s-muted);
-    font-weight: 400;
   }
 }
 

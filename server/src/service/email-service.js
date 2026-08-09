@@ -115,13 +115,14 @@ const emailService = {
 
 		let [list, totalRow, latestEmail] = await Promise.all([listQuery, totalQuery, latestEmailQuery]);
 
-		list = list.map(item => ({
-			...item,
-			isStar: item.starId != null ? 1 : 0
-		}));
+		list = list.map(item => {
+			const { content, ...rest } = item;
+			return {
+				...rest,
+				isStar: item.starId != null ? 1 : 0
+			};
+		});
 
-
-		await this.emailAddAtt(c, list);
 
 		if (!latestEmail) {
 			latestEmail = {
@@ -662,6 +663,8 @@ const emailService = {
 
 		const useAtts = []
 
+		r2domain = domainUtils.toOssDomain(r2domain)
+
 		for (const img of images) {
 
 			const src = img.getAttribute('src');
@@ -677,8 +680,6 @@ const emailService = {
 				}
 
 			}
-
-			r2domain = domainUtils.toOssDomain(r2domain)
 
 			if (src && src.startsWith(r2domain + '/')) {
 				img.setAttribute('src', src.replace(r2domain + '/', '{{domain}}'));
@@ -726,7 +727,10 @@ const emailService = {
 			.orderBy(desc(email.emailId))
 			.limit(20);
 
-		await this.emailAddAtt(c, list);
+		list = list.map(item => {
+			const { content, ...rest } = item;
+			return rest;
+		});
 
 		return list;
 	},
@@ -841,9 +845,10 @@ const emailService = {
 			conditions.unshift(lt(email.emailId, emailId));
 		}
 
-		const query = orm(c).select({ ...email, userEmail: user.email })
+		const query = orm(c).select({ ...email, userEmail: user.email, accountEmail: account.email })
 			.from(email)
 			.leftJoin(user, eq(email.userId, user.userId))
+			.leftJoin(account, eq(account.accountId, email.accountId))
 			.where(and(...conditions));
 
 		const queryCount = orm(c).select({ total: count() })
@@ -868,7 +873,10 @@ const emailService = {
 
 		let [list, totalRow, latestEmail] = await Promise.all([listQuery, totalQuery, latestEmailQuery]);
 
-		await this.emailAddAtt(c, list);
+		list = list.map(item => {
+			const { content, ...rest } = item;
+			return rest;
+		});
 
 		if (!latestEmail) {
 			latestEmail = {
@@ -885,8 +893,9 @@ const emailService = {
 
 		const { emailId } = params;
 
-		let list = await orm(c).select({...email, userEmail: user.email}).from(email)
+		let list = await orm(c).select({...email, userEmail: user.email, accountEmail: account.email}).from(email)
 			.leftJoin(user, eq(email.userId, user.userId))
+			.leftJoin(account, eq(account.accountId, email.accountId))
 			.where(
 				and(
 					gt(email.emailId, emailId),
@@ -896,7 +905,10 @@ const emailService = {
 			.orderBy(desc(email.emailId))
 			.limit(20);
 
-		await this.emailAddAtt(c, list);
+		list = list.map(item => {
+			const { content, ...rest } = item;
+			return rest;
+		});
 
 		return list;
 	},

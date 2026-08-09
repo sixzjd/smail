@@ -9,11 +9,15 @@ export function emailDelete(emailIds) {
 }
 
 export function emailLatest(emailId, accountId, allReceive) {
-    return http.get('/email/latest', {params: {emailId, accountId, allReceive}, noMsg: true, timeout: 35 * 1000})
+    return http.get('/email/latest', {params: {emailId, accountId, allReceive}, noMsg: true, timeout: 10 * 1000})
 }
 
 export function emailRead(emailIds) {
     return http.put('/email/read', {emailIds})
+}
+
+export function emailDetail(emailId) {
+    return http.get('/email/detail', {params: {emailId}})
 }
 
 export function emailSend(form,progress) {

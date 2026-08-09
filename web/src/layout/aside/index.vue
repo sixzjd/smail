@@ -1,8 +1,8 @@
 <template>
   <div class="sidebar-inner" ref="sidebarRef">
     <!-- Brand -->
-    <div class="brand">
-      <img class="brand-mark" src="/smail-icon.png" alt="smail">
+    <div class="brand" @click="goHome">
+      <img class="brand-mark" src="/smail-icon.svg" alt="smail" @error="$event.target.src='/smail-icon.png'" />
       <div class="brand-name"><span>s</span>mail</div>
     </div>
 
@@ -109,6 +109,13 @@ function openSend() {
   uiStore.writerRef?.open()
   if (window.innerWidth < 1025) uiStore.asideShow = false
 }
+
+function goHome() {
+  if (route.meta.name !== 'email') {
+    router.push({ name: 'email' })
+  }
+  if (window.innerWidth < 1025) uiStore.asideShow = false
+}
 </script>
 
 <style scoped>
@@ -123,11 +130,13 @@ function openSend() {
   align-items: center;
   gap: 10px;
   padding: 20px 20px 12px;
+  cursor: pointer;
 }
 .brand-mark {
   width: 34px; height: 34px;
   border-radius: 10px;
-  object-fit: contain;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 .brand-name {
   font-family: var(--s-font-display);
@@ -146,7 +155,6 @@ function openSend() {
   color: #fff;
   border-radius: var(--s-radius);
   font-weight: 700; font-size: 14px;
-  box-shadow: var(--s-shadow-sm);
   transition: all var(--s-ease);
 }
 .compose-btn:hover {
@@ -197,18 +205,5 @@ function openSend() {
   background: var(--s-accent-soft);
   color: var(--s-accent);
   font-weight: 600;
-}
-
-/* ── Mobile: larger touch targets ── */
-@media (max-width: 768px) {
-  .nav-item {
-    padding: 12px 14px;
-    min-height: 44px;
-  }
-
-  .compose-btn {
-    padding: 13px 0;
-    min-height: 44px;
-  }
 }
 </style>

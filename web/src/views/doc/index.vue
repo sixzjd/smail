@@ -7,72 +7,78 @@
           <img src="/smail-icon.svg" alt="smail" class="doc-logo-img">
           <span class="doc-logo-text">smail</span>
         </div>
-        <a href="https://github.com/sixzjd/smail" target="_blank" class="doc-github-btn">
+        <div class="doc-header-actions">
+          <button class="doc-lang-btn" @click="toggleLocale">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            {{ t('langSwitch') }}
+          </button>
+          <a href="https://github.com/sixzjd/smail" target="_blank" class="doc-github-btn">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
         </a>
+        </div>
       </div>
     </header>
 
     <!-- Hero -->
     <section class="doc-hero">
-      <div class="doc-hero-badge">Serverless Email Service</div>
-      <h1>A CALMER <span>INBOX</span></h1>
-      <p class="doc-subtitle">基于 Cloudflare 构建的低成本 Serverless 邮箱服务，无需维护服务器，全球边缘节点加速，让你的邮件管理更从容。</p>
+      <div class="doc-hero-badge">{{ t('serverlessBadge') }}</div>
+      <h1>{{ t('heroTitle1') }} <span>{{ t('heroTitle2') }}</span></h1>
+      <p class="doc-subtitle">{{ t('subtitle') }}</p>
       <div class="doc-hero-actions">
-        <a href="#deploy" class="doc-btn-primary">快速部署</a>
-        <a href="https://mail.sixzjd.sbs" target="_blank" class="doc-btn-outline">在线体验</a>
+        <a href="#deploy" class="doc-btn-primary">{{ t('quickDeploy') }}</a>
+        <a href="https://mail.sixzjd.sbs" target="_blank" class="doc-btn-outline">{{ t('tryOnline') }}</a>
       </div>
     </section>
 
     <!-- Core Features -->
     <section class="doc-section" id="features">
       <div class="doc-section-header">
-        <h2>核心功能</h2>
-        <p>完整的邮箱管理能力，覆盖日常所需</p>
+        <h2>{{ t('featuresTitle') }}</h2>
+        <p>{{ t('featuresDesc') }}</p>
       </div>
       <div class="doc-grid">
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           </div>
-          <h3>邮件收发</h3>
-          <p>完整的 IMAP/SMTP 邮件收发能力，支持富文本编辑器、草稿保存、批量操作</p>
+          <h3>{{ t('feat1Title') }}</h3>
+          <p>{{ t('feat1Desc') }}</p>
         </div>
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           </div>
-          <h3>邮件转发</h3>
-          <p>新邮件自动转发至指定邮箱或 Telegram，重要消息不遗漏</p>
+          <h3>{{ t('feat2Title') }}</h3>
+          <p>{{ t('feat2Desc') }}</p>
         </div>
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </div>
-          <h3>附件管理</h3>
-          <p>基于 R2 存储的附件上传与下载，支持大文件，S3 兼容接口</p>
+          <h3>{{ t('feat3Title') }}</h3>
+          <p>{{ t('feat3Desc') }}</p>
         </div>
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
-          <h3>邮件收藏</h3>
-          <p>一键收藏重要邮件，分类标记，快速检索</p>
+          <h3>{{ t('feat4Title') }}</h3>
+          <p>{{ t('feat4Desc') }}</p>
         </div>
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </div>
-          <h3>数据分析</h3>
-          <p>ECharts 可视化图表展示收发趋势、邮件统计，数据一目了然</p>
+          <h3>{{ t('feat5Title') }}</h3>
+          <p>{{ t('feat5Desc') }}</p>
         </div>
         <div class="doc-card">
           <div class="doc-card-icon">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
-          <h3>RBAC 权限</h3>
-          <p>管理员创建角色、分配权限，精细控制每位用户的操作范围</p>
+          <h3>{{ t('feat6Title') }}</h3>
+          <p>{{ t('feat6Desc') }}</p>
         </div>
       </div>
     </section>
@@ -80,8 +86,8 @@
     <!-- Highlights -->
     <section class="doc-section doc-section-alt" id="highlights">
       <div class="doc-section-header">
-        <h2>亮点特性</h2>
-        <p>为什么选择 smail</p>
+        <h2>{{ t('highlightsTitle') }}</h2>
+        <p>{{ t('highlightsDesc') }}</p>
       </div>
       <div class="doc-highlights-grid">
         <div class="doc-highlight-item">
@@ -89,8 +95,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
           <div>
-            <h4>Serverless 架构</h4>
-            <p>无需维护服务器，自动扩缩容，全球边缘节点加速访问</p>
+            <h4>{{ t('hl1Title') }}</h4>
+            <p>{{ t('hl1Desc') }}</p>
           </div>
         </div>
         <div class="doc-highlight-item">
@@ -98,8 +104,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <div>
-            <h4>极低成本</h4>
-            <p>基于 Cloudflare 免费额度，个人使用几乎零成本运行</p>
+            <h4>{{ t('hl2Title') }}</h4>
+            <p>{{ t('hl2Desc') }}</p>
           </div>
         </div>
         <div class="doc-highlight-item">
@@ -107,8 +113,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           </div>
           <div>
-            <h4>响应式设计</h4>
-            <p>完美适配桌面与移动端，随时随地管理邮件</p>
+            <h4>{{ t('hl3Title') }}</h4>
+            <p>{{ t('hl3Desc') }}</p>
           </div>
         </div>
         <div class="doc-highlight-item">
@@ -116,8 +122,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
           </div>
           <div>
-            <h4>完全开源</h4>
-            <p>代码托管在 GitHub，可自由 fork 和定制化改造</p>
+            <h4>{{ t('hl4Title') }}</h4>
+            <p>{{ t('hl4Desc') }}</p>
           </div>
         </div>
         <div class="doc-highlight-item">
@@ -125,8 +131,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
           <div>
-            <h4>数据自主</h4>
-            <p>所有数据存储在 Cloudflare D1/KV/R2，完全可控不依赖第三方</p>
+            <h4>{{ t('hl5Title') }}</h4>
+            <p>{{ t('hl5Desc') }}</p>
           </div>
         </div>
         <div class="doc-highlight-item">
@@ -134,8 +140,8 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           </div>
           <div>
-            <h4>现代技术栈</h4>
-            <p>Vue 3 + Hono + Drizzle ORM，开发体验优秀，性能出众</p>
+            <h4>{{ t('hl6Title') }}</h4>
+            <p>{{ t('hl6Desc') }}</p>
           </div>
         </div>
       </div>
@@ -144,8 +150,8 @@
     <!-- Architecture -->
     <section class="doc-section" id="architecture">
       <div class="doc-section-header">
-        <h2>技术架构</h2>
-        <p>基于 Cloudflare 全栈构建，简洁而强大</p>
+        <h2>{{ t('archTitle') }}</h2>
+        <p>{{ t('archDesc') }}</p>
       </div>
       <div class="doc-arch-diagram">
         <div class="arch-layer arch-layer-top">
@@ -185,18 +191,18 @@
         <div class="arch-layer arch-layer-bottom">
           <div class="arch-node arch-d1">
             <div class="arch-node-label">D1</div>
-            <div class="arch-node-desc">邮件 · 用户 · 角色</div>
+            <div class="arch-node-desc">{{ t('archD1Desc') }}</div>
             <div class="arch-node-tags"><span>Drizzle ORM</span></div>
           </div>
           <div class="arch-node arch-kv">
             <div class="arch-node-label">KV</div>
-            <div class="arch-node-desc">Session · 配置缓存</div>
-            <div class="arch-node-tags"><span>高速读写</span></div>
+            <div class="arch-node-desc">{{ t('archKvDesc') }}</div>
+            <div class="arch-node-tags"><span>{{ t('archKvTag') }}</span></div>
           </div>
           <div class="arch-node arch-r2">
             <div class="arch-node-label">R2</div>
-            <div class="arch-node-desc">附件 · 背景图</div>
-            <div class="arch-node-tags"><span>S3 兼容</span></div>
+            <div class="arch-node-desc">{{ t('archR2Desc') }}</div>
+            <div class="arch-node-tags"><span>{{ t('archR2Tag') }}</span></div>
           </div>
         </div>
       </div>
@@ -205,38 +211,38 @@
     <!-- Deploy Tutorial -->
     <section class="doc-section doc-section-alt" id="deploy">
       <div class="doc-section-header">
-        <h2>部署教程</h2>
-        <p>5 步完成部署，快速拥有你的专属邮箱服务</p>
+        <h2>{{ t('deployTitle') }}</h2>
+        <p>{{ t('deployDesc') }}</p>
       </div>
       <div class="doc-steps">
         <div class="doc-step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h3>Fork 仓库</h3>
-            <p>访问 <a href="https://github.com/sixzjd/smail" target="_blank">github.com/sixzjd/smail</a>，点击右上角 <strong>Fork</strong> 按钮，将仓库复制到你自己的 GitHub 账户。</p>
-            <div class="step-img-placeholder">截图位置：GitHub 仓库页面 Fork 按钮</div>
+            <h3>{{ t('step1Title') }}</h3>
+            <p>{{ t('step1Desc') }}</p>
+            <div class="step-img-placeholder">{{ t('step1Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h3>配置 Cloudflare 资源</h3>
-            <p>在 Cloudflare Dashboard 中创建以下资源：</p>
+            <h3>{{ t('step2Title') }}</h3>
+            <p>{{ t('step2Desc') }}</p>
             <ul>
-              <li><strong>Domain</strong> — 添加你的域名（如 mail.example.com）</li>
-              <li><strong>D1 数据库</strong> — 创建数据库，记录 database_id</li>
-              <li><strong>KV 命名空间</strong> — 创建 KV namespace，记录 id</li>
-              <li><strong>R2 存储桶</strong> — 创建 bucket（如 cloudmail）</li>
-              <li><strong>Resend API 密钥</strong> — 在 resend.com 注册并获取 API key</li>
+              <li><strong>Domain</strong> — {{ t('step2Item1') }}</li>
+              <li><strong>D1 {{ locale === 'zh' ? '数据库' : 'Database' }}</strong> — {{ t('step2Item2') }}</li>
+              <li><strong>KV {{ locale === 'zh' ? '命名空间' : 'Namespace' }}</strong> — {{ t('step2Item3') }}</li>
+              <li><strong>R2 {{ locale === 'zh' ? '存储桶' : 'Bucket' }}</strong> — {{ t('step2Item4') }}</li>
+              <li><strong>Resend API {{ locale === 'zh' ? '密钥' : 'Key' }}</strong> — {{ t('step2Item5') }}</li>
             </ul>
-            <div class="step-img-placeholder">截图位置：Cloudflare Dashboard 资源列表</div>
+            <div class="step-img-placeholder">{{ t('step2Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="step-number">3</div>
           <div class="step-content">
-            <h3>配置 wrangler.toml</h3>
-            <p>克隆 fork 的仓库，修改 <code>wrangler.toml</code> 中的配置：</p>
+            <h3>{{ t('step3Title') }}</h3>
+            <p>{{ t('step3Desc') }}</p>
             <pre><code>name = "smail"
 main = "server/src/index.js"
 
@@ -262,17 +268,17 @@ bucket_name = "你的R2存储桶名"
 domain = ["yourdomain.com"]
 admin = "admin@yourdomain.com"
 jwt_secret = "你的JWT密钥"</code></pre>
-            <div class="step-img-placeholder">截图位置：wrangler.toml 配置示例</div>
+            <div class="step-img-placeholder">{{ t('step3Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <h3>部署</h3>
-            <p>有两种部署方式：</p>
-            <p><strong>方式 A：GitHub Actions（推荐）</strong></p>
-            <p>在仓库 Settings → Secrets 中添加 Cloudflare API Token，push 到 main 分支自动部署。</p>
-            <p><strong>方式 B：手动部署</strong></p>
+            <h3>{{ t('step4Title') }}</h3>
+            <p>{{ t('step4Desc1') }}</p>
+            <p><strong>{{ t('step4MethodA') }}</strong></p>
+            <p>{{ t('step4MethodADesc') }}</p>
+            <p><strong>{{ t('step4MethodB') }}</strong></p>
             <pre><code># 安装依赖
 cd server && npm install
 cd ../web && npm install
@@ -282,16 +288,16 @@ cd web && npx vite build --mode release
 
 # 部署 Worker
 cd .. && npx wrangler deploy</code></pre>
-            <div class="step-img-placeholder">截图位置：部署成功的终端输出</div>
+            <div class="step-img-placeholder">{{ t('step4Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="step-number">5</div>
           <div class="step-content">
-            <h3>初始化数据库</h3>
-            <p>部署成功后，访问以下 URL 初始化数据库：</p>
+            <h3>{{ t('step5Title') }}</h3>
+            <p>{{ t('step5Desc') }}</p>
             <pre><code>https://mail.yourdomain.com/api/init/你的jwt_secret</code></pre>
-            <p>看到 <code>success</code> 即表示初始化完成。</p>
+            <p>{{ t('step5Success') }}</p>
           </div>
         </div>
       </div>
@@ -300,20 +306,20 @@ cd .. && npx wrangler deploy</code></pre>
     <!-- Sponsor -->
     <section class="doc-section doc-sponsor" id="sponsor">
       <div class="doc-section-header">
-        <h2>支持项目</h2>
-        <p>如果 smail 对你有帮助，欢迎赞助支持项目的持续开发和维护</p>
+        <h2>{{ t('sponsorTitle') }}</h2>
+        <p>{{ t('sponsorDesc') }}</p>
       </div>
       <div class="doc-qr-row">
         <div class="doc-qr-item">
-          <img src="/wechat-pay.png" alt="微信支付" class="doc-qr-img">
-          <span class="doc-qr-label">微信支付</span>
+          <img src="/wechat-pay.png" :alt="t('wechatPay')" class="doc-qr-img">
+          <span class="doc-qr-label">{{ t('wechatPay') }}</span>
         </div>
         <div class="doc-qr-item">
-          <img src="/alipay.png" alt="支付宝" class="doc-qr-img">
-          <span class="doc-qr-label">支付宝</span>
+          <img src="/alipay.png" :alt="t('alipay')" class="doc-qr-img">
+          <span class="doc-qr-label">{{ t('alipay') }}</span>
         </div>
       </div>
-      <p class="doc-sponsor-thanks">感谢每一位支持者的鼓励</p>
+      <p class="doc-sponsor-thanks">{{ t('sponsorThanks') }}</p>
     </section>
 
     <!-- Footer -->
@@ -323,11 +329,11 @@ cd .. && npx wrangler deploy</code></pre>
           <img src="/smail-icon.svg" alt="smail" class="doc-footer-logo">
           <span>smail</span>
         </div>
-        <p class="doc-footer-tagline">A CALMER INBOX — Serverless Email Service</p>
+        <p class="doc-footer-tagline">{{ t('footerTagline') }}</p>
         <div class="doc-footer-links">
           <a href="https://github.com/sixzjd/smail" target="_blank">GitHub</a>
           <span class="doc-footer-dot">·</span>
-          <a href="https://mail.sixzjd.sbs" target="_blank">在线体验</a>
+          <a href="https://mail.sixzjd.sbs" target="_blank">{{ t('tryOnline') }}</a>
         </div>
       </div>
     </footer>
@@ -335,37 +341,182 @@ cd .. && npx wrangler deploy</code></pre>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
+
+const locale = ref(localStorage.getItem('doc-locale') || 'zh')
+
+function toggleLocale() {
+  locale.value = locale.value === 'zh' ? 'en' : 'zh'
+  localStorage.setItem('doc-locale', locale.value)
+}
+
+const t = computed(() => {
+  const dict = locale.value === 'zh' ? zhDict : enDict
+  return (key) => dict[key] || key
+})
+
+const zhDict = {
+  serverlessBadge: 'Serverless 邮箱服务',
+  heroTitle1: '更从容的',
+  heroTitle2: '邮箱',
+  subtitle: '基于 Cloudflare 构建的低成本 Serverless 邮箱服务，无需维护服务器，全球边缘节点加速，让你的邮件管理更从容。',
+  quickDeploy: '快速部署',
+  tryOnline: '在线体验',
+  featuresTitle: '核心功能',
+  featuresDesc: '完整的邮箱管理能力，覆盖日常所需',
+  feat1Title: '邮件收发',
+  feat1Desc: '完整的 IMAP/SMTP 邮件收发能力，支持富文本编辑器、草稿保存、批量操作',
+  feat2Title: '邮件转发',
+  feat2Desc: '新邮件自动转发至指定邮箱或 Telegram，重要消息不遗漏',
+  feat3Title: '附件管理',
+  feat3Desc: '基于 R2 存储的附件上传与下载，支持大文件，S3 兼容接口',
+  feat4Title: '邮件收藏',
+  feat4Desc: '一键收藏重要邮件，分类标记，快速检索',
+  feat5Title: '数据分析',
+  feat5Desc: 'ECharts 可视化图表展示收发趋势、邮件统计，数据一目了然',
+  feat6Title: 'RBAC 权限',
+  feat6Desc: '管理员创建角色、分配权限，精细控制每位用户的操作范围',
+  highlightsTitle: '亮点特性',
+  highlightsDesc: '为什么选择 smail',
+  hl1Title: 'Serverless 架构',
+  hl1Desc: '无需维护服务器，自动扩缩容，全球边缘节点加速访问',
+  hl2Title: '极低成本',
+  hl2Desc: '基于 Cloudflare 免费额度，个人使用几乎零成本运行',
+  hl3Title: '响应式设计',
+  hl3Desc: '完美适配桌面与移动端，随时随地管理邮件',
+  hl4Title: '完全开源',
+  hl4Desc: '代码托管在 GitHub，可自由 fork 和定制化改造',
+  hl5Title: '数据自主',
+  hl5Desc: '所有数据存储在 Cloudflare D1/KV/R2，完全可控不依赖第三方',
+  hl6Title: '现代技术栈',
+  hl6Desc: 'Vue 3 + Hono + Drizzle ORM，开发体验优秀，性能出众',
+  archTitle: '技术架构',
+  archDesc: '基于 Cloudflare 全栈构建，简洁而强大',
+  archD1Desc: '邮件 · 用户 · 角色',
+  archKvDesc: 'Session · 配置缓存',
+  archR2Desc: '附件 · 背景图',
+  archR2Tag: 'S3 兼容',
+  archKvTag: '高速读写',
+  deployTitle: '部署教程',
+  deployDesc: '5 步完成部署，快速拥有你的专属邮箱服务',
+  step1Title: 'Fork 仓库',
+  step1Desc: '访问 github.com/sixzjd/smail，点击右上角 Fork 按钮，将仓库复制到你自己的 GitHub 账户。',
+  step1Placeholder: '截图位置：GitHub 仓库页面 Fork 按钮',
+  step2Title: '配置 Cloudflare 资源',
+  step2Desc: '在 Cloudflare Dashboard 中创建以下资源：',
+  step2Item1: 'Domain — 添加你的域名（如 mail.example.com）',
+  step2Item2: 'D1 数据库 — 创建数据库，记录 database_id',
+  step2Item3: 'KV 命名空间 — 创建 KV namespace，记录 id',
+  step2Item4: 'R2 存储桶 — 创建 bucket（如 cloudmail）',
+  step2Item5: 'Resend API 密钥 — 在 resend.com 注册并获取 API key',
+  step2Placeholder: '截图位置：Cloudflare Dashboard 资源列表',
+  step3Title: '配置 wrangler.toml',
+  step3Desc: '克隆 fork 的仓库，修改 wrangler.toml 中的配置：',
+  step3Placeholder: '截图位置：wrangler.toml 配置示例',
+  step4Title: '部署',
+  step4Desc1: '有两种部署方式：',
+  step4MethodA: '方式 A：GitHub Actions（推荐）',
+  step4MethodADesc: '在仓库 Settings → Secrets 中添加 Cloudflare API Token，push 到 main 分支自动部署。',
+  step4MethodB: '方式 B：手动部署',
+  step4Placeholder: '截图位置：部署成功的终端输出',
+  step5Title: '初始化数据库',
+  step5Desc: '部署成功后，访问以下 URL 初始化数据库：',
+  step5Success: '看到 success 即表示初始化完成。',
+  sponsorTitle: '支持项目',
+  sponsorDesc: '如果 smail 对你有帮助，欢迎赞助支持项目的持续开发和维护',
+  wechatPay: '微信支付',
+  alipay: '支付宝',
+  sponsorThanks: '感谢每一位支持者的鼓励',
+  footerTagline: '更从容的邮箱 — Serverless 邮箱服务',
+  langSwitch: 'English'
+}
+
+const enDict = {
+  serverlessBadge: 'Serverless Email Service',
+  heroTitle1: 'A CALMER',
+  heroTitle2: 'MAILBOX',
+  subtitle: 'A low-cost Serverless email service built on Cloudflare. No server maintenance needed, with global edge node acceleration for a more从容 email management experience.',
+  quickDeploy: 'Quick Deploy',
+  tryOnline: 'Try Online',
+  featuresTitle: 'Core Features',
+  featuresDesc: 'Complete email management capabilities covering daily needs',
+  feat1Title: 'Send & Receive',
+  feat1Desc: 'Full IMAP/SMTP email send & receive capability with rich text editor, draft saving, and batch operations',
+  feat2Title: 'Email Forwarding',
+  feat2Desc: 'Automatically forward new emails to specified mailbox or Telegram, never miss important messages',
+  feat3Title: 'Attachment Management',
+  feat3Desc: 'R2 storage-based attachment upload & download, supporting large files with S3-compatible API',
+  feat4Title: 'Email Favorites',
+  feat4Desc: 'One-click favorite important emails, categorize and tag for quick retrieval',
+  feat5Title: 'Data Analytics',
+  feat5Desc: 'ECharts visual charts showing send/receive trends and email statistics at a glance',
+  feat6Title: 'RBAC Permissions',
+  feat6Desc: 'Admins create roles and assign permissions for fine-grained control over each user\'s access',
+  highlightsTitle: 'Highlights',
+  highlightsDesc: 'Why choose smail',
+  hl1Title: 'Serverless Architecture',
+  hl1Desc: 'No server maintenance needed, auto-scaling, global edge node acceleration',
+  hl2Title: 'Minimal Cost',
+  hl2Desc: 'Built on Cloudflare free tier, virtually zero cost for personal use',
+  hl3Title: 'Responsive Design',
+  hl3Desc: 'Perfectly adapted for desktop and mobile, manage emails anytime, anywhere',
+  hl4Title: 'Fully Open Source',
+  hl4Desc: 'Code hosted on GitHub, free to fork and customize',
+  hl5Title: 'Data Ownership',
+  hl5Desc: 'All data stored on Cloudflare D1/KV/R2, fully under your control',
+  hl6Title: 'Modern Tech Stack',
+  hl6Desc: 'Vue 3 + Hono + Drizzle ORM, excellent developer experience and outstanding performance',
+  archTitle: 'Architecture',
+  archDesc: 'Full-stack built on Cloudflare, simple yet powerful',
+  archD1Desc: 'Emails · Users · Roles',
+  archKvDesc: 'Session · Config Cache',
+  archR2Desc: 'Attachments · Backgrounds',
+  archR2Tag: 'S3 Compatible',
+  archKvTag: 'Fast R/W',
+  deployTitle: 'Deployment Guide',
+  deployDesc: '5 steps to deploy and own your private email service',
+  step1Title: 'Fork the Repository',
+  step1Desc: 'Visit github.com/sixzjd/smail and click the Fork button in the upper right corner to copy the repo to your GitHub account.',
+  step1Placeholder: 'Screenshot: GitHub repo Fork button',
+  step2Title: 'Configure Cloudflare Resources',
+  step2Desc: 'Create the following resources in Cloudflare Dashboard:',
+  step2Item1: 'Domain — Add your domain (e.g. mail.example.com)',
+  step2Item2: 'D1 Database — Create a database and note the database_id',
+  step2Item3: 'KV Namespace — Create a KV namespace and note the id',
+  step2Item4: 'R2 Bucket — Create a bucket (e.g. cloudmail)',
+  step2Item5: 'Resend API Key — Register at resend.com and get an API key',
+  step2Placeholder: 'Screenshot: Cloudflare Dashboard resource list',
+  step3Title: 'Configure wrangler.toml',
+  step3Desc: 'Clone the forked repo and modify the wrangler.toml configuration:',
+  step3Placeholder: 'Screenshot: wrangler.toml config example',
+  step4Title: 'Deploy',
+  step4Desc1: 'There are two deployment options:',
+  step4MethodA: 'Option A: GitHub Actions (Recommended)',
+  step4MethodADesc: 'Add Cloudflare API Token in repo Settings → Secrets, push to main branch for automatic deployment.',
+  step4MethodB: 'Option B: Manual Deploy',
+  step4Placeholder: 'Screenshot: Successful deployment terminal output',
+  step5Title: 'Initialize Database',
+  step5Desc: 'After deployment, visit the following URL to initialize the database:',
+  step5Success: 'Seeing success means initialization is complete.',
+  sponsorTitle: 'Support the Project',
+  sponsorDesc: 'If smail has been helpful, consider sponsoring to support continued development and maintenance',
+  wechatPay: 'WeChat Pay',
+  alipay: 'Alipay',
+  sponsorThanks: 'Thanks to every supporter for the encouragement',
+  footerTagline: 'A CALMER MAILBOX — Serverless Email Service',
+  langSwitch: '中文'
+}
 </script>
 
 <style scoped>
-/* ── Variables ── */
-:root {
-  --c-primary: #d9543e;
-  --c-primary-hover: #c44835;
-  --c-primary-10: rgba(217, 84, 62, 0.10);
-  --c-primary-08: rgba(217, 84, 62, 0.08);
-  --c-primary-06: rgba(217, 84, 62, 0.06);
-  --c-bg: #FAFAFA;
-  --c-bg-alt: #F4F1EE;
-  --c-surface: #FFFFFF;
-  --c-text: #1a1a1a;
-  --c-text-secondary: #5a5a5a;
-  --c-text-muted: #8a8a8a;
-  --c-border: rgba(0,0,0,0.06);
-  --radius: 14px;
-  --radius-sm: 10px;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
-  --shadow-card-hover: 0 4px 12px rgba(217,84,62,0.08), 0 8px 32px rgba(0,0,0,0.06);
-  --max-w: 960px;
-  --font-body: 'DM Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+/* Variables are defined in the global (non-scoped) block below */
 
 
 /* ── Base ── */
 .doc-page {
   min-height: 100vh;
-  background: var(--c-bg);
-  color: var(--c-text);
+  background: var(--c-bg, #FAFAFA);
+  color: var(--c-text, #1a1a1a);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
@@ -426,6 +577,34 @@ cd .. && npx wrangler deploy</code></pre>
 
 .doc-github-btn:hover {
   background: var(--c-primary-hover);
+  transform: translateY(-1px);
+}
+
+.doc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.doc-lang-btn:hover {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
   transform: translateY(-1px);
 }
 
@@ -523,10 +702,16 @@ cd .. && npx wrangler deploy</code></pre>
 }
 
 .doc-section-alt {
-  background: var(--c-bg-alt);
+  background: var(--c-bg-alt, #F4F1EE);
   max-width: 100%;
-  padding-left: calc((100% - var(--max-w)) / 2 + 24px);
-  padding-right: calc((100% - var(--max-w)) / 2 + 24px);
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.doc-section-alt > * {
+  max-width: var(--max-w);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .doc-section-header {
@@ -840,6 +1025,16 @@ cd .. && npx wrangler deploy</code></pre>
 /* ── Sponsor ── */
 .doc-sponsor {
   text-align: center;
+  background: var(--c-bg-alt, #F4F1EE);
+  max-width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.doc-sponsor > * {
+  max-width: var(--max-w);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .doc-qr-row {
@@ -964,6 +1159,16 @@ cd .. && npx wrangler deploy</code></pre>
     padding: 48px 20px;
   }
 
+  .doc-section-alt {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .doc-sponsor {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
   .doc-section-header h2 {
     font-size: 24px;
   }
@@ -999,6 +1204,28 @@ cd .. && npx wrangler deploy</code></pre>
 </style>
 
 <style>
+/* ── Doc Page Variables (global) ── */
+:root {
+  --c-primary: #d9543e;
+  --c-primary-hover: #c44835;
+  --c-primary-10: rgba(217, 84, 62, 0.10);
+  --c-primary-08: rgba(217, 84, 62, 0.08);
+  --c-primary-06: rgba(217, 84, 62, 0.06);
+  --c-bg: #FAFAFA;
+  --c-bg-alt: #F4F1EE;
+  --c-surface: #FFFFFF;
+  --c-text: #1a1a1a;
+  --c-text-secondary: #5a5a5a;
+  --c-text-muted: #8a8a8a;
+  --c-border: rgba(0,0,0,0.06);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+  --shadow-card-hover: 0 4px 12px rgba(217,84,62,0.08), 0 8px 32px rgba(0,0,0,0.06);
+  --max-w: 960px;
+  --font-body: 'DM Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 /* Dark mode overrides for doc page — must be global */
 html.dark .doc-page {
   --c-primary: #e06850;
@@ -1006,19 +1233,19 @@ html.dark .doc-page {
   --c-primary-10: rgba(224, 104, 80, 0.15);
   --c-primary-08: rgba(224, 104, 80, 0.10);
   --c-primary-06: rgba(224, 104, 80, 0.08);
-  --c-bg: var(--s-body);
-  --c-bg-alt: var(--s-soft);
-  --c-surface: var(--s-white);
-  --c-text: var(--s-ink);
-  --c-text-secondary: var(--s-ink-secondary);
-  --c-text-muted: var(--s-muted);
-  --c-border: var(--s-line);
+  --c-bg: #1a1614;
+  --c-bg-alt: #2a2420;
+  --c-surface: #2a2420;
+  --c-text: #e8e0d6;
+  --c-text-secondary: #b0a898;
+  --c-text-muted: #8a8078;
+  --c-border: #3d3630;
   --shadow-card: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.10);
   --shadow-card-hover: 0 4px 12px rgba(224,104,80,0.12), 0 8px 32px rgba(0,0,0,0.15);
 }
 
 html.dark .doc-header {
-  background: color-mix(in srgb, var(--s-body, #231e1a) 88%, transparent) !important;
+  background: rgba(26, 22, 20, 0.88) !important;
 }
 
 html.dark .step-content pre {
@@ -1026,7 +1253,7 @@ html.dark .step-content pre {
 }
 
 html.dark .step-img-placeholder {
-  border-color: var(--s-line);
+  border-color: #3d3630;
 }
 </style>
 
