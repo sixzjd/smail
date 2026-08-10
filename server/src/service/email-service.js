@@ -23,31 +23,27 @@ import account from "../entity/account.js";
 import { att } from '../entity/att.js';
 import telegramService from './telegram-service.js';
 
+const stripContent = list => list.map(({ content, ...rest }) => rest);
+
+function normalizeEmailQuery(emailId, size, timeSort) {
+	size = Number(size);
+	emailId = Number(emailId);
+	if (size > 50) size = 50;
+	if (!emailId) emailId = timeSort ? 0 : 9999999999;
+	return { emailId, size };
+}
+
 const emailService = {
 
 	async list(c, params, userId) {
 
-		let { emailId, type, accountId, size, timeSort, allReceive } = params;
+		let { type, accountId, timeSort, allReceive } = params;
 
-		size = Number(size);
-		emailId = Number(emailId);
 		timeSort = Number(timeSort);
 		accountId = Number(accountId);
 		allReceive = Number(allReceive);
 
-		if (size > 50) {
-			size = 50;
-		}
-
-		if (!emailId) {
-
-			if (timeSort) {
-				emailId = 0;
-			} else {
-				emailId = 9999999999;
-			}
-
-		}
+		const { emailId: eid, size } = normalizeEmailQuery(params.emailId, params.size, timeSort);
 
 		if (isNaN(allReceive)) {
 			let accountRow = await accountService.selectById(c, accountId);
@@ -74,7 +70,7 @@ const emailService = {
 				and(
 					allReceive ? eq(1,1) : eq(email.accountId, accountId),
 					eq(email.userId, userId),
-					timeSort ? gt(email.emailId, emailId) : lt(email.emailId, emailId),
+					timeSort ? gt(email.emailId, eid) : lt(email.emailId, eid),
 					eq(email.type, type),
 					eq(email.isDel, isDel.NORMAL),
 					eq(account.isDel, isDel.NORMAL)
@@ -115,13 +111,11 @@ const emailService = {
 
 		let [list, totalRow, latestEmail] = await Promise.all([listQuery, totalQuery, latestEmailQuery]);
 
-		list = list.map(item => {
-			const { content, ...rest } = item;
-			return {
-				...rest,
-				isStar: item.starId != null ? 1 : 0
-			};
-		});
+		list = stripContent(list);
+		list = list.map(item => ({
+			...item,
+			isStar: item.starId != null ? 1 : 0
+		}));
 
 
 		if (!latestEmail) {
@@ -305,25 +299,20 @@ const emailService = {
 		html = this.imgReplace(html, imageDataList, r2Domain);
 
 		//封装数据保存到数据库
-		const emailData = {};
-		emailData.sendEmail = accountRow.email;
-		emailData.name = name;
-		emailData.subject = subject;
-		emailData.content = html;
-		emailData.text = text;
-		emailData.accountId = accountId;
-		emailData.status = useCloudflareEmail ? emailConst.status.DELIVERED : emailConst.status.SENT;
-		emailData.type = emailConst.type.SEND;
-		emailData.userId = userId;
-		emailData.resendEmailId = data?.id;
-
-		const recipient = [];
-
-		receiveEmail.forEach(item => {
-			recipient.push({ address: item, name: '' });
-		});
-
-		emailData.recipient = JSON.stringify(recipient);
+		const recipient = receiveEmail.map(item => ({ address: item, name: '' }));
+		const emailData = {
+			sendEmail: accountRow.email,
+			name,
+			subject,
+			content: html,
+			text,
+			accountId,
+			status: useCloudflareEmail ? emailConst.status.DELIVERED : emailConst.status.SENT,
+			type: emailConst.type.SEND,
+			userId,
+			resendEmailId: data?.id,
+			recipient: JSON.stringify(recipient)
+		};
 
 		if (sendType === 'reply') {
 			emailData.inReplyTo = emailRow.messageId;
@@ -435,11 +424,14 @@ const emailService = {
 	},
 
 	async toCloudflareAttachments(attachments) {
-		const arrayBufferAttachments = await this.toArrayBufferAttachments(attachments);
+		const result = [];
 
-		return arrayBufferAttachments.map(attachment => {
+		for (const attachment of attachments) {
+			const content = await this.toAttachmentArrayBuffer(attachment);
+			if (!content) continue;
+
 			const item = {
-				content: attachment.content,
+				content,
 				filename: attachment.filename,
 				type: attachment.mimeType || attachment.contentType || attachment.type || 'application/octet-stream',
 				disposition: attachment.contentId ? 'inline' : 'attachment'
@@ -449,8 +441,10 @@ const emailService = {
 				item.contentId = attachment.contentId.replace(/^<|>$/g, '');
 			}
 
-			return item;
-		});
+			result.push(item);
+		}
+
+		return result;
 	},
 
 	async toResendAttachments(attachments = []) {
@@ -458,30 +452,13 @@ const emailService = {
 
 		for (const attachment of attachments) {
 			const content = await this.toAttachmentBase64(attachment);
-			if (!content) {
-				continue;
-			}
+			if (!content) continue;
 
 			result.push({
 				...attachment,
 				content,
 				contentType: attachment.contentType || attachment.mimeType || attachment.type || 'application/octet-stream'
 			});
-		}
-
-		return result;
-	},
-
-	async toArrayBufferAttachments(attachments = []) {
-		const result = [];
-
-		for (const attachment of attachments) {
-			const content = await this.toAttachmentArrayBuffer(attachment);
-			if (!content) {
-				continue;
-			}
-
-			result.push({ ...attachment, content });
 		}
 
 		return result;
@@ -619,20 +596,37 @@ const emailService = {
 		//保存邮件
 		const receiveEmailList = emailDataList.filter(emailRow => emailRow.status === emailConst.status.RECEIVE || emailRow.status === emailConst.status.NOONE);
 
-		for (const emailData of receiveEmailList) {
+		if (receiveEmailList.length > 0) {
+			const emailStatements = receiveEmailList.map(d =>
+				c.env.db.prepare(
+					'INSERT INTO email (send_email, name, subject, content, text, account_id, status, type, user_id, to_email, to_name, recipient, resend_email_id, message, in_reply_to, relation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+					d.sendEmail, d.name, d.subject, d.content, d.text,
+					d.accountId, d.status, d.type, d.userId,
+					d.toEmail, d.toName, d.recipient, d.resendEmailId,
+					d.message || null, d.inReplyTo || null, d.relation || null
+				)
+			);
+			const results = await c.env.db.batch(emailStatements);
 
-			const emailRow = await orm(c).insert(email).values(emailData).returning().get();
-
-			//设置附件保存
-			for (const attRow of attList) {
-				const attValues = {...attRow};
-				attValues.emailId = emailRow.emailId;
-				attValues.accountId = emailRow.accountId;
-				attValues.userId = emailRow.userId;
-				attValues.attId = null;
-				await orm(c).insert(att).values(attValues).run();
+			//保存附件
+			if (attList.length > 0) {
+				const attStatements = [];
+				results.forEach((result, i) => {
+					const emailId = result.meta.last_row_id;
+					const d = receiveEmailList[i];
+					attList.forEach(attRow => {
+						attStatements.push(c.env.db.prepare(
+							'INSERT INTO attachments (email_id, account_id, user_id, key, filename, mime_type, type, content_id, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+							emailId, d.accountId, d.userId,
+							attRow.key, attRow.filename, attRow.mimeType || attRow.contentType,
+							attRow.type, attRow.contentId, attRow.disposition
+						));
+					});
+				});
+				if (attStatements.length > 0) {
+					await c.env.db.batch(attStatements);
+				}
 			}
-
 		}
 
 		const bouncedEmail = emailDataList.find(emailRow => emailRow.status === emailConst.status.BOUNCED);
@@ -727,10 +721,7 @@ const emailService = {
 			.orderBy(desc(email.emailId))
 			.limit(20);
 
-		list = list.map(item => {
-			const { content, ...rest } = item;
-			return rest;
-		});
+		list = stripContent(list);
 
 		return list;
 	},
@@ -775,26 +766,11 @@ const emailService = {
 
 	async allList(c, params) {
 
-		let { emailId, size, name, subject, accountEmail, userEmail, type, timeSort } = params;
+		let { name, subject, accountEmail, userEmail, type, timeSort } = params;
 
-		size = Number(size);
-
-		emailId = Number(emailId);
 		timeSort = Number(timeSort);
 
-		if (size > 50) {
-			size = 50;
-		}
-
-		if (!emailId) {
-
-			if (timeSort) {
-				emailId = 0;
-			} else {
-				emailId = 9999999999;
-			}
-
-		}
+		const { emailId: eid, size } = normalizeEmailQuery(params.emailId, params.size, timeSort);
 
 		const conditions = [];
 
@@ -840,9 +816,9 @@ const emailService = {
 		const countConditions = [...conditions];
 
 		if (timeSort) {
-			conditions.unshift(gt(email.emailId, emailId));
+			conditions.unshift(gt(email.emailId, eid));
 		} else {
-			conditions.unshift(lt(email.emailId, emailId));
+			conditions.unshift(lt(email.emailId, eid));
 		}
 
 		const query = orm(c).select({ ...email, userEmail: user.email, accountEmail: account.email })
@@ -873,10 +849,7 @@ const emailService = {
 
 		let [list, totalRow, latestEmail] = await Promise.all([listQuery, totalQuery, latestEmailQuery]);
 
-		list = list.map(item => {
-			const { content, ...rest } = item;
-			return rest;
-		});
+		list = stripContent(list);
 
 		if (!latestEmail) {
 			latestEmail = {
@@ -905,10 +878,7 @@ const emailService = {
 			.orderBy(desc(email.emailId))
 			.limit(20);
 
-		list = list.map(item => {
-			const { content, ...rest } = item;
-			return rest;
-		});
+		list = stripContent(list);
 
 		return list;
 	},

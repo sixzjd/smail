@@ -10,7 +10,6 @@ import userContext from '../security/user-context.js';
 import verifyUtils from '../utils/verify-utils.js';
 import accountService from './account-service.js';
 import settingService from './setting-service.js';
-import saltHashUtils from '../utils/crypto-utils.js';
 import cryptoUtils from '../utils/crypto-utils.js';
 import turnstileService from './turnstile-service.js';
 import roleService from './role-service.js';
@@ -68,14 +67,9 @@ const loginService = {
 		let type = null;
 		let regKeyId = 0
 
-		if (regKey === settingConst.regKey.OPEN) {
-			const result = await this.handleOpenRegKey(c, regKey, code)
-			type = result?.type
-			regKeyId = result?.regKeyId
-		}
-
-		if (regKey === settingConst.regKey.OPTIONAL) {
-			const result = await this.handleOpenOptional(c, regKey, code)
+		if (regKey === settingConst.regKey.OPEN || regKey === settingConst.regKey.OPTIONAL) {
+			const required = regKey === settingConst.regKey.OPEN
+			const result = await this.validateRegKey(c, code, required)
 			type = result?.type
 			regKeyId = result?.regKeyId
 		}
@@ -126,7 +120,7 @@ const loginService = {
 			}
 		}
 
-		const { salt, hash } = await saltHashUtils.hashPassword(password);
+		const { salt, hash } = await cryptoUtils.hashPassword(password);
 
 		const userId = await userService.insert(c, { email, regKeyId,password: hash, salt, type: type || defType });
 
@@ -147,53 +141,26 @@ const loginService = {
 
 	},
 
-	async registerVerify() {
-
-	},
-
-	async handleOpenRegKey(c, regKey, code) {
+	async validateRegKey(c, code, required) {
 
 		if (!code) {
-			throw new BizError(t('emptyRegKey'));
+			if (required) throw new BizError(t('emptyRegKey'));
+			return null;
 		}
 
 		const regKeyRow = await regKeyService.selectByCode(c, code);
 
 		if (!regKeyRow) {
-			throw new BizError(t('notExistRegKey'));
-		}
-
-		if (regKeyRow.count <= 0) {
-			throw new BizError(t('noRegKeyCount'));
-		}
-
-		const today = toUtc().tz('Asia/Shanghai').startOf('day')
-		const expireTime = toUtc(regKeyRow.expireTime).tz('Asia/Shanghai').startOf('day');
-
-		if (expireTime.isBefore(today)) {
-			throw new BizError(t('regKeyExpire'));
-		}
-
-		return { type: regKeyRow.roleId, regKeyId: regKeyRow.regKeyId };
-	},
-
-	async handleOpenOptional(c, regKey, code) {
-
-		if (!code) {
-			return null
-		}
-
-		const regKeyRow = await regKeyService.selectByCode(c, code);
-
-		if (!regKeyRow) {
-			return null
+			if (required) throw new BizError(t('notExistRegKey'));
+			return null;
 		}
 
 		const today = toUtc().tz('Asia/Shanghai').startOf('day')
 		const expireTime = toUtc(regKeyRow.expireTime).tz('Asia/Shanghai').startOf('day');
 
 		if (regKeyRow.count <= 0 || expireTime.isBefore(today)) {
-			return null
+			if (required) throw new BizError(t('regKeyExpire'));
+			return null;
 		}
 
 		return { type: regKeyRow.roleId, regKeyId: regKeyRow.regKeyId };

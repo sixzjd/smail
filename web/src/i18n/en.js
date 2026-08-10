@@ -131,7 +131,7 @@ const en = {
     home: 'Home',
     loginBtn: 'Sign in',
     regBtn: 'Sign up',
-    loginTitle: 'Sign in to your account to access email',
+    loginTitle: 'Read your emails, understand your day',
     regTitle: 'Sign up for an account to use email',
     confirmPwd: 'Confirm password',
     regKeyOptional: 'Invite code (Optional)',

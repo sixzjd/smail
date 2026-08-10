@@ -1,12 +1,15 @@
 <p align="center">
-  <img src="web/public/smail-icon.svg" width="80" alt="smail" />
+  <img src="web/public/smail-icon.png" width="64" height="64" alt="smail logo" style="vertical-align: middle; margin-right: 12px;">
+  <span style="font-size: 2.5em; font-weight: bold; vertical-align: middle;">smail</span>
 </p>
-
-<h1 align="center">smail</h1>
 
 <p align="center">
   <strong>基于 Cloudflare 全家桶的临时邮箱服务</strong><br/>
   <sub>从 Node.js/Express 整体迁移至 Cloudflare Workers，全球边缘部署，零功能损失</sub>
+</p>
+
+<p align="center">
+  <a href="README.md">中文</a> · <a href="README.en.md">English</a>
 </p>
 
 <p align="center">

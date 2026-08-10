@@ -144,7 +144,6 @@ html[data-theme-to="light"]::view-transition-old(root) {
   }
 
   /* Ensure minimum 44x44 touch targets */
-  .icon-btn,
   .toolbar-btn {
     min-width: 44px;
     min-height: 44px;

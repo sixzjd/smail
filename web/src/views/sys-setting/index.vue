@@ -655,8 +655,8 @@ const emailPrefixFilter = ref([])
 const backgroundUrl = ref('')
 let backgroundFile = {}
 const showSetBackground = ref(false)
-let regVerifyCount = ref(1)
-let addVerifyCount = ref(1)
+const regVerifyCount = ref(1)
+const addVerifyCount = ref(1)
 let backup = '{}'
 const addS3Show = ref(false)
 const addVerifyCountShow = ref(false)
@@ -972,32 +972,18 @@ function openForwardRules() {
   forwardRulesShow.value = true
 }
 
+function parseTagInput(val, target, validator) {
+  const items = [...new Set(val.split(/[,，]/).map(s => s.trim()).filter(Boolean))]
+  target.pop()
+  items.forEach(item => { if (validator(item) && !target.includes(item)) target.push(item) })
+}
+
 function emailAddTag(val) {
-  const emails = Array.from(new Set(
-      val.split(/[,，]/).map(item => item.trim()).filter(item => item)
-  ));
-
-  forwardEmail.value.splice(forwardEmail.value.length - 1, 1)
-
-  emails.forEach(email => {
-    if (isEmail(email) && !forwardEmail.value.includes(email)) {
-      forwardEmail.value.push(email)
-    }
-  })
+  parseTagInput(val, forwardEmail.value, isEmail)
 }
 
 function ruleEmailAddTag(val) {
-  const emails = Array.from(new Set(
-      val.split(/[,，]/).map(item => item.trim()).filter(item => item)
-  ));
-
-  ruleEmail.value.splice(ruleEmail.value.length - 1, 1)
-
-  emails.forEach(email => {
-    if (isEmail(email) && !ruleEmail.value.includes(email)) {
-      ruleEmail.value.push(email)
-    }
-  })
+  parseTagInput(val, ruleEmail.value, isEmail)
 }
 
 function addChatTag(val) {
@@ -1006,7 +992,7 @@ function addChatTag(val) {
       val.split(/[,，]/).map(item => item.trim()).filter(item => item)
   ));
 
-  tgChatId.value.splice(tgChatId.value.length - 1, 1)
+  tgChatId.value.pop()
 
   chatIds.forEach(id => {
     if (!isNaN(Number(id))) {
@@ -1150,31 +1136,11 @@ function saveBlackList() {
 }
 
 function banEmailAddTag(val) {
-  const emails = Array.from(new Set(
-      val.split(/[,，]/).map(item => item.trim()).filter(item => item)
-  ));
-
-  blackListForm.value.blackFrom.splice(blackListForm.value.blackFrom.length - 1, 1)
-
-  emails.forEach(email => {
-    if ((isEmail(email) || isDomain(email)) && !blackListForm.value.blackFrom.includes(email)) {
-      blackListForm.value.blackFrom.push(email)
-    }
-  })
+  parseTagInput(val, blackListForm.value.blackFrom, v => isEmail(v) || isDomain(v))
 }
 
 function aiCodeFilterAddTag(val) {
-  const emails = Array.from(new Set(
-      val.split(/[,，]/).map(item => item.trim()).filter(item => item)
-  ));
-
-  aiCodeFilter.value.splice(aiCodeFilter.value.length - 1, 1)
-
-  emails.forEach(email => {
-    if ((isEmail(email) || isDomain(email)) && !aiCodeFilter.value.includes(email)) {
-      aiCodeFilter.value.push(email)
-    }
-  })
+  parseTagInput(val, aiCodeFilter.value, v => isEmail(v) || isDomain(v))
 }
 
 
@@ -1300,10 +1266,7 @@ function saveTitle() {
 }
 
 function jump(href) {
-  const doc = document.createElement('a')
-  doc.href = href
-  doc.target = '_blank'
-  doc.click()
+  window.open(href, '_blank')
 }
 
 function editSetting(settingForm, refreshStatus = true) {

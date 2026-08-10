@@ -215,7 +215,7 @@ function banEmailAddTag(val) {
       val.split(/[,，]/).map(item => item.trim()).filter(item => item)
   ));
 
-  form.banEmail.splice(form.banEmail.length - 1, 1)
+  form.banEmail.pop()
 
   emails.forEach(email => {
     if ((isEmail(email) || isDomain(email) || email === '*') && !form.banEmail.includes(email)) {

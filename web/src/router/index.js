@@ -57,7 +57,8 @@ const routes = [
     {
         path: '/doc',
         name: 'doc',
-        component: () => import('@/views/doc/index.vue')
+        component: () => import('@/views/doc/index.vue'),
+        meta: { title: 'smail - 文档' }
     },
     {
         path: '/login',
@@ -164,6 +165,10 @@ router.afterEach((to) => {
         removeLoading()
     } else {
         NProgress.done();
+    }
+
+    if (to.meta.title) {
+        document.title = to.meta.title
     }
 
     const uiStore = useUiStore()

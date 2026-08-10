@@ -73,7 +73,7 @@ import {Icon} from "@iconify/vue";
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  min-height: 90px;
+  min-height: 80px;
   border-bottom: 1px solid var(--s-line-light);
 
   &.all-email {

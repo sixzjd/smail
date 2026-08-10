@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="doc-header">
       <div class="doc-header-inner">
-        <div class="doc-logo">
+        <div class="doc-logo" @click="goHome" style="cursor:pointer">
           <img src="/smail-icon.svg" alt="smail" class="doc-logo-img">
           <span class="doc-logo-text">smail</span>
         </div>
@@ -21,7 +21,8 @@
     </header>
 
     <!-- Hero -->
-    <section class="doc-hero">
+    <section class="doc-hero-wrap doc-section-alt">
+    <div class="doc-hero">
       <div class="doc-hero-badge">{{ t('serverlessBadge') }}</div>
       <h1>{{ t('heroTitle1') }} <span>{{ t('heroTitle2') }}</span></h1>
       <p class="doc-subtitle">{{ t('subtitle') }}</p>
@@ -29,6 +30,7 @@
         <a href="#deploy" class="doc-btn-primary">{{ t('quickDeploy') }}</a>
         <a href="https://mail.sixzjd.sbs" target="_blank" class="doc-btn-outline">{{ t('tryOnline') }}</a>
       </div>
+    </div>
     </section>
 
     <!-- Core Features -->
@@ -323,7 +325,7 @@ cd .. && npx wrangler deploy</code></pre>
     </section>
 
     <!-- Footer -->
-    <footer class="doc-footer">
+    <footer class="doc-footer doc-section-alt">
       <div class="doc-footer-inner">
         <div class="doc-footer-brand">
           <img src="/smail-icon.svg" alt="smail" class="doc-footer-logo">
@@ -342,8 +344,14 @@ cd .. && npx wrangler deploy</code></pre>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const locale = ref(localStorage.getItem('doc-locale') || 'zh')
+
+function goHome() {
+  router.push('/inbox')
+}
 
 function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
@@ -526,7 +534,7 @@ const enDict = {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(250, 250, 250, 0.88);
+  background: var(--c-bg-alt, #F4F1EE);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--c-border);
@@ -609,6 +617,18 @@ const enDict = {
 }
 
 /* ── Hero ── */
+.doc-hero-wrap {
+  max-width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.doc-hero-wrap > * {
+  max-width: var(--max-w);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .doc-hero {
   text-align: center;
   padding: 100px 24px 80px;
@@ -740,7 +760,7 @@ const enDict = {
 }
 
 .doc-card {
-  background: var(--c-surface);
+  background: var(--c-bg-alt, #F4F1EE);
   border-radius: var(--radius);
   padding: 28px;
   box-shadow: var(--shadow-card);
@@ -844,7 +864,7 @@ const enDict = {
 }
 
 .arch-node {
-  background: var(--c-surface);
+  background: var(--c-bg-alt, #F4F1EE);
   border-radius: var(--radius);
   padding: 22px 28px;
   box-shadow: var(--shadow-card);
@@ -1025,16 +1045,6 @@ const enDict = {
 /* ── Sponsor ── */
 .doc-sponsor {
   text-align: center;
-  background: var(--c-bg-alt, #F4F1EE);
-  max-width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
-}
-
-.doc-sponsor > * {
-  max-width: var(--max-w);
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .doc-qr-row {
@@ -1056,7 +1066,7 @@ const enDict = {
   height: 200px;
   object-fit: contain;
   border-radius: var(--radius);
-  background: var(--c-surface);
+  background: var(--c-bg-alt, #F4F1EE);
   padding: 12px;
   box-shadow: var(--shadow-card);
   border: 1px solid var(--c-border);
@@ -1076,8 +1086,16 @@ const enDict = {
 
 /* ── Footer ── */
 .doc-footer {
+  background: var(--c-bg-alt, #F4F1EE);
+  max-width: 100%;
   border-top: 1px solid var(--c-border);
   padding: 48px 24px;
+}
+
+.doc-footer > * {
+  max-width: var(--max-w);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .doc-footer-inner {
@@ -1245,7 +1263,7 @@ html.dark .doc-page {
 }
 
 html.dark .doc-header {
-  background: rgba(26, 22, 20, 0.88) !important;
+  background: var(--c-bg-alt, #2a2420) !important;
 }
 
 html.dark .step-content pre {

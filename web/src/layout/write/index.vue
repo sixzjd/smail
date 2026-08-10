@@ -282,7 +282,14 @@ function onRecipientFocus() {
 }
 
 function onRecipientBlur() {
-  setTimeout(() => { showAcDropdown.value = false }, 150)
+  setTimeout(() => {
+    showAcDropdown.value = false
+    const val = recipientQuery.value.trim()
+    if (val && isEmail(val) && !form.receiveEmail.includes(val)) {
+      form.receiveEmail.push(val)
+      recipientQuery.value = ''
+    }
+  }, 150)
 }
 
 function selectRecipient(email) {
@@ -321,7 +328,15 @@ function onCcInput() {}
 
 function onCcFocus() {}
 
-function onCcBlur() {}
+function onCcBlur() {
+  setTimeout(() => {
+    const val = ccQuery.value.trim()
+    if (val && isEmail(val) && !form.cc.includes(val)) {
+      form.cc.push(val)
+      ccQuery.value = ''
+    }
+  }, 150)
+}
 
 function handleCcKeydown(e) {
   handleTagKeydown(e, ccQuery, form.cc)

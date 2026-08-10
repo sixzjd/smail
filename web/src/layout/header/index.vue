@@ -19,10 +19,9 @@
 
     <!-- Right: actions -->
     <div class="topbar-right">
-      <!-- Dark mode -->
-      <button class="icon-btn" @click="openDark($event)" :aria-label="uiStore.dark ? '浅色模式' : '深色模式'">
-        <Icon v-if="uiStore.dark" icon="mingcute:sun-fill" width="20" height="20" />
-        <Icon v-else icon="solar:moon-linear" width="20" height="20" />
+      <!-- Language toggle -->
+      <button class="icon-btn lang-btn" @click="toggleLang" :aria-label="'切换语言'">
+        <span class="lang-label">{{ settingStore.lang === 'en' ? '中' : 'EN' }}</span>
       </button>
 
       <!-- Notice -->
@@ -33,6 +32,12 @@
       <!-- Doc -->
       <button class="icon-btn" @click="router.push('/doc')" aria-label="文档">
         <Icon icon="ep:document" width="20" height="20" />
+      </button>
+
+      <!-- Dark mode -->
+      <button class="icon-btn" @click="openDark($event)" :aria-label="uiStore.dark ? '浅色模式' : '深色模式'">
+        <Icon v-if="uiStore.dark" icon="mingcute:sun-fill" width="20" height="20" />
+        <Icon v-else icon="solar:moon-linear" width="20" height="20" />
       </button>
 
       <!-- User dropdown -->
@@ -90,7 +95,7 @@ import SDropdown from '@/components/ui/s-dropdown.vue'
 import SButton from '@/components/ui/s-button.vue'
 import STag from '@/components/ui/s-tag.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const settingStore = useSettingStore()
 const userStore = useUserStore()
@@ -111,11 +116,7 @@ const sendType = computed(() => {
 })
 
 const sendCount = computed(() => {
-  if (!hasPerm('email:send')) return null
-  if (userStore.user.role.sendType === 'ban') return null
-  if (userStore.user.role.sendType === 'internal') return null
-  if (!userStore.user.role.sendCount) return null
-  if (settingStore.settings.send === 1) return null
+  if (!hasPerm('email:send') || userStore.user.role.sendType === 'ban' || userStore.user.role.sendType === 'internal' || !userStore.user.role.sendCount || settingStore.settings.send === 1) return null
   return userStore.user.sendCount + '/' + userStore.user.role.sendCount
 })
 
@@ -170,6 +171,12 @@ function clickLogout() {
 function formatName(email) {
   return email[0]?.toUpperCase() || ''
 }
+
+function toggleLang() {
+  const next = settingStore.lang === 'en' ? 'zh' : 'en'
+  settingStore.lang = next
+  locale.value = next
+}
 </script>
 
 <style scoped>
@@ -184,6 +191,7 @@ function formatName(email) {
 
 .topbar-left {
   display: flex; align-items: center; gap: 12px;
+  min-width: 0; overflow: hidden;
 }
 
 .hamburger {
@@ -204,6 +212,7 @@ function formatName(email) {
   font-family: var(--s-font-display);
   font-weight: 700; font-size: 16px;
   color: var(--s-ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .topbar-center { display: flex; justify-content: center; }
@@ -229,24 +238,40 @@ function formatName(email) {
 
 @media (max-width: 800px) {
   .topbar-center { display: none; }
+  .topbar-inner { grid-template-columns: auto 1fr; }
+  .topbar-right { justify-content: end; }
 }
 
 .topbar-right {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: nowrap; flex-shrink: 0;
+}
+.topbar-right > * { flex-shrink: 0; }
+
+.lang-btn {
+  font-family: var(--s-font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.5px;
+}
+.lang-label {
+  user-select: none;
 }
 
 .icon-btn {
   width: 36px; height: 36px;
+  min-width: 36px; min-height: 36px;
   display: flex; align-items: center; justify-content: center;
   border-radius: var(--s-radius);
   color: var(--s-muted);
   transition: all var(--s-ease);
+  flex-shrink: 0;
 }
 .icon-btn:hover { background: var(--s-soft); color: var(--s-ink); }
 
 .user-trigger {
   display: flex; align-items: center; gap: 4px;
-  cursor: pointer; padding: 4px;
+  cursor: pointer; padding: 4px; margin-left: 4px;
   border-radius: var(--s-radius);
   transition: all var(--s-ease);
 }
@@ -309,5 +334,11 @@ function formatName(email) {
   width: 100%;
   padding: 12px 16px 4px;
   margin-top: 8px;
+}
+@media (max-width: 768px) {
+  .topbar-inner { padding: 0 12px; gap: 8px; }
+  .breadcrumb { font-size: 15px; max-width: 120px; }
+  .topbar-right { gap: 2px; }
+  .user-trigger { margin-left: 2px; }
 }
 </style>

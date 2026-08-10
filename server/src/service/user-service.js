@@ -4,7 +4,6 @@ import orm from '../entity/orm.js';
 import user from '../entity/user.js';
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import { emailConst, isDel, roleConst, userConst } from '../const/entity-const.js';
-import kvConst from '../const/kv-const.js';
 import KvConst from '../const/kv-const.js';
 import cryptoUtils from '../utils/crypto-utils.js';
 import emailService from './email-service.js';
@@ -12,7 +11,6 @@ import dayjs from 'dayjs';
 import permService from './perm-service.js';
 import roleService from './role-service.js';
 import emailUtils from '../utils/email-utils.js';
-import saltHashUtils from '../utils/crypto-utils.js';
 import constant from '../const/constant.js';
 import { t } from '../i18n/i18n.js'
 import reqUtils from '../utils/req-utils.js';
@@ -35,15 +33,16 @@ const userService = {
 			userRow.email === c.env.admin ? Promise.resolve(['*']) : permService.userPermKeys(c, userId)
 		]);
 
-		const user = {};
-		user.userId = userRow.userId;
-		user.sendCount = userRow.sendCount;
-		user.email = userRow.email;
-		user.account = account;
-		user.name = account.name;
-		user.permKeys = permKeys;
-		user.role = roleRow;
-		user.type = userRow.type;
+		const user = {
+			userId: userRow.userId,
+			sendCount: userRow.sendCount,
+			email: userRow.email,
+			account,
+			name: account.name,
+			permKeys,
+			role: roleRow,
+			type: userRow.type
+		};
 
 		if (c.env.admin === userRow.email) {
 			user.role = constant.ADMIN_ROLE
@@ -96,7 +95,7 @@ const userService = {
 
 	async delete(c, userId) {
 		await orm(c).update(user).set({ isDel: isDel.DELETE }).where(eq(user.userId, userId)).run();
-		await c.env.kv.delete(kvConst.AUTH_INFO + userId)
+		await c.env.kv.delete(KvConst.AUTH_INFO + userId)
 	},
 
 	async physicsDelete(c, params) {
@@ -330,7 +329,7 @@ const userService = {
 			throw new BizError(t('roleNotExist'));
 		}
 
-		const { salt, hash } = await saltHashUtils.hashPassword(password);
+		const { salt, hash } = await cryptoUtils.hashPassword(password);
 
 		const userId = await userService.insert(c, { email, password: hash, salt, type });
 

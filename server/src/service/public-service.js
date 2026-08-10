@@ -2,7 +2,6 @@ import BizError from '../error/biz-error.js';
 import orm from '../entity/orm.js';
 import { v4 as uuidv4 } from 'uuid';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
-import saltHashUtils from '../utils/crypto-utils.js';
 import cryptoUtils from '../utils/crypto-utils.js';
 import emailUtils from '../utils/email-utils.js';
 import roleService from './role-service.js';
@@ -108,7 +107,7 @@ const publicService = {
 				throw new BizError(t('notEmailDomain'));
 			}
 
-			const { salt, hash } = await saltHashUtils.hashPassword(
+			const { salt, hash } = await cryptoUtils.hashPassword(
 				emailRow.password || cryptoUtils.genRandomPwd()
 			);
 

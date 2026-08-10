@@ -314,7 +314,6 @@ const contextX = ref(0);
 const contextY = ref(0);
 const rightClickEmail = ref({});
 const checkedEmailCount = ref(0);
-let timer = null
 
 const queryParam = reactive({
   size: 50
@@ -340,18 +339,12 @@ onActivated(() => {
 })
 
 onMounted(() => {
-  timer = setInterval(() => {
-    emailList.forEach(email => {
-      email.formatCreateTime = fromNow(email.createTime);
-    })
-  }, 1000 * 60);
   document.addEventListener('click', closeContextMenu)
   window.addEventListener('wheel', handleWheel)
   window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
-  clearInterval(timer)
   document.removeEventListener('click', closeContextMenu)
   window.removeEventListener('wheel', handleWheel)
   window.removeEventListener('resize', handleResize)
@@ -384,7 +377,7 @@ const itemHeight = computed(() => {
     if (props.type === 'all-email') {
       return isMobile.value ? 132 : 65;
     } else  {
-      return isMobile.value ? 83 : 90;
+      return isMobile.value ? 83 : 80;
     }
 })
 
@@ -451,16 +444,11 @@ watch(() => emailStore.deleteIds, () => {
   }
 })
 
-watch(() => emailStore.cancelStarEmailId, () => {
+watch(() => [emailStore.cancelStarEmailId, emailStore.addStarEmailId], () => {
   emailList.forEach(email => {
     if (email.emailId === emailStore.cancelStarEmailId) {
       email.isStar = 0
     }
-  })
-})
-
-watch(() => emailStore.addStarEmailId, () => {
-  emailList.forEach(email => {
     if (email.emailId === emailStore.addStarEmailId) {
       email.isStar = 1
     }
@@ -517,9 +505,7 @@ function updateHasScrollbar() {
 }
 
 function getSkeletonRows() {
-  if (emailList.length > 20) return skeletonRows = 20
-  if (emailList.length === 0) return skeletonRows = 1
-  skeletonRows = emailList.length
+  skeletonRows = Math.min(Math.max(emailList.length, 1), 20)
 }
 
 const accountShow = computed(() => {
@@ -810,12 +796,10 @@ function handleList(list) {
     7: { icon: 'ic:round-mark-email-read', color: '#FBBD08', content: t('noRecipient') },
   };
   const delContent = t('selectDeleted');
-  const receivedText = t('received');
 
   list.forEach(email => {
     email.formatText = htmlToText(email)
     email.formatCreateTime = fromNow(email.createTime);
-    email.test = receivedText
     if (email.isDel) {
       email.isDelContent = delContent;
     }
@@ -962,7 +946,7 @@ function loadData() {
   align-items: center;
   gap: 4px;
   padding: 0 16px;
-  min-height: 90px;
+  min-height: 80px;
   border-bottom: 1px solid var(--s-line-light);
   border-left: 3px solid transparent;
   cursor: pointer;

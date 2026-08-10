@@ -22,7 +22,7 @@
           </div>
           <div class="login-story-copy">
             <div class="login-kicker">A calmer inbox</div>
-            <h1 class="login-headline">{{ settingStore.settings.title }}</h1>
+            <h1 class="login-headline">让一切尽在掌握</h1>
             <p class="login-subtitle" v-if="show === 'login'">{{ $t('loginTitle') }}</p>
             <p class="login-subtitle" v-else>{{ $t('regTitle') }}</p>
           </div>
@@ -647,7 +647,7 @@ function submitRegister() {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 3fr;
   width: 100%;
   max-width: 920px;
   min-height: 540px;
@@ -655,6 +655,7 @@ function submitRegister() {
   border-radius: var(--s-radius-xl, 16px);
   box-shadow: var(--s-shadow, 0 4px 24px rgba(0,0,0,.08));
   overflow: hidden;
+  margin-left: -120px;
 }
 
 /* ── Left: story panel ── */
@@ -663,16 +664,26 @@ function submitRegister() {
   border-right: 1px solid var(--s-line, #e0ddd6);
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 48px 40px;
+  justify-content: flex-start;
+  padding: 48px 24px 48px 20px;
 }
 
 .login-story-inner {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
   min-height: 360px;
+  width: 100%;
+  align-items: flex-start;
+  margin-left: -50px;
+}
+
+/* ── Right: form panel ── */
+.login-form-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
 }
 
 .login-brand {
@@ -878,12 +889,13 @@ function submitRegister() {
 /* ── Responsive: tablet ── */
 @media (max-width: 860px) {
   .login-card {
-    grid-template-columns: 1fr;
     max-width: 480px;
     min-height: auto;
   }
 
   .login-story {
+    position: static;
+    width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--s-line, #e0ddd6);
     padding: 32px 28px 24px;
@@ -891,6 +903,7 @@ function submitRegister() {
 
   .login-story-inner {
     min-height: auto;
+    height: auto;
   }
 
   .login-headline {
@@ -898,6 +911,8 @@ function submitRegister() {
   }
 
   .login-form-wrap {
+    margin-left: 0;
+    width: 100%;
     padding: 32px 28px;
   }
 }
@@ -916,6 +931,8 @@ function submitRegister() {
   }
 
   .login-story {
+    position: static;
+    width: 100%;
     padding: 24px 20px 20px;
   }
 
@@ -938,6 +955,8 @@ function submitRegister() {
   }
 
   .login-form-wrap {
+    margin-left: 0;
+    width: 100%;
     padding: 24px 20px;
   }
 

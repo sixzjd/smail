@@ -1,14 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <clipPath id="round">
-      <rect x="0" y="0" width="512" height="512" rx="110" ry="110"/>
-    </clipPath>
-  </defs>
-  <g clip-path="url(#round)">
-    <rect x="0" y="0" width="512" height="512" fill="#d9543e"/>
-    <g transform="translate(136, 176)" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="0" y="0" width="240" height="160" rx="16"/>
-      <polyline points="0,0 120,90 240,0"/>
-    </g>
-  </g>
+  <rect x="0" y="0" width="512" height="512" rx="110" ry="110" fill="#d9543e"/>
+  <rect x="136" y="176" width="240" height="160" rx="16" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="136,176 256,266 376,176" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
