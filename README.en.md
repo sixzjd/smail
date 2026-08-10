@@ -15,9 +15,9 @@
 </p>
 
 <p align="center">
-  <a href="https://mail.sixzjd.sbs" target="_blank" style="display: inline-block; background-color: #d9543e; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold;">
-    <img src="web/public/smail-icon.svg" width="20" height="20" alt="mail" style="vertical-align: middle; margin-right: 8px; filter: brightness(0) invert(1);">
-    <span style="vertical-align: middle;">Try It Now</span>
+  <a href="https://mail.sixzjd.sbs" target="_blank" style="display: inline-flex; align-items: center; gap: 10px; background-color: #d9543e; color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    <span>Try It Now</span>
   </a>
 </p>
 
