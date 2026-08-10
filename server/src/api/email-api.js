@@ -48,3 +48,13 @@ app.put('/api/email/read', async (c) => {
 	return c.json(result.ok());
 })
 
+app.post('/api/email/restore', async (c) => {
+	await emailService.restore(c, await c.req.json(), userContext.getUserId(c));
+	return c.json(result.ok());
+});
+
+app.post('/api/email/permanent-delete', async (c) => {
+	await emailService.permanentDelete(c, await c.req.json(), userContext.getUserId(c));
+	return c.json(result.ok());
+});
+

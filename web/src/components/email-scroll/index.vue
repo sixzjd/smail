@@ -24,8 +24,9 @@
         </button>
         <button v-perm="'email:delete'" class="toolbar-btn"
                 v-if="getSelectedMailsIds().length > 0 && showUnread"
-                @click="handleRead">
-          <Icon icon="fluent:mail-read-20-regular" width="17" height="17" />
+                @click="handleReadToggle">
+          <Icon v-if="selectedHasUnread" icon="ep:opened" width="17" height="17" style="color: var(--s-ink)" />
+          <Icon v-else icon="ep:message" width="17" height="17" style="color: var(--s-ink)" />
         </button>
       </div>
       <div class="email-toolbar__right">
@@ -566,10 +567,27 @@ function changeAccountShow() {
   uiStore.accountShow = !uiStore.accountShow;
 }
 
+const selectedHasUnread = computed(() => {
+  return emailList.some(item => item.checked && item.unread === EmailUnreadEnum.UNREAD);
+});
+
 const handleRead = () => {
   const emailIds = getSelectedMailsIds();
   props.emailRead(emailIds);
   localRead(emailIds);
+}
+
+const handleReadToggle = () => {
+  const emailIds = getSelectedMailsIds();
+  if (selectedHasUnread.value) {
+    // 有未读 → 全部标为已读
+    props.emailRead(emailIds, EmailUnreadEnum.READ);
+    localRead(emailIds);
+  } else {
+    // 全部已读 → 标为未读
+    props.emailRead(emailIds, EmailUnreadEnum.UNREAD);
+    localUnread(emailIds);
+  }
 }
 
 function emailRead(emailId) {
@@ -582,6 +600,16 @@ function localRead(emailIds) {
     const index = emailList.findIndex(email => email.emailId === emailId);
     if (index > -1) {
       emailList[index].unread = EmailUnreadEnum.READ;
+      emailList[index].checked = false;
+    }
+  })
+}
+
+function localUnread(emailIds) {
+  emailIds.forEach(emailId => {
+    const index = emailList.findIndex(email => email.emailId === emailId);
+    if (index > -1) {
+      emailList[index].unread = EmailUnreadEnum.UNREAD;
       emailList[index].checked = false;
     }
   })

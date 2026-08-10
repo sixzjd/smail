@@ -178,6 +178,16 @@
 
         </div>
       </section>
+
+      <!-- GitHub & Doc links (below form on mobile) -->
+      <div class="login-story-bottom">
+        <a v-if="settingStore.settings.projectLink" class="login-gh" href="https://github.com/sixzjd/smail" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <Icon icon="mingcute:github-line" width="18" height="18" />
+        </a>
+        <a class="login-doc" href="javascript:void(0)" aria-label="Doc" @click.prevent="router.push('/doc')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </a>
+      </div>
     </div>
 
     <!-- Bind email dialog -->
@@ -655,7 +665,7 @@ function submitRegister() {
   border-radius: var(--s-radius-xl, 16px);
   box-shadow: var(--s-shadow, 0 4px 24px rgba(0,0,0,.08));
   overflow: hidden;
-  margin-left: -120px;
+  margin-left: -40px;
 }
 
 /* ── Left: story panel ── */
@@ -665,7 +675,7 @@ function submitRegister() {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 48px 24px 48px 20px;
+  padding: 48px 24px 48px 40px;
 }
 
 .login-story-inner {
@@ -675,7 +685,7 @@ function submitRegister() {
   min-height: 360px;
   width: 100%;
   align-items: flex-start;
-  margin-left: -80px;
+  margin-left: 10px;
 }
 
 /* ── Right: form panel ── */
@@ -741,6 +751,13 @@ function submitRegister() {
   color: var(--s-muted, #7a7670);
   margin: 0;
   line-height: 1.5;
+}
+
+/* ── GitHub & Doc links (below form on mobile) ── */
+.login-story-bottom {
+  display: none;
+  gap: 12px;
+  padding: 0 28px 20px;
 }
 
 .login-story-footer {
@@ -889,8 +906,10 @@ function submitRegister() {
 /* ── Responsive: tablet ── */
 @media (max-width: 860px) {
   .login-card {
+    grid-template-columns: 1fr;
     max-width: 480px;
     min-height: auto;
+    margin-left: 0;
   }
 
   .login-story {
@@ -898,7 +917,7 @@ function submitRegister() {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--s-line, #e0ddd6);
-    padding: 32px 28px 24px;
+    padding: 24px 28px 20px;
   }
 
   .login-story-inner {
@@ -906,15 +925,39 @@ function submitRegister() {
     height: auto;
   }
 
+  .login-story-footer {
+    display: none;
+  }
+
+  .login-story-copy {
+    margin-top: 16px;
+  }
+
+  .login-kicker {
+    margin-bottom: 8px;
+  }
+
   .login-headline {
-    font-size: 22px;
+    font-size: 21px;
+    margin: 0 0 8px;
   }
 
   .login-form-wrap {
+    margin-top: 10px;
     margin-left: 0;
     width: 100%;
-    padding: 32px 28px;
+    padding: 20px 28px 26px;
   }
+
+  .login-form-title {
+    margin-top: 10px;
+  }
+
+  .login-story-bottom {
+    display: flex;
+    justify-content: center;
+  }
+
 }
 
 /* ── Responsive: mobile ── */
@@ -926,28 +969,40 @@ function submitRegister() {
   }
 
   .login-card {
+    grid-template-columns: 1fr;
     max-width: 100%;
     border-radius: var(--s-radius-lg, 12px);
+    margin-left: 0;
   }
 
   .login-story {
     position: static;
     width: 100%;
-    padding: 24px 20px 20px;
+    padding: 20px 20px 16px;
   }
 
   .login-brand {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .login-brand-mark {
-    width: 30px;
-    height: 30px;
-    font-size: 15px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .login-story-copy {
+    margin-top: 12px;
+  }
+
+  .login-kicker {
+    margin-bottom: 6px;
+    font-size: 11px;
   }
 
   .login-headline {
-    font-size: 20px;
+    font-size: 19px;
+    margin: 0 0 6px;
   }
 
   .login-subtitle {
@@ -955,12 +1010,14 @@ function submitRegister() {
   }
 
   .login-form-wrap {
+    margin-top: 10px;
     margin-left: 0;
     width: 100%;
-    padding: 24px 20px;
+    padding: 15px 20px 20px;
   }
 
   .login-form-title {
+    margin-top: 10px;
     font-size: 19px;
   }
 

@@ -50,6 +50,9 @@ const emailService = {
 			allReceive = accountRow.allReceive;
 		}
 
+		const isTrash = type === 'trash';
+		const isDelFilter = isTrash ? isDel.DELETE : isDel.NORMAL;
+
 		const query = orm(c)
 			.select({
 				...email,
@@ -71,8 +74,8 @@ const emailService = {
 					allReceive ? eq(1,1) : eq(email.accountId, accountId),
 					eq(email.userId, userId),
 					timeSort ? gt(email.emailId, eid) : lt(email.emailId, eid),
-					eq(email.type, type),
-					eq(email.isDel, isDel.NORMAL),
+					isTrash ? eq(1,1) : eq(email.type, type),
+					eq(email.isDel, isDelFilter),
 					eq(account.isDel, isDel.NORMAL)
 				)
 			);
@@ -94,8 +97,8 @@ const emailService = {
 				and(
 					allReceive ? eq(1,1) : eq(email.accountId, accountId),
 					eq(email.userId, userId),
-					eq(email.type, type),
-					eq(email.isDel, isDel.NORMAL),
+					isTrash ? eq(1,1) : eq(email.type, type),
+					eq(email.isDel, isDelFilter),
 					eq(account.isDel, isDel.NORMAL)
 				)
 		).get();
@@ -104,8 +107,8 @@ const emailService = {
 			and(
 				allReceive ? eq(1,1) : eq(email.accountId, accountId),
 				eq(email.userId, userId),
-				eq(email.type, type),
-				eq(email.isDel, isDel.NORMAL)
+				isTrash ? eq(1,1) : eq(email.type, type),
+				eq(email.isDel, isDelFilter)
 			))
 			.orderBy(desc(email.emailId)).limit(1).get();
 
@@ -965,9 +968,32 @@ const emailService = {
 		await orm(c).delete(email).where(eq(email.accountId, accountId)).run();
 	},
 
-	async read(c, params, userId) {
+	async restore(c, params, userId) {
 		const { emailIds } = params;
-		await orm(c).update(email).set({ unread: emailConst.unread.READ }).where(and(eq(email.userId, userId), inArray(email.emailId, emailIds)));
+		const emailIdList = emailIds.split(',').map(Number);
+		await orm(c).update(email).set({ isDel: isDel.NORMAL }).where(
+			and(
+				eq(email.userId, userId),
+				inArray(email.emailId, emailIdList)))
+			.run();
+	},
+
+	async permanentDelete(c, params, userId) {
+		const { emailIds } = params;
+		const emailIdList = emailIds.split(',').map(Number);
+		await attService.removeByEmailIds(c, emailIdList);
+		await starService.removeByEmailIds(c, emailIdList);
+		await orm(c).delete(email).where(
+			and(
+				eq(email.userId, userId),
+				inArray(email.emailId, emailIdList)))
+			.run();
+	},
+
+	async read(c, params, userId) {
+		const { emailIds, targetUnread } = params;
+		const unreadVal = targetUnread !== undefined ? targetUnread : emailConst.unread.READ;
+		await orm(c).update(email).set({ unread: unreadVal }).where(and(eq(email.userId, userId), inArray(email.emailId, emailIds)));
 	}
 };
 

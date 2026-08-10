@@ -12,8 +12,10 @@ export function emailLatest(emailId, accountId, allReceive) {
     return http.get('/email/latest', {params: {emailId, accountId, allReceive}, noMsg: true, timeout: 10 * 1000})
 }
 
-export function emailRead(emailIds) {
-    return http.put('/email/read', {emailIds})
+export function emailRead(emailIds, targetUnread) {
+    const body = { emailIds };
+    if (targetUnread !== undefined) body.targetUnread = targetUnread;
+    return http.put('/email/read', body)
 }
 
 export function emailDetail(emailId) {
@@ -27,4 +29,12 @@ export function emailSend(form,progress) {
         },
         noMsg: true
     })
+}
+
+export function emailRestore(emailIds) {
+    return http.post('/email/restore', { emailIds: emailIds.join(',') })
+}
+
+export function emailPermanentDelete(emailIds) {
+    return http.post('/email/permanent-delete', { emailIds: emailIds.join(',') })
 }

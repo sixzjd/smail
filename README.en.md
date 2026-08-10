@@ -1,7 +1,9 @@
-<p align="center">
-  <img src="web/public/smail-icon.png" width="64" height="64" alt="smail logo" style="vertical-align: middle; margin-right: 12px;">
-  <span style="font-size: 2.5em; font-weight: bold; vertical-align: middle;">smail</span>
-</p>
+<table align="center">
+  <tr>
+    <td style="padding-right: 12px; vertical-align: middle;"><img src="web/public/smail-icon.png" width="64" height="64" alt="smail logo"></td>
+    <td style="vertical-align: middle;"><span style="font-size: 2.5em; font-weight: bold;">smail</span></td>
+  </tr>
+</table>
 
 <p align="center">
   <strong>A temporary email service built on the Cloudflare stack</strong><br/>
@@ -13,8 +15,9 @@
 </p>
 
 <p align="center">
-  <a href="https://mail.sixzjd.sbs" target="_blank">
-    <img src="web/public/try-online-btn.svg" alt="Try Online" width="220" />
+  <a href="https://mail.sixzjd.sbs" target="_blank" style="display: inline-block; background-color: #d9543e; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold;">
+    <img src="web/public/smail-icon.svg" width="20" height="20" alt="mail" style="vertical-align: middle; margin-right: 8px; filter: brightness(0) invert(1);">
+    <span style="vertical-align: middle;">Try It Now</span>
   </a>
 </p>
 
