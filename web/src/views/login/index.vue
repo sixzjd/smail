@@ -675,7 +675,7 @@ function submitRegister() {
   min-height: 360px;
   width: 100%;
   align-items: flex-start;
-  margin-left: -50px;
+  margin-left: -80px;
 }
 
 /* ── Right: form panel ── */
