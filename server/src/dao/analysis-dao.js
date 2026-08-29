@@ -61,7 +61,7 @@ const analysisDao = {
                 DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
+        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
 		return results;
 	},
 
@@ -79,7 +79,7 @@ const analysisDao = {
                 DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
+        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
 		return results;
 	},
 
@@ -97,7 +97,7 @@ const analysisDao = {
                 DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
+        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
 		return results;
 	}
 
