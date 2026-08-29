@@ -35,7 +35,7 @@
           <span>{{ $t('sent') }}</span>
         </a>
         <a class="nav-item" :class="{ active: route.meta.name === 'trash' }" @click="router.push({ name: 'trash' })">
-          <Icon icon="ep:delete" width="18" height="18" />
+          <Icon icon="ep:delete-filled" width="18" height="18" />
           <span>{{ $t('trash') }}</span>
         </a>
       </div>

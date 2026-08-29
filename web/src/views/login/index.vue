@@ -17,7 +17,7 @@
       <section class="login-story">
         <div class="login-story-inner">
           <div class="login-brand">
-            <span class="login-brand-mark">S</span>
+            <img class="login-brand-mark" src="/smail-icon.svg" alt="smail" @error="$event.target.src='/smail-icon.png'" />
             <span class="login-brand-text"><strong>s</strong>mail</span>
           </div>
           <div class="login-story-copy">
@@ -480,7 +480,7 @@ function refreshWebsiteConfig() {
     if (!suffix.value && setting.domainList.length > 0) {
       suffix.value = setting.domainList[0]
     }
-    document.title = setting.title
+    document.title = setting.title || 'smail'
   }).catch(e => {
     console.error(e)
   })
@@ -706,17 +706,9 @@ function submitRegister() {
 }
 
 .login-brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 36px;
   height: 36px;
   border-radius: var(--s-radius, 8px);
-  background: var(--s-accent, #d9543e);
-  color: #fff;
-  font-weight: 800;
-  font-size: 18px;
-  font-family: var(--s-font-display, 'Plus Jakarta Sans', sans-serif);
 }
 
 .login-brand-text strong {
@@ -988,7 +980,6 @@ function submitRegister() {
   .login-brand-mark {
     width: 28px;
     height: 28px;
-    font-size: 14px;
   }
 
   .login-story-copy {

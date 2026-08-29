@@ -47,7 +47,7 @@ export async function init() {
         setting = s;
         settingStore.settings = setting;
         settingStore.domainList = setting.domainList;
-        document.title = setting.title;
+        document.title = setting.title || 'smail';
 
         if (user) {
             accountStore.currentAccountId = user.account.accountId;
@@ -64,6 +64,6 @@ export async function init() {
         setting = await websiteConfig().catch(() => fallbackSetting);
         settingStore.settings = setting;
         settingStore.domainList = setting.domainList;
-        document.title = setting.title;
+        document.title = setting.title || 'smail';
     }
 }

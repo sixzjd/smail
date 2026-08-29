@@ -177,8 +177,14 @@ router.afterEach((to) => {
         NProgress.done();
     }
 
+    const settingStore = useSettingStore();
+    const siteTitle = settingStore.settings?.title || 'smail';
     if (to.meta.title) {
-        document.title = to.meta.title
+        const titles = { inbox: '收件箱', content: '邮件', send: '写信', starred: '星标', trash: '回收站', allEmail: '全部邮件', analysis: '数据分析', account: '账号管理', role: '角色管理', permission: '权限管理', setting: '系统设置', regKey: '注册密钥', resend: '重新发送', oauth: 'OAuth', telegram: 'Telegram' };
+        const cnTitle = titles[to.meta.title] || to.meta.title;
+        document.title = `${cnTitle} - ${siteTitle}`;
+    } else {
+        document.title = siteTitle;
     }
 
     const uiStore = useUiStore()

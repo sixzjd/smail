@@ -8,7 +8,7 @@
             v-model="checkAll"
             :indeterminate="isIndeterminate"
             :disabled="!emailList.length || loading"
-            @change="handleCheckAllChange"
+            @update:modelValue="handleCheckAllChange"
         />
       </label>
       <div class="email-toolbar__divider"></div>
@@ -343,13 +343,26 @@ onMounted(() => {
   document.addEventListener('click', closeContextMenu)
   window.addEventListener('wheel', handleWheel)
   window.addEventListener('resize', handleResize)
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeContextMenu)
   window.removeEventListener('wheel', handleWheel)
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('keydown', handleKeydown)
 })
+
+function handleKeydown(e) {
+  if (e.key === 'Escape') {
+    const hasChecked = emailList.some(item => item.checked)
+    if (hasChecked) {
+      emailList.forEach(item => item.checked = false)
+      checkAll.value = false
+      isIndeterminate.value = false
+    }
+  }
+}
 
 function handleResize() {
   isMobile.value = innerWidth < 1367

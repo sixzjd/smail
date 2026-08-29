@@ -5,7 +5,7 @@ const zh = {
     drafts: '草稿箱',
     sent: '已发送',
     starred: '星标邮件',
-    trash: '已删除',
+    trash: '回收站',
     restoreEmail: '恢复邮件',
     permanentDelete: '彻底删除',
     permanentDeleteConfirm: '确认彻底删除选中的邮件吗？此操作不可恢复！',
