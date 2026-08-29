@@ -600,30 +600,63 @@ const emailService = {
 		const receiveEmailList = emailDataList.filter(emailRow => emailRow.status === emailConst.status.RECEIVE || emailRow.status === emailConst.status.NOONE);
 
 		if (receiveEmailList.length > 0) {
-			const emailStatements = receiveEmailList.map(d =>
-				c.env.db.prepare(
-					'INSERT INTO email (send_email, name, subject, content, text, account_id, status, type, user_id, to_email, to_name, recipient, resend_email_id, message, in_reply_to, relation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-					d.sendEmail, d.name, d.subject, d.content, d.text,
-					d.accountId, d.status, d.type, d.userId,
-					d.toEmail, d.toName, d.recipient, d.resendEmailId,
-					d.message || null, d.inReplyTo || null, d.relation || null
-				)
-			);
-			const results = await c.env.db.batch(emailStatements);
+		// Insert internal recipient emails using ORM for compatibility with current schema
+		// Insert internal recipient emails using ORM and collect inserted IDs for attaching files
+		const insertResults = await Promise.all(receiveEmailList.map(async (d) => {
+			const inserted = await orm(c).insert(email).values({
+				sendEmail: d.sendEmail,
+				name: d.name,
+				subject: d.subject,
+				content: d.content,
+				text: d.text,
+				accountId: d.accountId,
+				status: d.status,
+				type: d.type,
+				userId: d.userId,
+				toEmail: d.toEmail,
+				toName: d.toName,
+				recipient: d.recipient,
+				resendEmailId: d.resendEmailId,
+				message: d.message,
+				inReplyTo: d.inReplyTo,
+				relation: d.relation
+			}).returning({ emailId: email.emailId }).get();
+			return { emailId: inserted.emailId, d };
+		}));
+
+		//保存附件
+		if (attList.length > 0) {
+			const attStatements = [];
+			insertResults.forEach(({ emailId, d }) => {
+				attList.forEach(attRow => {
+					attStatements.push(c.env.db.prepare(
+						'INSERT INTO attachments (email_id, account_id, user_id, key, filename, mime_type, type, content_id, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+					).bind(
+						emailId, d.accountId, d.userId,
+						attRow.key, attRow.filename, attRow.mimeType || attRow.contentType,
+						attRow.type, attRow.contentId, attRow.disposition
+					));
+				});
+			});
+			if (attStatements.length > 0) {
+				await c.env.db.batch(attStatements);
+			}
+		}
 
 			//保存附件
-			if (attList.length > 0) {
+			if (false) { // disabled duplicate attachment handling
 				const attStatements = [];
 				results.forEach((result, i) => {
 					const emailId = result.meta.last_row_id;
 					const d = receiveEmailList[i];
 					attList.forEach(attRow => {
-						attStatements.push(c.env.db.prepare(
-							'INSERT INTO attachments (email_id, account_id, user_id, key, filename, mime_type, type, content_id, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-							emailId, d.accountId, d.userId,
-							attRow.key, attRow.filename, attRow.mimeType || attRow.contentType,
-							attRow.type, attRow.contentId, attRow.disposition
-						));
+					attStatements.push(c.env.db.prepare(
+						'INSERT INTO attachments (email_id, account_id, user_id, key, filename, mime_type, type, content_id, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+					).bind(
+						emailId, d.accountId, d.userId,
+						attRow.key, attRow.filename, attRow.mimeType || attRow.contentType,
+						attRow.type, attRow.contentId, attRow.disposition
+					));
 					});
 				});
 				if (attStatements.length > 0) {
