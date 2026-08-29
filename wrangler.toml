@@ -14,6 +14,11 @@ pattern = "mail.sixzjd.sbs"
 zone_name = "sixzjd.sbs"
 custom_domain = true
 
+[[routes]]
+pattern = "www.sixzjd.sbs"
+zone_name = "sixzjd.sbs"
+custom_domain = true
+
 [[d1_databases]]
 binding = "db"
 database_name = "cloud-mail"

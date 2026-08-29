@@ -6,6 +6,12 @@ import {cvtR2Url} from "@/utils/convert.js";
 
 const routes = [
     {
+        path: '/home',
+        name: 'home',
+        component: () => import('@/views/homepage/index.vue'),
+        meta: { title: 'Home', menu: false }
+    },
+    {
         path: '/',
         name: 'layout',
         redirect: '/inbox',
@@ -106,6 +112,11 @@ router.beforeEach((to, from, next) => {
 
     if (timer) {
         clearTimeout(timer)
+    }
+
+    // If accessing the root on the www domain, show the navigation homepage without auth
+    if (to.path === '/' && window.location.host.startsWith('www.')) {
+        return next({ name: 'home' })
     }
 
     if (!first) {
