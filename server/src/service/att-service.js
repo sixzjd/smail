@@ -212,40 +212,6 @@ const attService = {
 			.all();
 	},
 
-	async removeAttByField(c, fieldName, fieldValues) {
-
-		const sqlList = [];
-
-		fieldValues.forEach(value => {
-
-			sqlList.push(
-
-				c.env.db.prepare(
-					`SELECT a.key, a.att_id
-						FROM attachments a
-							   JOIN (SELECT key
-									 FROM attachments
-									 GROUP BY key
-									 HAVING COUNT (*) = 1) t
-									ON a.key = t.key
-						WHERE a.${fieldName} = ?;`
-					).bind(value)
-			)
-
-			sqlList.push(c.env.db.prepare(`DELETE FROM attachments WHERE ${fieldName} = ?`).bind(value))
-
-		});
-
-		const attListResult = await c.env.db.batch(sqlList);
-
-		const delKeyList = attListResult.flatMap(r => r.results ? r.results.map(row => row.key) : []);
-
-		if (delKeyList.length > 0) {
-			await this.batchDelete(c, delKeyList);
-		}
-
-	},
-
 	async batchDelete(c, keys) {
 		if (!keys.length) return;
 

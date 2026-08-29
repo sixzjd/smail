@@ -3,5 +3,8 @@ data/db/
 data/cache/
 data/storage/
 web/dist/
+server/dist/
 .env
 *.log
+.DS_Store
+.codewhale/

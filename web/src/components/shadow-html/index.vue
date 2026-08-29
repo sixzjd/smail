@@ -6,6 +6,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import DOMPurify from 'dompurify'
 
 const props = defineProps({
   html: {
@@ -18,16 +19,25 @@ const container = ref(null)
 const contentBox = ref(null)
 let shadowRoot = null
 
+//过滤 CSS 值中的危险字符，防止 style 属性注入
+function safeStyle(style) {
+  return style.replace(/[<>"'`]/g, '')
+}
+
 function updateContent() {
   if (!shadowRoot) return;
 
   // 1. 提取 <body> 的 style 属性（如果存在）
   const bodyStyleRegex = /<body[^>]*style="([^"]*)"[^>]*>/i;
   const bodyStyleMatch = props.html.match(bodyStyleRegex);
-  const bodyStyle = bodyStyleMatch ? bodyStyleMatch[1] : '';
+  const bodyStyle = bodyStyleMatch ? safeStyle(bodyStyleMatch[1]) : '';
 
-  // 2. 移除 <body> 标签（保留内容）
-  const cleanedHtml = props.html.replace(/<\/?body[^>]*>/gi, '');
+  // 2. 移除 <body> 标签（保留内容）并用 DOMPurify 消毒，防止邮件内脚本/事件处理器执行
+  const cleanedHtml = DOMPurify.sanitize(props.html.replace(/<\/?body[^>]*>/gi, ''), {
+    ADD_TAGS: ['style'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
+  });
 
   // 3. 将 body 的 style 应用到 .shadow-content
   shadowRoot.innerHTML = `

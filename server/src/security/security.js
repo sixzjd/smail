@@ -17,7 +17,6 @@ const exclude = [
 	'/api/init',
 	'/api/public/genToken',
 	'/api/telegram',
-	'/api/test',
 	'/api/oauth'
 ];
 

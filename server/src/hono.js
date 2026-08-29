@@ -1,11 +1,23 @@
 // Main Hono app instance - Cloudflare Workers compatible
 import { Hono } from 'hono';
 import result from './model/result.js';
-import { cors } from 'hono/cors';
 
 const app = new Hono();
 
-app.use('*', cors());
+//前端与 API 同域部署（Workers Assets），仅放行同源与本地开发端口
+const allowedOrigins = ['http://localhost:3001', 'http://127.0.0.1:3001'];
+
+app.use('*', async (c, next) => {
+	const origin = c.req.header('Origin');
+	if (origin && !allowedOrigins.includes(origin) && origin !== new URL(c.req.url).origin) {
+		return c.text('Forbidden', 403);
+	}
+	await next();
+	if (origin) {
+		c.header('Access-Control-Allow-Origin', origin);
+		c.header('Vary', 'Origin');
+	}
+});
 
 app.onError((err, c) => {
 	if (err.name === 'BizError') {

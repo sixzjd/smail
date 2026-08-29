@@ -1,7 +1,7 @@
 name = "smail"
 main = "server/src/index.js"
 compatibility_date = "2025-06-04"
-keep_vars = true
+keep_vars = false #jwt_secret 已改为 wrangler secret，dashboard 残留的明文变量需随部署清除
 
 [triggers]
 crons = ["*/30 * * * *", "0 16 * * *"]
@@ -45,7 +45,7 @@ run_worker_first = true
 #orm_log = false
 domain = ["sixzjd.sbs"]
 admin = "admin@sixzjd.sbs"
-jwt_secret = "testtesttest"
+#jwt_secret 通过 `wrangler secret put jwt_secret` 配置，勿提交明文密钥
 
 #[build]
 #command = "cd web && npm install && npm run build"

@@ -26,7 +26,7 @@ const analysisDao = {
                         SUM(CASE WHEN type = 0 AND is_del = 0 THEN 1 ELSE 0 END) AS normalReceiveTotal,
                         SUM(CASE WHEN type = 1 AND is_del = 0 THEN 1 ELSE 0 END) AS normalSendTotal
                     FROM
-                        email where status != ${emailConst.status.SAVING}
+                        email where status != ?
                 ) e
             CROSS JOIN (
                 SELECT
@@ -44,60 +44,60 @@ const analysisDao = {
                 FROM
                     account
             ) a
-        `).all();
+        `).bind(emailConst.status.SAVING).all();
 		return results[0];
 	},
 
 	async userDayCount(c, diffHours) {
 		const { results } = await c.env.db.prepare(`
             SELECT
-                DATE(create_time,'+${diffHours} hours') AS date,
+                DATE(create_time, ?) AS date,
                 COUNT(*) AS total
             FROM
                 user
             WHERE
-                DATE(create_time,'+${diffHours} hours') BETWEEN DATE('now', '-15 days', '+${diffHours} hours') AND DATE('now','-1 day','+${diffHours} hours')
+                DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
             GROUP BY
-                DATE(create_time,'+${diffHours} hours')
+                DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).all();
+        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
 		return results;
 	},
 
 	async receiveDayCount(c, diffHours) {
 		const { results } = await c.env.db.prepare(`
             SELECT
-                DATE(create_time,'+${diffHours} hours') AS date,
+                DATE(create_time, ?) AS date,
                 COUNT(*) AS total
             FROM
                 email
             WHERE
-			  				DATE(create_time,'+${diffHours} hours') BETWEEN DATE('now', '-15 days', '+${diffHours} hours') AND DATE('now','-1 day','+${diffHours} hours')
+                DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
                 AND type = 0
             GROUP BY
-                DATE(create_time,'+${diffHours} hours')
+                DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).all();
+        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
 		return results;
 	},
 
 	async sendDayCount(c, diffHours) {
 		const { results } = await c.env.db.prepare(`
             SELECT
-                DATE(create_time,'+${diffHours} hours') AS date,
+                DATE(create_time, ?) AS date,
                 COUNT(*) AS total
             FROM
                 email
             WHERE
-			  				DATE(create_time,'+${diffHours} hours') BETWEEN DATE('now', '-15 days', '+${diffHours} hours') AND DATE('now','-1 day','+${diffHours} hours')
+                DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
                 AND type = 1
             GROUP BY
-                DATE(create_time,'+${diffHours} hours')
+                DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).all();
+        `).bind(...Array(4).fill(`+${diffHours} hours`)).all();
 		return results;
 	}
 

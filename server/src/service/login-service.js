@@ -18,6 +18,9 @@ import dayjs from 'dayjs';
 import { toUtc } from '../utils/date-uitil.js';
 import { t } from '../i18n/i18n.js';
 import verifyRecordService from './verify-record-service.js';
+import orm from '../entity/orm.js';
+import user from '../entity/user.js';
+import { eq } from 'drizzle-orm';
 
 const loginService = {
 
@@ -190,6 +193,12 @@ const loginService = {
 
 		if (!await cryptoUtils.verifyPassword(password, userRow.salt, userRow.password) && !noVerifyPwd) {
 			throw new BizError(t('IncorrectPwd'));
+		}
+
+		//旧的单轮 SHA-256 哈希在登录成功后升级为 PBKDF2
+		if (!noVerifyPwd && cryptoUtils.isLegacyHash(userRow.password)) {
+			const { salt, hash } = await cryptoUtils.hashPassword(password);
+			await orm(c).update(user).set({ password: hash, salt }).where(eq(user.userId, userRow.userId)).run();
 		}
 
 		const uuid = uuidv4();
