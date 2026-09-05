@@ -1,6 +1,7 @@
 import { emailConst } from '../const/entity-const.js';
 
 const analysisDao = {
+
 	async numberCount(c) {
 		const { results } = await c.env.db.prepare(`
             SELECT
@@ -48,56 +49,26 @@ const analysisDao = {
 		return results[0];
 	},
 
-	async userDayCount(c, diffHours) {
+	//按天统计：type 为空时统计 user 表注册数，否则统计对应类型的 email 收发数
+	async dayCount(c, diffHours, type) {
+		const off = `+${diffHours} hours`;
+		const table = type === undefined ? 'user' : 'email';
+		const typeFilter = type === undefined ? '' : 'AND type = ?';
+		const binds = type === undefined ? [off, off, off, off, off] : [off, off, off, off, off, type];
 		const { results } = await c.env.db.prepare(`
             SELECT
                 DATE(create_time, ?) AS date,
                 COUNT(*) AS total
             FROM
-                user
+                ${table}
             WHERE
                 DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
+                ${typeFilter}
             GROUP BY
                 DATE(create_time, ?)
             ORDER BY
                 date ASC
-        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
-		return results;
-	},
-
-	async receiveDayCount(c, diffHours) {
-		const { results } = await c.env.db.prepare(`
-            SELECT
-                DATE(create_time, ?) AS date,
-                COUNT(*) AS total
-            FROM
-                email
-            WHERE
-                DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
-                AND type = 0
-            GROUP BY
-                DATE(create_time, ?)
-            ORDER BY
-                date ASC
-        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
-		return results;
-	},
-
-	async sendDayCount(c, diffHours) {
-		const { results } = await c.env.db.prepare(`
-            SELECT
-                DATE(create_time, ?) AS date,
-                COUNT(*) AS total
-            FROM
-                email
-            WHERE
-                DATE(create_time, ?) BETWEEN DATE('now', '-15 days', ?) AND DATE('now','-1 day', ?)
-                AND type = 1
-            GROUP BY
-                DATE(create_time, ?)
-            ORDER BY
-                date ASC
-        `).bind(...Array(5).fill(`+${diffHours} hours`)).all();
+        `).bind(...binds).all();
 		return results;
 	}
 

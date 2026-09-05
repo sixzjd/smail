@@ -32,11 +32,10 @@ function updateContent() {
   const bodyStyleMatch = props.html.match(bodyStyleRegex);
   const bodyStyle = bodyStyleMatch ? safeStyle(bodyStyleMatch[1]) : '';
 
-  // 2. 移除 <body> 标签（保留内容）并用 DOMPurify 消毒，防止邮件内脚本/事件处理器执行
+  // 2. 移除 <body> 标签（保留内容）并用 DOMPurify 消毒（默认已剥离脚本与事件属性），防止邮件内代码执行
   const cleanedHtml = DOMPurify.sanitize(props.html.replace(/<\/?body[^>]*>/gi, ''), {
     ADD_TAGS: ['style'],
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
+    FORBID_TAGS: ['iframe', 'object', 'embed', 'form']
   });
 
   // 3. 将 body 的 style 应用到 .shadow-content

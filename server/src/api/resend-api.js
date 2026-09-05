@@ -1,6 +1,8 @@
 import resendService from '../service/resend-service.js';
 import app from '../hono.js';
 
+const encoder = new TextEncoder();
+
 //校验 Resend(Svix) webhook 签名，未配置 resend_webhook_secret 时跳过校验
 async function verifySvixSignature(c, rawBody) {
 
@@ -19,25 +21,22 @@ async function verifySvixSignature(c, rawBody) {
 	}
 
 	//拒绝超过 5 分钟的请求，防重放
-	const timestampInt = parseInt(timestamp, 10);
-	if (Number.isNaN(timestampInt) || Math.abs(Date.now() / 1000 - timestampInt) > 300) {
+	if (Math.abs(Date.now() / 1000 - parseInt(timestamp, 10)) > 300) {
 		return false;
 	}
 
-	const key = atob(secret.replace(/^whsec_/, ''));
-	const cryptoKey = await crypto.subtle.importKey(
+	const key = await crypto.subtle.importKey(
 		'raw',
-		new TextEncoder().encode(key),
+		encoder.encode(atob(secret.replace(/^whsec_/, ''))),
 		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['sign']
 	);
 
-	const signedContent = `${id}.${timestamp}.${rawBody}`;
-	const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(signedContent));
-	const expected = btoa(String.fromCharCode(...new Uint8Array(signature)));
+	const signed = await crypto.subtle.sign('HMAC', key, encoder.encode(`${id}.${timestamp}.${rawBody}`));
+	const expected = btoa(String.fromCharCode(...new Uint8Array(signed)));
 
-	return signatures.split(' ').some(sig => sig.replace(/^v1,/, '') === expected);
+	return signatures.split(' ').includes(expected);
 }
 
 app.post('/api/webhooks', async (c) => {

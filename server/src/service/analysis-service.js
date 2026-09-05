@@ -75,9 +75,9 @@ const analysisService = {
 				.limit(6),
 
 
-			analysisDao.userDayCount(c, diffHours),
-			analysisDao.receiveDayCount(c, diffHours),
-			analysisDao.sendDayCount(c, diffHours),
+			analysisDao.dayCount(c, diffHours),
+			analysisDao.dayCount(c, diffHours, emailConst.type.RECEIVE),
+			analysisDao.dayCount(c, diffHours, emailConst.type.SEND),
 
 			c.env.kv.get(kvConst.SEND_DAY_COUNT + dayjs().format('YYYY-MM-DD')),
 		]);
