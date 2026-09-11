@@ -7,8 +7,16 @@
   <meta name="description" content="smail 是一个 Serverless 响应式邮箱服务，支持邮件发送，可部署到 Cloudflare 平台，降低服务器成本。smail is a serverless responsive email service that supports email sending and can be deployed on Cloudflare to reduce server costs.">
   <title>smail</title>
   <link rel="icon" href="/smail-icon.svg" >
-  <link rel="apple-touch-icon" href="/smail-icon.svg">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- iOS 不支持 SVG 的 apple-touch-icon，必须给 PNG，否则添加到主屏后图标是空白 -->
+  <link rel="apple-touch-icon" href="/mail-pwa.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 字体改为非阻塞加载：Google Fonts 在部分网络下不可达，若作为阻塞样式表会让整页长时间白屏 -->
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  </noscript>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script>
     const uiStoreStr =  localStorage.getItem('ui')
@@ -39,7 +47,37 @@
     justify-content: center;
     align-items: center;
     z-index: 500;
-    background: var(--el-bg-color);
+    /* 原先的 --el-bg-color 在迁到 Editorial 后已不存在，会让遮罩背景透明 */
+    background: #eee5d8;
+  }
+
+  html.dark #loading-first {
+    background: #1a1614;
+  }
+
+  .loading-tip {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: rgba(33, 28, 25, 0.6);
+  }
+
+  html.dark .loading-tip {
+    color: rgba(245, 248, 250, 0.6);
+  }
+
+  .loading-retry {
+    margin-top: 10px;
+    padding: 7px 18px;
+    border: 1px solid rgba(217, 84, 62, 0.4);
+    border-radius: 999px;
+    background: transparent;
+    color: #d9543e;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .loading-retry:active {
+    background: rgba(217, 84, 62, 0.1);
   }
 
   .loading-hide {
@@ -135,6 +173,27 @@
   </div>
 </div>
 <div id="app"></div>
+<script>
+  // 启动看门狗：App 若在 15s 内仍未挂载，就不再让用户干等，
+  // 直接把遮罩换成可重试的提示。（弱网下 init() 卡在无响应的接口上时会出现）
+  (function () {
+    window.setTimeout(function () {
+      var overlay = document.getElementById('loading-first');
+      if (!overlay) return; // 已正常移除
+      var app = document.getElementById('app');
+      if (app && app.children.length > 0) { // App 已挂载，只是遮罩没清掉
+        overlay.remove();
+        return;
+      }
+      overlay.innerHTML =
+        '<div class="loading-icon">' +
+        '<img class="loading-image" src="/smail-icon.svg" alt="smail">' +
+        '<p class="loading-tip">加载超时，请检查网络后重试</p>' +
+        '<button class="loading-retry" onclick="location.reload()">重新加载</button>' +
+        '</div>';
+    }, 15000);
+  })();
+</script>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -35,7 +35,16 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
   }
 })
 
-await init()
+// init() 内部会 await websiteConfig() / loginUserInfo() 等网络请求。
+// 这些请求已由 axios 的 timeout 兜底（不会永久 pending），这里再用 try/catch 保证
+// 即使 init() 抛异常也一定会走到 mount，避免页面永久停在 #loading-first 加载动画上。
+// 注意：不能用 Promise.race 提前放行——那样 App 会在配置未就绪时挂载，
+// 登录页会把空的 domainList 抓成快照，域名下拉框变成空白。
+try {
+  await init()
+} catch (e) {
+  console.error('[init] 初始化异常', e)
+}
 
 app.use(router).use(i18n).directive('perm', perm)
 app.config.devtools = true

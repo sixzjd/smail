@@ -229,7 +229,7 @@
 
 <script setup>
 import router from "@/router";
-import {computed, nextTick, reactive, ref} from "vue";
+import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
 import {login} from "@/request/login.js";
 import {register} from "@/request/login.js";
 import {websiteConfig} from "@/request/setting.js";
@@ -276,9 +276,16 @@ const registerForm = reactive({
   confirmPassword: '',
   code: null
 })
-const domainList = settingStore.domainList;
+const domainList = computed(() => settingStore.domainList);
 const registerLoading = ref(false)
-suffix.value = domainList[0]
+suffix.value = domainList.value[0]
+// 配置可能在组件创建之后才到位（弱网 / init() 被兜底跳过），
+// 这里跟随 store 变化补上默认域名，避免下拉框一直空白。
+watch(domainList, (list) => {
+  if (!suffix.value && list.length > 0) {
+    suffix.value = list[0]
+  }
+})
 const verifyShow = ref(false)
 let verifyToken = ''
 let turnstileId = null
@@ -485,6 +492,14 @@ function refreshWebsiteConfig() {
     console.error(e)
   })
 }
+
+onMounted(() => {
+  // init() 里的配置请求可能因超时被中断，导致域名列表为空、无法选择邮箱后缀。
+  // 这里补拉一次，保证只要能联网就一定能拿到域名列表。
+  if (settingStore.domainList.length === 0) {
+    refreshWebsiteConfig()
+  }
+})
 
 
 function submitRegister() {

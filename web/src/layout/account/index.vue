@@ -674,7 +674,8 @@ path[fill="#ffdda1"] {
   padding: 0 12px;
   height: 100%;
   font-size: 14px;
-  color: var(--s-body);
+  /* 原为 var(--s-body)——那是页面背景色，叠在 --s-soft 背景上几乎不可见 */
+  color: var(--s-ink-secondary);
   background: var(--s-soft);
   border-left: 1px solid var(--s-line);
   cursor: pointer;

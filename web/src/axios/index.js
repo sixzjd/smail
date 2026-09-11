@@ -5,7 +5,10 @@ import {useSettingStore} from "@/store/setting.js";
 import { toast } from "@/components/ui/toast.js";
 
 let http = axios.create({
-    baseURL: import.meta.env.VITE_BASE_URL
+    baseURL: import.meta.env.VITE_BASE_URL,
+    // 必须设置超时：弱网/跨境链路丢包时，请求可能长时间既无响应也无报错，
+    // 而 init() 会在挂载 App 之前 await 这些请求，一旦永久 pending 页面就永远停在加载遮罩上。
+    timeout: 12000
 });
 
 http.interceptors.request.use(config => {

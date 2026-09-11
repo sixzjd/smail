@@ -388,7 +388,8 @@ const handleDelete = async () => {
 }
 
 .meta-value {
-  color: var(--s-body);
+  /* 原为 var(--s-body)——那是页面背景色，当文字色用会导致收件人一行几乎不可见 */
+  color: var(--s-ink-secondary);
   word-break: break-word;
 }
 
