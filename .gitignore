@@ -8,3 +8,4 @@ server/dist/
 *.log
 .DS_Store
 .codewhale/
+.wrangler/
