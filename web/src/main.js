@@ -50,3 +50,9 @@ app.use(router).use(i18n).directive('perm', perm)
 app.config.devtools = true
 
 app.mount('#app')
+
+// 挂载成功说明资源齐全，清掉「旧壳子自救」标记，
+// 这样下次真的遇到资源缺失时还能再自救一次（见 server/src/index.js 的 assetGone）。
+try {
+  sessionStorage.removeItem('__smail_asset_heal')
+} catch (e) { /* 隐私模式下 sessionStorage 可能不可用，忽略 */ }
