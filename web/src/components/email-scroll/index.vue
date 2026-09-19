@@ -17,13 +17,13 @@
         <button class="toolbar-btn" @click="refresh" :title="$t('refresh')">
           <Icon icon="ion:reload" width="17" height="17" />
         </button>
-        <button v-perm="'email:delete'" class="toolbar-btn toolbar-btn--danger"
+        <button v-perm="deletePerm" class="toolbar-btn toolbar-btn--danger"
                 v-if="getSelectedMailsIds().length > 0"
                 @click="handleDelete">
           <Icon icon="uiw:delete" width="15" height="15" />
         </button>
         <button v-perm="'email:delete'" class="toolbar-btn"
-                v-if="getSelectedMailsIds().length > 0 && showUnread"
+                v-if="getSelectedMailsIds().length > 0 && showUnread && emailRead"
                 @click="handleReadToggle">
           <Icon v-if="selectedHasUnread" icon="ep:opened" width="17" height="17" style="color: var(--s-ink)" />
           <Icon v-else icon="ep:message" width="17" height="17" style="color: var(--s-ink)" />
@@ -211,7 +211,7 @@
         <span>{{ t('searchSender') }}</span>
       </div>
       <div class="email-context-divider"></div>
-      <div class="email-context-item email-context-item--danger" @click="rightDelete(rightClickEmail.emailId)">
+      <div v-perm="deletePerm" class="email-context-item email-context-item--danger" @click="rightDelete(rightClickEmail.emailId)">
         <Icon icon="uiw:delete" width="14" height="18" />
         <span>{{ t('delete') }}</span>
       </div>
@@ -292,6 +292,7 @@ const {t} = useI18n()
 const settingStore = useSettingStore()
 const uiStore = useUiStore();
 const emailStore = useEmailStore();
+const deletePerm = computed(() => props.type === 'all-email' ? 'all-email:delete' : 'email:delete')
 const loading = ref(false);
 const followLoading = ref(false);
 const noLoading = ref(false);

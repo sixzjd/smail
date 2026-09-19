@@ -9,18 +9,11 @@ crons = ["*/30 * * * *", "0 16 * * *"]
 [observability]
 enabled = true
 
+# 仅 mail.sixzjd.sbs 由本 Worker 服务。
+# www / fakegps 子域已由其他 Worker 接管，不要在此声明 ——
+# custom domain 无法重复绑定，声明它们只会让每次 wrangler deploy 报错。
 [[routes]]
 pattern = "mail.sixzjd.sbs"
-zone_name = "sixzjd.sbs"
-custom_domain = true
-
-[[routes]]
-pattern = "www.sixzjd.sbs"
-zone_name = "sixzjd.sbs"
-custom_domain = true
-
-[[routes]]
-pattern = "fakegps.sixzjd.sbs"
 zone_name = "sixzjd.sbs"
 custom_domain = true
 
