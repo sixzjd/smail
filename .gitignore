@@ -9,3 +9,5 @@ server/dist/
 .DS_Store
 .codewhale/
 .wrangler/
+.workbuddy-ai/
+web/dist.old.*/

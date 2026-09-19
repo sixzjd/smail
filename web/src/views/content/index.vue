@@ -8,7 +8,7 @@
         </button>
       </div>
       <div class="toolbar-right">
-        <button class="toolbar-btn" v-perm="'email:delete'" @click="handleDelete" aria-label="Delete">
+        <button class="toolbar-btn" v-perm="deletePerm" @click="handleDelete" aria-label="Delete">
           <Icon icon="uiw:delete" width="15" height="15" />
         </button>
         <span class="toolbar-divider" v-if="emailStore.contentData.showStar"></span>
@@ -110,11 +110,11 @@
 </template>
 <script setup>
 import ShadowHtml from '@/components/shadow-html/index.vue'
-import {reactive, ref, watch, onMounted, onUnmounted} from "vue";
+import {computed, reactive, ref, watch, onMounted, onUnmounted} from "vue";
 import {useRouter} from 'vue-router'
 import { toast } from '@/components/ui/toast.js'
 import { confirm } from '@/components/ui/confirm.js'
-import {emailDelete, emailRead, emailDetail} from "@/request/email.js";
+import {emailDelete, emailPermanentDelete, emailRead, emailDetail} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
 import {useAccountStore} from "@/store/account.js";
@@ -134,6 +134,14 @@ const uiStore = useUiStore();
 const accountStore = useAccountStore();
 const emailStore = useEmailStore();
 const router = useRouter()
+
+// 删除按钮的权限随来源视图变化：
+// 收件箱/已发送/星标 -> /api/email/delete，回收站 -> /api/email/permanent-delete，二者同属 email:delete；
+// 「全部邮件」-> /api/allEmail/delete，属 all-email:delete。
+const deletePerm = computed(() => {
+  const delType = emailStore.contentData.delType
+  return (delType === 'logic' || delType === 'permanent') ? 'email:delete' : 'all-email:delete'
+})
 const email = emailStore.contentData.email
 const showPreview = ref(false)
 const srcList = reactive([])
@@ -228,8 +236,15 @@ const handleBack = () => {
 const handleDelete = async () => {
   const ok = await confirm(t('delEmailConfirm'), t('confirm'))
   if (!ok) return
-  if (emailStore.contentData.delType === 'logic') {
+  const delType = emailStore.contentData.delType
+
+  if (delType === 'logic') {
     emailDelete(email.emailId).then(() => {
+      toast(t('delSuccessMsg'), 'success')
+      emailStore.deleteIds = [email.emailId]
+    })
+  } else if (delType === 'permanent') {
+    emailPermanentDelete([email.emailId]).then(() => {
       toast(t('delSuccessMsg'), 'success')
       emailStore.deleteIds = [email.emailId]
     })
