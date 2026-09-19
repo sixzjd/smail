@@ -76,7 +76,21 @@ const starService = {
 		return { list };
 	},
 	async removeByEmailIds(c, emailIds) {
+		if (!emailIds || emailIds.length === 0) return;
 		await orm(c).delete(star).where(inArray(star.emailId, emailIds)).run();
+	},
+
+	// 按账号清理星标：star 表没有 account_id，需借 email 表反查。
+	// 必须在删除 email 行之前调用（子查询在删除时才求值）。
+	async removeByAccountId(c, accountId) {
+		await c.env.db.prepare(
+			`DELETE FROM star WHERE email_id IN (SELECT email_id FROM email WHERE account_id = ?)`
+		).bind(accountId).run();
+	},
+
+	async removeByUserIds(c, userIds) {
+		if (!userIds || userIds.length === 0) return;
+		await orm(c).delete(star).where(inArray(star.userId, userIds)).run();
 	}
 };
 

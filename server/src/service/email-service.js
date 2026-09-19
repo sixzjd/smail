@@ -772,6 +772,7 @@ const emailService = {
 
 	async physicsDeleteUserIds(c, userIds) {
 		await attService.removeByUserIds(c, userIds);
+		await starService.removeByUserIds(c, userIds);
 		await orm(c).delete(email).where(inArray(email.userId, userIds)).run();
 	},
 
@@ -998,6 +999,7 @@ const emailService = {
 
 	async physicsDeleteByAccountId(c, accountId) {
 		await attService.removeByAccountId(c, accountId);
+		await starService.removeByAccountId(c, accountId);
 		await orm(c).delete(email).where(eq(email.accountId, accountId)).run();
 	},
 
@@ -1014,13 +1016,25 @@ const emailService = {
 	async permanentDelete(c, params, userId) {
 		const { emailIds } = params;
 		const emailIdList = emailIds.split(',').map(Number);
-		await attService.removeByEmailIds(c, emailIdList);
-		await starService.removeByEmailIds(c, emailIdList);
-		await orm(c).delete(email).where(
+
+		// 必须先把 emailIds 收窄到当前用户名下，再做附件/星标清理。
+		// 否则只要传别人的 emailId，就能删掉对方的附件行（连带 R2 对象）与星标，
+		// 而 email 行因下面按 userId 过滤反而删不掉 —— 变成跨用户的数据破坏。
+		const ownRows = await orm(c).select({ emailId: email.emailId }).from(email).where(
 			and(
 				eq(email.userId, userId),
 				inArray(email.emailId, emailIdList)))
-			.run();
+			.all();
+
+		const ownIds = ownRows.map(row => row.emailId);
+
+		if (ownIds.length === 0) {
+			return;
+		}
+
+		await attService.removeByEmailIds(c, ownIds);
+		await starService.removeByEmailIds(c, ownIds);
+		await orm(c).delete(email).where(inArray(email.emailId, ownIds)).run();
 	},
 
 	async read(c, params, userId) {
