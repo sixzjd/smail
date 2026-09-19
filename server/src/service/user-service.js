@@ -94,7 +94,12 @@ const userService = {
 	},
 
 	async delete(c, userId) {
-		await orm(c).update(user).set({ isDel: isDel.DELETE }).where(eq(user.userId, userId)).run();
+		// 物理删除：用户、名下邮箱、邮件附件、OAuth 绑定一并清除。
+		// 不再置 isDel=1 —— 残留的 user/account 行会占住唯一索引，
+		// 同一地址之后将无法重新注册（userService.add 会抛 isDelUser）。
+		await accountService.physicsDeleteByUserIds(c, [userId]);
+		await oauthService.deleteByUserIds(c, [userId]);
+		await orm(c).delete(user).where(eq(user.userId, userId)).run();
 		await c.env.kv.delete(KvConst.AUTH_INFO + userId)
 	},
 

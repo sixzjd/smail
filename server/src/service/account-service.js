@@ -155,7 +155,12 @@ const accountService = {
 			throw new BizError(t('noUserAccount'));
 		}
 
-		await orm(c).update(account).set({ isDel: isDel.DELETE }).where(
+		// 物理删除：连同该邮箱名下的邮件与附件一并清掉，不留软删除记录。
+		// 若只把 isDel 置 1，残留的 account 行会一直占住唯一索引
+		// idx_account_email_nocase，同一地址将再也无法重新添加
+		// （accountService.add 会抛 isDelAccount）。
+		await emailService.physicsDeleteByAccountId(c, accountId);
+		await orm(c).delete(account).where(
 			and(eq(account.userId, userId),
 				eq(account.accountId, accountId)))
 			.run();

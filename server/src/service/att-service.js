@@ -212,6 +212,44 @@ const attService = {
 			.all();
 	},
 
+	// 注意：本函数并非死代码 —— removeByUserIds / removeByEmailIds / removeByAccountId
+	// 三个方法都依赖它。eed06dc 曾以「drop dead removeAttByField」为由删除，
+	// 导致邮件彻底删除、管理员删邮箱/删用户全部在运行时抛 TypeError。勿再删。
+	// fieldName 只允许传固定的列名（user_id / email_id / account_id），不要传入外部输入。
+	async removeAttByField(c, fieldName, fieldValues) {
+
+		const sqlList = [];
+
+		fieldValues.forEach(value => {
+
+			sqlList.push(
+
+				c.env.db.prepare(
+					`SELECT a.key, a.att_id
+						FROM attachments a
+							   JOIN (SELECT key
+									 FROM attachments
+									 GROUP BY key
+									 HAVING COUNT (*) = 1) t
+									ON a.key = t.key
+						WHERE a.${fieldName} = ?;`
+					).bind(value)
+			)
+
+			sqlList.push(c.env.db.prepare(`DELETE FROM attachments WHERE ${fieldName} = ?`).bind(value))
+
+		});
+
+		const attListResult = await c.env.db.batch(sqlList);
+
+		const delKeyList = attListResult.flatMap(r => r.results ? r.results.map(row => row.key) : []);
+
+		if (delKeyList.length > 0) {
+			await this.batchDelete(c, delKeyList);
+		}
+
+	},
+
 	async batchDelete(c, keys) {
 		if (!keys.length) return;
 
