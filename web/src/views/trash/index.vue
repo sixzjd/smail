@@ -6,6 +6,7 @@
                  :show-unread="false"
                  :getEmailList="getTrashList"
                  :emailDelete="emailPermanentDelete"
+                 :emailRestore="emailRestore"
                  :show-account-icon="false"
                  @jump="jumpContent"
     />
@@ -14,7 +15,7 @@
 
 <script setup>
 import emailScroll from "@/components/email-scroll/index.vue"
-import {emailList, emailPermanentDelete} from "@/request/email.js"
+import {emailList, emailPermanentDelete, emailRestore} from "@/request/email.js"
 import {useEmailStore} from "@/store/email.js"
 import {useAccountStore} from "@/store/account.js"
 import {defineOptions} from "vue"

@@ -24,6 +24,9 @@ const requirePerms = [
 	'/api/email/send',
 	'/api/email/delete',
 	'/api/email/permanent-delete',
+	// 恢复与彻底删除同属回收站管理动作，统一挂在 email:delete 下，
+	// 避免出现「能彻底删、却恢复不了」或反过来的权限错位。
+	'/api/email/restore',
 	'/api/account/list',
 	'/api/account/delete',
 	'/api/account/add',
@@ -62,7 +65,7 @@ const requirePerms = [
 ];
 
 const premKey = {
-	'email:delete': ['/api/email/delete', '/api/email/permanent-delete'],
+	'email:delete': ['/api/email/delete', '/api/email/permanent-delete', '/api/email/restore'],
 	'email:send': ['/api/email/send'],
 	'account:add': ['/api/account/add'],
 	'account:query': ['/api/account/list'],

@@ -12,7 +12,9 @@ export const useEmailStore = defineStore('email', {
             delType: null,
             showStar: true,
             showReply: true,
-            showUnread: false
+            showUnread: false,
+            // 仅回收站来源的详情页为 true（trash/index.vue 置位，content 卸载时复位）
+            showRestore: false
         },
         sendScroll: null,
     }),

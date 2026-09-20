@@ -17,6 +17,12 @@
         <button class="toolbar-btn" @click="refresh" :title="$t('refresh')">
           <Icon icon="ion:reload" width="17" height="17" />
         </button>
+        <!-- 恢复：仅回收站出现。与彻底删除同属回收站管理动作，故同样要求 email:delete -->
+        <button v-perm="'email:delete'" class="toolbar-btn"
+                v-if="props.type === 'trash' && emailRestore && getSelectedMailsIds().length > 0"
+                @click="handleRestore" :title="$t('restoreEmail')">
+          <Icon icon="iconoir:undo" width="17" height="17" />
+        </button>
         <button v-perm="deletePerm" class="toolbar-btn toolbar-btn--danger"
                 v-if="getSelectedMailsIds().length > 0"
                 @click="handleDelete">
@@ -210,6 +216,11 @@
         <Icon icon="iconoir:search" width="18" height="18" />
         <span>{{ t('searchSender') }}</span>
       </div>
+      <div v-if="props.type === 'trash' && emailRestore" v-perm="'email:delete'"
+           class="email-context-item" @click="rightRestore(rightClickEmail.emailId)">
+        <Icon icon="iconoir:undo" width="18" height="18" />
+        <span>{{ t('restoreEmail') }}</span>
+      </div>
       <div class="email-context-divider"></div>
       <div v-perm="deletePerm" class="email-context-item email-context-item--danger" @click="rightDelete(rightClickEmail.emailId)">
         <Icon icon="uiw:delete" width="14" height="18" />
@@ -240,6 +251,8 @@ import { confirm } from '@/components/ui/confirm.js'
 const props = defineProps({
   getEmailList: Function,
   emailDelete: Function,
+  // 仅回收站（trash）传入：把邮件从回收站恢复到收件箱
+  emailRestore: Function,
   emailRead: Function,
   starAdd: Function,
   starCancel: Function,
@@ -660,6 +673,30 @@ async function copyCode(code) {
     console.error(`${t('copyFailMsg')}:`, err);
     toast(t('copyFailMsg'), 'error')
   }
+}
+
+// 恢复（仅回收站）：后端 /api/email/restore 已按 userId 收窄，传别人的 id 不生效。
+// 成功后复用 deleteIds 通道把这几行从回收站列表里摘掉，并刷新目的列表 ——
+// 收件箱/已发送在 keep-alive 的 include 里，不刷新就看不到恢复回来的邮件。
+function restoreSuccess(emailIds) {
+  toast(t('restoreSuccess'), 'success')
+  emailStore.deleteIds = emailIds;
+  emailStore.emailScroll?.refreshList()
+  emailStore.sendScroll?.refreshList()
+}
+
+function handleRestore() {
+  const emailIds = getSelectedMailsIds();
+  if (emailIds.length === 0) return;
+  confirm(t('restoreEmailConfirm')).then((ok) => {
+    if (!ok) return
+    props.emailRestore(emailIds).then(() => restoreSuccess(emailIds))
+  })
+}
+
+function rightRestore(emailId) {
+  closeContextMenu()
+  props.emailRestore([emailId]).then(() => restoreSuccess([emailId]))
 }
 
 function handleDelete() {

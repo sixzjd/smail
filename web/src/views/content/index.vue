@@ -8,6 +8,12 @@
         </button>
       </div>
       <div class="toolbar-right">
+        <!-- 恢复按钮只在回收站来源的详情页出现（trash 视图把 showRestore 置 true）。
+             与彻底删除同属回收站管理动作，故同样要求 email:delete。 -->
+        <button class="toolbar-btn" v-if="emailStore.contentData.showRestore" v-perm="'email:delete'"
+                @click="handleRestore" :aria-label="$t('restoreEmail')" :title="$t('restoreEmail')">
+          <Icon icon="iconoir:undo" width="17" height="17" />
+        </button>
         <button class="toolbar-btn" v-perm="deletePerm" @click="handleDelete" aria-label="Delete">
           <Icon icon="uiw:delete" width="15" height="15" />
         </button>
@@ -114,7 +120,7 @@ import {computed, reactive, ref, watch, onMounted, onUnmounted} from "vue";
 import {useRouter} from 'vue-router'
 import { toast } from '@/components/ui/toast.js'
 import { confirm } from '@/components/ui/confirm.js'
-import {emailDelete, emailPermanentDelete, emailRead, emailDetail} from "@/request/email.js";
+import {emailDelete, emailPermanentDelete, emailRead, emailDetail, emailRestore} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
 import {useAccountStore} from "@/store/account.js";
@@ -172,6 +178,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   emailStore.contentData.showUnread = false;
+  // showRestore 由 trash 视图置 true，若不在此复位，之后从收件箱打开邮件
+  // 也会看到「恢复」按钮（content 不在 keep-alive include 里，卸载必定触发）。
+  emailStore.contentData.showRestore = false;
 })
 
 function openReply() {
@@ -230,6 +239,23 @@ function changeStar() {
 }
 
 const handleBack = () => {
+  router.back()
+}
+
+// 从回收站恢复：把 isDel 置回 NORMAL，邮件重新回到收件箱。
+// 后端 /api/email/restore 已按 userId 收窄，传别人的 emailId 不会有任何效果。
+const handleRestore = async () => {
+  const ok = await confirm(t('restoreEmailConfirm'), t('confirm'))
+  if (!ok) return
+  emailRestore([email.emailId]).then(() => {
+    toast(t('restoreSuccess'), 'success')
+    // 复用 deleteIds 通道让 email-scroll 把这一行从回收站列表里摘掉
+    emailStore.deleteIds = [email.emailId]
+    // 收件箱/已发送都在 keep-alive 的 include 列表里，切回去不会重新拉数据，
+    // 恢复后的邮件若不显式刷新就永远看不到（同 layout/account 切账号的做法）。
+    emailStore.emailScroll?.refreshList()
+    emailStore.sendScroll?.refreshList()
+  })
   router.back()
 }
 
