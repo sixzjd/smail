@@ -82,11 +82,6 @@ const routes = [
         component: () => import('@/views/login/index.vue')
     },
     {
-        path: '/test',
-        name: 'test',
-        component: () => import('@/views/test/index.vue')
-    },
-    {
         path: '/:pathMatch(.*)*',
         name: '404',
         component: () => import('@/views/404/index.vue')
@@ -127,7 +122,10 @@ router.beforeEach((to, from, next) => {
 
     const token = localStorage.getItem('token')
 
-    if (!token && to.name !== 'login' && to.name !== 'doc') {
+    // home 必须一并豁免：60bd97c 加了 www 域名的落地页跳转，注释写着
+    // "show the navigation homepage without auth"，却没把 home 放进白名单，
+    // 结果未登录访客被上面那条规则弹回 /login，落地页形同虚设。
+    if (!token && to.name !== 'login' && to.name !== 'doc' && to.name !== 'home') {
         return next({name: 'login'})
     }
 
@@ -191,7 +189,7 @@ router.afterEach((to) => {
     const settingStore = useSettingStore();
     const siteTitle = settingStore.settings?.title || 'smail';
     if (to.meta.title) {
-        const titles = { inbox: '收件箱', content: '邮件', send: '写信', starred: '星标', trash: '回收站', allEmail: '全部邮件', analysis: '数据分析', account: '账号管理', role: '角色管理', permission: '权限管理', setting: '系统设置', regKey: '注册密钥', resend: '重新发送', oauth: 'OAuth', telegram: 'Telegram' };
+        const titles = { Home: '项目总览', inbox: '收件箱', content: '邮件', send: '写信', starred: '星标', trash: '回收站', allEmail: '全部邮件', analysis: '数据分析', account: '账号管理', role: '角色管理', permission: '权限管理', setting: '系统设置', regKey: '注册密钥', resend: '重新发送', oauth: 'OAuth', telegram: 'Telegram' };
         const cnTitle = titles[to.meta.title] || to.meta.title;
         document.title = `${cnTitle} - ${siteTitle}`;
     } else {
