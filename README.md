@@ -17,9 +17,7 @@
 <p align="center">
   <strong>项目总览：</strong>
   <ul style="list-style:none; padding:0; margin:0; display:inline-block;">
-    <li>🧭 <a href="https://mail.sixzjd.sbs" target="_blank">smail（临时邮箱）</a></li>
-    <li>🛰️ <a href="https://fakegps.sixzjd.sbs" target="_blank">fakegps（iPhone GPS 模拟工具）</a></li>
-    <li>🛠️ <a href="https://macraft.sixzjd.sbs" target="_blank">macraft（Minecraft 服务器管理）</a></li>
+    <li>🧭 <a href="https://mail.sixzjd.sbs" target="_blank">smail（在线使用）</a></li>
   </ul>
 </p>
 

@@ -17,9 +17,7 @@
 <p align="center">
   <strong>Project Overview:</strong>
   <ul style="list-style:none; padding:0; margin:0; display:inline-block;">
-    <li>🧭 <a href="https://mail.sixzjd.sbs" target="_blank">smail (Temporary Email)</a></li>
-    <li>🛰️ <a href="https://fakegps.sixzjd.sbs" target="_blank">fakegps (iPhone GPS Simulator)</a></li>
-    <li>🛠️ <a href="https://macraft.sixzjd.sbs" target="_blank">macraft (Minecraft Server Management)</a></li>
+    <li>🧭 <a href="https://mail.sixzjd.sbs" target="_blank">smail (Use Online)</a></li>
   </ul>
 </p>
 
