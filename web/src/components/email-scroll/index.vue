@@ -31,7 +31,7 @@
         <button v-perm="'email:delete'" class="toolbar-btn"
                 v-if="getSelectedMailsIds().length > 0 && showUnread && emailRead"
                 @click="handleReadToggle">
-          <Icon v-if="selectedHasUnread" icon="ep:opened" width="17" height="17" style="color: var(--s-ink)" />
+          <Icon v-if="selectedHasUnread" icon="hugeicons:mail-open-01" width="17" height="17" style="color: var(--s-ink)" />
           <Icon v-else icon="ep:message" width="17" height="17" style="color: var(--s-ink)" />
         </button>
       </div>
