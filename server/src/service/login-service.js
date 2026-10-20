@@ -20,7 +20,8 @@ import { t } from '../i18n/i18n.js';
 import verifyRecordService from './verify-record-service.js';
 import orm from '../entity/orm.js';
 import user from '../entity/user.js';
-import { eq } from 'drizzle-orm';
+import account from '../entity/account.js';
+import { and, asc, eq } from 'drizzle-orm';
 
 const loginService = {
 
@@ -200,6 +201,77 @@ const loginService = {
 			const { salt, hash } = await cryptoUtils.hashPassword(password);
 			await orm(c).update(user).set({ password: hash, salt }).where(eq(user.userId, userRow.userId)).run();
 		}
+
+		return await this.issueToken(c, userRow);
+	},
+
+	/**
+	 * 用「自建邮箱地址 + 密码」登录。
+	 *
+	 * 网页端登录只能用注册时的主邮箱；但第三方邮件客户端（iOS 邮件 / Outlook / Thunderbird）
+	 * 里用户填的是某个自建邮箱地址，所以这里按 account 表反查归属用户后再校验密码，
+	 * 登录成功即返回该用户下所有邮箱，方便客户端把每个邮箱映射成一个 IMAP 文件夹。
+	 */
+	async loginByAccount(c, params) {
+
+		const { email, password } = params;
+
+		if (!email || !password) {
+			throw new BizError(t('emailAndPwdEmpty'));
+		}
+
+		const accountRow = await accountService.selectByEmailIncludeDel(c, email);
+
+		if (!accountRow) {
+			throw new BizError(t('notExistUser'));
+		}
+
+		if (accountRow.isDel === isDel.DELETE) {
+			throw new BizError(t('isDelUser'));
+		}
+
+		const userRow = await userService.selectByIdIncludeDel(c, accountRow.userId);
+
+		if (!userRow) {
+			throw new BizError(t('notExistUser'));
+		}
+
+		if (userRow.isDel === isDel.DELETE) {
+			throw new BizError(t('isDelUser'));
+		}
+
+		if (userRow.status === userConst.status.BAN) {
+			throw new BizError(t('isBanUser'));
+		}
+
+		if (!await cryptoUtils.verifyPassword(password, userRow.salt, userRow.password)) {
+			throw new BizError(t('IncorrectPwd'));
+		}
+
+		if (cryptoUtils.isLegacyHash(userRow.password)) {
+			const { salt, hash } = await cryptoUtils.hashPassword(password);
+			await orm(c).update(user).set({ password: hash, salt }).where(eq(user.userId, userRow.userId)).run();
+		}
+
+		const token = await this.issueToken(c, userRow);
+
+		const accountList = await orm(c).select().from(account)
+			.where(and(eq(account.userId, userRow.userId), eq(account.isDel, isDel.NORMAL)))
+			.orderBy(asc(account.sort), asc(account.accountId))
+			.all();
+
+		return {
+			token,
+			email: userRow.email,
+			account: accountRow,
+			accounts: accountList
+		};
+	},
+
+	/**
+	 * 签发 JWT 并登记到 KV 会话表（网页登录与客户端登录共用）。
+	 */
+	async issueToken(c, userRow) {
 
 		const uuid = uuidv4();
 		const jwt = await JwtUtils.generateToken(c,{ userId: userRow.userId, token: uuid });

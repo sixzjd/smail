@@ -18,5 +18,6 @@ import './api/analysis-api.js';
 import './api/reg-key-api.js';
 import './api/public-api.js';
 import './api/oauth-api.js';
+import './api/client-api.js';
 
 export default app;

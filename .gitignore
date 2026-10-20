@@ -5,9 +5,13 @@ data/storage/
 web/dist/
 server/dist/
 .env
+.dev.vars
+.dev.vars.*
 *.log
 .DS_Store
 .codewhale/
 .wrangler/
 .workbuddy-ai/
 web/dist.old.*/
+npm-cache/
+.npm-cache/

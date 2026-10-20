@@ -46,14 +46,15 @@
 - [Project Structure](#project-structure)
 - [Local Development](#local-development)
 - [Deployment Guide](#deployment-guide)
+- [Third-party Clients (IMAP / SMTP)](#third-party-clients-imap--smtp)
 - [Configuration Reference](#configuration-reference)
 - [Design System](#design-system)
 
 ## Introduction
 
-smail is a temporary email service that **runs entirely on Cloudflare Edge**, providing full email sending, receiving, management, and analytics capabilities.
+smail is an **edge email service** that runs on **Cloudflare Edge**, providing full email sending, receiving, management, and analytics capabilities.
 
-The project was originally built with **Node.js + Express**, using local SQLite file system storage. To achieve global edge deployment, low latency, and zero operations overhead, the entire project was fully migrated to the **Cloudflare Workers** architecture — the backend was rewritten from Express to Hono, the database migrated from better-sqlite3 to Cloudflare D1, file storage to R2, and session cache to KV. All **19 feature modules were fully preserved** with zero feature loss.
+The project is based on [cloudmail](https://github.com/maillab/cloud-mail), which originally used a **Node.js + Express** architecture with local SQLite file system storage. To achieve global edge deployment, low latency, and zero operations overhead, the entire project was fully migrated to the **Cloudflare Workers** architecture — the backend was rewritten from Express to Hono, the database migrated from better-sqlite3 to Cloudflare D1, file storage to R2, and session cache to KV. **All core feature modules were fully preserved.**
 
 **Key Features:**
 - 🌍 **Global Edge Runtime** — Workers/D1/KV/R2 all deployed on Cloudflare edge nodes, serving requests from the nearest location
@@ -62,7 +63,7 @@ The project was originally built with **Node.js + Express**, using local SQLite 
 - 🔐 **Fine-grained Permissions** — JWT + RBAC role-based permission system with domain-level control
 - 📊 **Data Analytics** — Send/receive statistics, trend charts (ECharts), scheduled cache refresh
 - 🤖 **AI Integration** — Optional Cloudflare AI captcha extraction
-- 🌙 **Editorial Design** — Warm paper-texture design system with full dark mode
+- 🌙 **Editorial Design** — Warm paper-textured front-end design, tuned for dark mode
 - 📱 **PWA Support** — Installable as desktop/mobile application
 
 ## Architecture Migration
@@ -161,7 +162,7 @@ The project was originally built with **Node.js + Express**, using local SQLite 
 
 ## Feature List
 
-### 📬 Email Core
+### Email Core
 
 | Feature | Description |
 |---------|-------------|
@@ -176,6 +177,7 @@ The project was originally built with **Node.js + Express**, using local SQLite 
 | **Blacklist** | Filter spam by subject/content/sender address (including domain-level) |
 | **Unread Status** | Email read/unread status management |
 | **Email Search** | Search by sender name, email address, subject |
+| **Third-party Clients** | `bridge/` exposes IMAP / SMTP so iOS Mail, Outlook and Thunderbird can sign in directly |
 
 ### 👤 Account & User System
 
@@ -394,6 +396,19 @@ smail/
 │   ├── cache/kv-store.json         # KV local simulation
 │   └── storage/                    # R2 local simulation
 │
+├── bridge/                         # ── IMAP/SMTP gateway (Node.js) ──
+│   ├── src/
+│   │   ├── index.js                #   Entry: IMAP 143/993 + SMTP 25/587/465 + /health
+│   │   ├── imap-server.js          #   Hand-written IMAP4rev1 server
+│   │   ├── smtp-server.js          #   SMTP submission (smtp-server)
+│   │   ├── mailbox.js              #   smail mail ↔ IMAP folder mapping
+│   │   ├── mime.js                 #   RFC822 / ENVELOPE / BODYSTRUCTURE builder
+│   │   ├── smail-client.js         #   smail HTTP API client
+│   │   └── config.js               #   Env vars / .env
+│   ├── test/                       #   Local integration scripts
+│   ├── .env.example                #   Deployment template
+│   └── README.md                   #   VPS deployment + FAQ
+│
 ├── wrangler.toml                   # Cloudflare deployment config
 ├── .env.example                    # Environment variable template
 └── package.json                    # Root package.json
@@ -550,6 +565,68 @@ After deployment, visit your domain and the system will guide you through initia
 - **Option A**: Enable Cloudflare Email (uncomment `[[send_email]]` in wrangler.toml)
 - **Option B**: Configure Resend API Token (configure per-domain in system settings)
 
+## Third-party Clients (IMAP / SMTP)
+
+To let **iOS Mail, Outlook, Foxmail or Thunderbird** sign in with just "mailbox address + password",
+run the extra `bridge/` service.
+
+Cloudflare Workers only speak HTTP and **cannot listen on TCP ports 143/993/465/587**, so the bridge is a
+standalone Node.js process that translates IMAP / SMTP into calls against the smail HTTPS API. It stores no
+mail itself — permissions, send quotas and blacklists are still enforced by the Worker.
+
+```
+iOS Mail ──IMAP 993──► bridge ──HTTPS──► smail Worker ──► D1 / R2
+         ◄─SMTP 465──
+```
+
+### What you need
+
+1. A machine with a public IP (VPS or home server) able to open ports 993 and 465 (optionally 143/587/25);
+2. One **DNS-only (grey cloud)** record (A or AAAA) such as `imap.example.com`, shared by IMAP and SMTP —
+   Cloudflare's orange cloud proxies HTTP only and will not forward IMAP/SMTP;
+3. A Let's Encrypt certificate (clients validate certificates strictly, self-signed ones will be rejected).
+
+### Deploy
+
+```bash
+rsync -av ./bridge/ user@vps:/opt/smail-bridge/
+cd /opt/smail-bridge
+npm install --omit=dev
+cp .env.example .env && vi .env      # SMAIL_API_BASE / hosts / certificate paths
+npm start                             # use systemd in production
+```
+
+Full steps (certificate, systemd unit, firewall, security groups, FAQ) live in
+[`bridge/README.md`](bridge/README.md).
+
+### Client settings
+
+| Field | Incoming (IMAP) | Outgoing (SMTP) |
+|-------|-----------------|-----------------|
+| Server | `imap.example.com` | `imap.example.com` (same host, one record is enough) |
+| Port / encryption | **993 + SSL** (legacy 143 + STARTTLS) | **465 + SSL** (legacy 587 / 25) |
+| Username | full mailbox address `you@example.com` | same |
+| Password | your smail web password | same |
+
+> ⚠️ The iOS "Manual Setup" screen pre-fills **143 / 25 with SSL off**. Change them to **993 / 465** and
+> turn SSL on, otherwise iOS reports that the account cannot be verified.
+
+Once signed in, the **"Email Clients"** page in the sidebar shows the current host names, ports and
+step-by-step guides, and the server also serves Thunderbird `autoconfig` and Outlook `Autodiscover` documents.
+
+### Related environment variables
+
+Set them in `wrangler.toml` under `[vars]` (or via `wrangler secret put`) — the web page reads them from there:
+
+```toml
+[vars]
+# One DNS record is enough — use the same hostname for IMAP and SMTP
+imap_host = "imap.example.com"
+smtp_host = "imap.example.com"
+# or all at once:
+# client_config = '{"imap":{"host":"imap.example.com","port":143,"tlsPort":993},"smtp":{"host":"imap.example.com","port":587,"tlsPort":465}}'
+```
+
 ## Configuration Reference
 
 ### System Settings
@@ -604,3 +681,9 @@ The project uses an **Editorial design system**, inspired by the warm texture of
 ## License
 
 MIT
+
+---
+
+Thanks to everyone who actually read this README.
+
+Found a problem? Issues are welcome.

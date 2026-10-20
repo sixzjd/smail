@@ -1,0 +1,33 @@
+# 仅用于本地调试：和 wrangler.toml 基本一致，但去掉了 [ai] 绑定
+# （AI 绑定在本地开发时默认走远程，需要 Cloudflare 登录态，没有就会启动失败）
+name = "smail"
+main = "server/src/index.js"
+compatibility_date = "2025-06-04"
+keep_vars = false
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "db"
+database_name = "cloud-mail"
+database_id = "d3ce23a4-9e69-408a-813a-d734f7ad98c8"
+
+[[kv_namespaces]]
+binding = "kv"
+id = "cdcd4f3d3b3343eba0299196134d7085"
+
+[[r2_buckets]]
+binding = "r2"
+bucket_name = "cloudmail"
+
+[assets]
+binding = "assets"
+directory = "./web/dist"
+not_found_handling = "single-page-application"
+run_worker_first = true
+
+[vars]
+domain = ["sixzjd.sbs"]
+admin = "admin@sixzjd.sbs"
+client_config = "{\"enabled\":true,\"imap\":{\"host\":\"imap.sixzjd.sbs\",\"port\":143,\"tlsPort\":993},\"smtp\":{\"host\":\"imap.sixzjd.sbs\",\"port\":587,\"tlsPort\":465}}"

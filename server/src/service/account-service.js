@@ -103,6 +103,20 @@ const accountService = {
 		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
 	},
 
+	/**
+	 * 用户名下所有未删除的邮箱（不分页），
+	 * 第三方邮件客户端要把每个邮箱映射成一个 IMAP 文件夹，所以需要全量。
+	 */
+	listByUserId(c, userId) {
+		return orm(c).select().from(account).where(
+			and(
+				eq(account.userId, userId),
+				eq(account.isDel, isDel.NORMAL)
+			))
+			.orderBy(desc(account.sort), asc(account.accountId))
+			.all();
+	},
+
 	list(c, params, userId) {
 
 		let { accountId, size, lastSort } = params;

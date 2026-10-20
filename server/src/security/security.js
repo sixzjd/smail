@@ -17,7 +17,10 @@ const exclude = [
 	'/api/init',
 	'/api/public/genToken',
 	'/api/telegram',
-	'/api/oauth'
+	'/api/oauth',
+	// 第三方邮件客户端（IMAP/SMTP bridge）用「邮箱地址 + 密码」换取令牌，
+	// 走的是和网页登录同一套密码校验，只是允许用任意一个自建邮箱地址登录。
+	'/api/client/login'
 ];
 
 const requirePerms = [

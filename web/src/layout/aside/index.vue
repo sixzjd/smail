@@ -42,6 +42,10 @@
 
       <!-- Settings -->
       <div class="nav-group">
+        <a class="nav-item" :class="{ active: route.meta.name === 'client' }" @click="router.push({ name: 'client' })">
+          <Icon icon="hugeicons:mail-setting-01" width="18" height="18" />
+          <span>{{ $t('clientLogin') }}</span>
+        </a>
         <a class="nav-item" :class="{ active: route.meta.name === 'setting' }" @click="router.push({ name: 'setting' })">
           <Icon icon="fluent:settings-48-regular" width="18" height="18" />
           <span>{{ $t('settings') }}</span>

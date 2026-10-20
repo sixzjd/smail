@@ -7,6 +7,7 @@ import verifyRecordService from './service/verify-record-service.js';
 import emailService from './service/email-service.js';
 import oauthService from './service/oauth-service.js';
 import analysisService from './service/analysis-service.js';
+import clientService from './service/client-service.js';
 
 /**
  * 请求的哈希资源已经不存在——几乎总是因为客户端缓存了旧版 index.html。
@@ -36,10 +37,61 @@ function assetGone(req, url) {
 	});
 }
 
+/**
+ * 第三方邮件客户端的自动配置。
+ *
+ * Thunderbird / iOS 邮件 / Outlook 会按固定路径来找配置：
+ *   /.well-known/autoconfig/mail/config.v1.xml?emailaddress=xxx
+ *   /Autodiscover/Autodiscover.xml            (POST，XML body)
+ * 这里直接返回 IMAP / SMTP 的主机与端口，客户端就能自动填表。
+ */
+async function clientAutoconfig(req, url, env) {
+
+	const isJson = url.pathname.endsWith('.json');
+	let emailAddress = url.searchParams.get('emailaddress') || url.searchParams.get('email') || '';
+
+	if (!emailAddress && req.method === 'POST') {
+		const body = await req.text();
+		const match = /<EMailAddress>([^<]+)<\/EMailAddress>/i.exec(body);
+		if (match) emailAddress = match[1];
+	}
+
+	const ctx = { env };
+
+	if (isJson) {
+		const config = clientService.config(ctx);
+		return new Response(JSON.stringify({
+			version: '1.1',
+			emailProvider: [{
+				id: 'smail',
+				domain: emailAddress.split('@')[1] || '',
+				displayName: 'smail',
+				incomingServer: [
+					{ type: 'imap', hostname: config.imap.host, port: config.imap.tlsPort, socketType: 'SSL', authentication: 'password-cleartext', username: '%EMAILADDRESS%' },
+				],
+				outgoingServer: [
+					{ type: 'smtp', hostname: config.smtp.host, port: config.smtp.tlsPort, socketType: 'SSL', authentication: 'password-cleartext', username: '%EMAILADDRESS%' },
+				],
+			}],
+		}), { headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+	}
+
+	const xml = url.pathname.toLowerCase().includes('autodiscover')
+		? clientService.autodiscoverXml(ctx, emailAddress)
+		: clientService.autoconfigXml(ctx, emailAddress);
+
+	return new Response(xml, { headers: { 'Content-Type': 'text/xml; charset=utf-8' } });
+}
+
 export default {
 	async fetch(req, env, ctx) {
 
 		const url = new URL(req.url);
+
+		// 第三方邮件客户端自动配置（Thunderbird / Outlook）
+		if (url.pathname.startsWith('/.well-known/autoconfig/') || url.pathname.toLowerCase() === '/autodiscover/autodiscover.xml') {
+			return await clientAutoconfig(req, url, env);
+		}
 
 		// Serve static files / attachments from KV
 		if (['/static/', '/attachments/'].some(p => url.pathname.startsWith(p))) {

@@ -1,0 +1,40 @@
+[Unit]
+Description=smail bridge (IMAP/SMTP gateway)
+Documentation=https://github.com/your/smail/blob/main/bridge/README.md
+After=network-online.target tailscaled.service
+Wants=network-online.target
+# 证书由 tailscale cert 生成；用 certbot 时把下一行改成 certbot.timer
+# After=certbot.timer
+
+[Service]
+Type=simple
+# 建议单独建一个普通用户：sudo useradd -r -s /usr/sbin/nologin smail
+User=smail
+Group=smail
+WorkingDirectory=/opt/smail-bridge
+EnvironmentFile=/opt/smail-bridge/.env
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=5
+
+# 25 端口是特权端口，普通用户需要这个能力；
+# 只跑 993/465（Tailscale 方案）时可以删掉这两行。
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# 加固
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/smail-bridge
+
+# 证书在 /opt/smail-bridge 下（tailscale cert）或 /etc/letsencrypt（certbot）
+# 用 certbot 时去掉 ProtectHome，或者把证书复制到 /opt/smail-bridge
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smail-bridge
+
+[Install]
+WantedBy=multi-user.target

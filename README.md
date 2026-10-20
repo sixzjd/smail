@@ -46,14 +46,15 @@
 - [项目结构](#项目结构)
 - [本地开发](#本地开发)
 - [部署指南](#部署指南)
+- [第三方客户端（IMAP / SMTP）](#第三方客户端imap--smtp)
 - [配置参考](#配置参考)
 - [设计系统](#设计系统)
 
 ## 项目简介
 
-smail 是一个**完全运行在 Cloudflare Edge** 上的临时邮箱服务，提供完整的邮件收发、管理、分析能力。
+smail 是一个**运行在 Cloudflare Edge** 上的边缘邮箱服务，提供完整的邮件收发、管理、分析能力。
 
-项目最初基于 **Node.js + Express** 构建，使用本地 SQLite 文件系统存储。为获得全球边缘部署、低延迟、免运维的能力，整个项目被完整迁移至 **Cloudflare Workers** 架构——后端从 Express 重写为 Hono，数据库从 better-sqlite3 迁移到 Cloudflare D1，文件存储迁移到 R2，会话缓存迁移到 KV。全部 **19 个功能模块完整保留**，零功能损失。
+项目基于 [cloudmail](https://github.com/maillab/cloud-mail) 开发，最初基于 **Node.js + Express** 架构，使用本地 SQLite 文件系统存储。为获得全球边缘部署、低延迟、免运维的能力，整个项目被完整迁移至 **Cloudflare Workers** 架构——后端从 Express 重写为 Hono，数据库从 better-sqlite3 迁移到 Cloudflare D1，文件存储迁移到 R2，会话缓存迁移到 KV。**核心功能模块完整保留。**
 
 **核心特性：**
 - 🌍 **全球边缘运行** — Workers/D1/KV/R2 全部部署在 Cloudflare 边缘节点，就近响应请求
@@ -62,7 +63,7 @@ smail 是一个**完全运行在 Cloudflare Edge** 上的临时邮箱服务，�
 - 🔐 **细粒度权限** — JWT + RBAC 角色权限体系，支持域名级别控制
 - 📊 **数据分析** — 收发件统计、趋势图表（ECharts），定时缓存刷新
 - 🤖 **AI 集成** — 可选的 Cloudflare AI 验证码提取
-- 🌙 **Editorial 设计** — 温暖的纸质质感设计系统，完整深色模式
+- 🌙 **Editorial 设计** — 温暖的纸质感前端设计，完美适配深色模式
 - 📱 **PWA 支持** — 可安装为桌面/移动应用
 
 ## 架构迁移说明
@@ -161,7 +162,7 @@ smail 是一个**完全运行在 Cloudflare Edge** 上的临时邮箱服务，�
 
 ## 功能清单
 
-### 📬 邮件核心
+### 邮件核心
 
 | 功能 | 说明 |
 |------|------|
@@ -176,6 +177,7 @@ smail 是一个**完全运行在 Cloudflare Edge** 上的临时邮箱服务，�
 | **黑名单** | 按主题/内容/发件人地址（含域名级别）过滤垃圾邮件 |
 | **未读标记** | 邮件未读/已读状态管理 |
 | **邮件搜索** | 按发件人名字、邮箱地址、主题搜索 |
+| **第三方客户端** | 通过 `bridge/` 提供 IMAP / SMTP 服务，iOS 邮件、Outlook、Thunderbird 可直接登录收发 |
 
 ### 👤 账户与用户系统
 
@@ -394,6 +396,19 @@ smail/
 │   ├── cache/kv-store.json         # KV 本地模拟
 │   └── storage/                    # R2 本地模拟
 │
+├── bridge/                         # ── IMAP/SMTP 网关 (Node.js) ──
+│   ├── src/
+│   │   ├── index.js                #   入口：IMAP 143/993 + SMTP 25/587/465 + /health
+│   │   ├── imap-server.js          #   手写 IMAP4rev1 服务端
+│   │   ├── smtp-server.js          #   SMTP 提交服务 (smtp-server)
+│   │   ├── mailbox.js              #   smail 邮件 ↔ IMAP 文件夹映射
+│   │   ├── mime.js                 #   RFC822 / ENVELOPE / BODYSTRUCTURE 拼装
+│   │   ├── smail-client.js         #   smail HTTP API 客户端
+│   │   └── config.js               #   环境变量 / .env
+│   ├── test/                       #   本地联调脚本
+│   ├── .env.example                #   部署配置模板
+│   └── README.md                   #   VPS 部署 + 常见问题
+│
 ├── wrangler.toml                   # Cloudflare 部署配置
 ├── .env.example                    # 环境变量模板
 └── package.json                    # 根 package.json
@@ -550,6 +565,69 @@ npx wrangler deploy
 - **方式 A**：启用 Cloudflare Email（在 wrangler.toml 中取消 `[[send_email]]` 注释）
 - **方式 B**：配置 Resend API Token（在系统设置中按域名配置）
 
+## 第三方客户端（IMAP / SMTP）
+
+想让 **iOS 邮件、Outlook、Foxmail、Thunderbird** 这些客户端直接用「邮箱地址 + 密码」登录 smail，
+需要额外跑一个 `bridge/` 服务。
+
+Cloudflare Workers 只能处理 HTTP，**监听不了 143/993/465/587 这些 TCP 端口**，
+所以 bridge 是独立的 Node.js 进程：它把 IMAP / SMTP 协议翻译成 smail 的 HTTPS API 调用，
+自身不存任何邮件，权限、发件额度、黑名单等规则仍然由 Worker 统一裁决。
+
+```
+iOS 邮件 ──IMAP 993──► bridge ──HTTPS──► smail Worker ──► D1 / R2
+         ◄─SMTP 465──
+```
+
+### 需要什么
+
+1. 一台有公网 IP 的机器（VPS / 家宽服务器），能开放 993、465（可选 143/587/25）端口；
+2. 一条 **DNS-only（灰云）** 的解析记录（A 或 AAAA），例如 `imap.example.com`，IMAP 和 SMTP 共用——
+   Cloudflare 橙云只代理 HTTP，不转发 IMAP/SMTP；
+3. 一份 Let's Encrypt 证书（客户端对证书校验很严，不要用自签证书）。
+
+### 部署
+
+```bash
+rsync -av ./bridge/ user@vps:/opt/smail-bridge/
+cd /opt/smail-bridge
+npm install --omit=dev
+cp .env.example .env && vi .env      # 填 SMAIL_API_BASE / 主机名 / 证书路径
+npm start                             # 生产环境用 systemd 托管
+```
+
+完整步骤（证书、systemd unit、防火墙、安全组、常见问题）见
+[`bridge/README.md`](bridge/README.md)。
+
+### 客户端怎么填
+
+| 项目 | 收件（IMAP） | 发件（SMTP） |
+|------|--------------|--------------|
+| 服务器 | `imap.example.com` | `imap.example.com`（同一台机器，一条记录即可） |
+| 端口 / 加密 | **993 + SSL**（老客户端 143 + STARTTLS） | **465 + SSL**（老客户端 587 / 25） |
+| 用户名 | 完整邮箱地址 `you@example.com` | 同左 |
+| 密码 | smail 网页端登录密码 | 同左 |
+
+> ⚠️ iOS「手动设置」页面默认填的是 **143 / 25 且 SSL 关闭**，一定要改成 **993 / 465 并打开 SSL**，
+> 否则会提示「无法验证账户信息」。
+
+网页端登录后左侧菜单的 **「客户端登录」** 页面会自动显示当前服务器的地址、端口和分步指引，
+也支持自动配置（Thunderbird 的 `autoconfig` 与 Outlook 的 `Autodiscover`）。
+
+### 相关环境变量
+
+在 `wrangler.toml` 的 `[vars]` 中配置（或用 `wrangler secret put`），网页上的地址就来自这里：
+
+```toml
+[vars]
+# 一条 DNS 记录就够，IMAP 和 SMTP 填同一个主机名
+imap_host = "imap.example.com"
+smtp_host = "imap.example.com"
+# 或一次写全：
+# client_config = '{"imap":{"host":"imap.example.com","port":143,"tlsPort":993},"smtp":{"host":"imap.example.com","port":587,"tlsPort":465}}'
+```
+
+
 ## 配置参考
 
 ### 系统设置项
@@ -604,3 +682,9 @@ npx wrangler deploy
 ## License
 
 MIT
+
+---
+
+感谢每一个认真阅读README的你
+
+若有问题，欢迎issue
