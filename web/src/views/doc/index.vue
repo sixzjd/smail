@@ -5,7 +5,7 @@
       <div class="doc-header-inner">
         <div class="doc-logo" @click="goHome" style="cursor:pointer">
           <img src="/smail-icon.svg" alt="smail" class="doc-logo-img">
-          <span class="doc-logo-text">smail</span>
+          <span class="doc-logo-text"><span>s</span>mail</span>
         </div>
         <div class="doc-header-actions">
           <button class="doc-lang-btn" @click="toggleLocale">
@@ -222,7 +222,8 @@
           <div class="step-content">
             <h3>{{ t('step1Title') }}</h3>
             <p>{{ t('step1Desc') }}</p>
-            <div class="step-img-placeholder">{{ t('step1Placeholder') }}</div>
+            <pre><code>gh repo fork sixzjd/smail --clone
+cd smail</code></pre>
           </div>
         </div>
         <div class="doc-step">
@@ -237,7 +238,6 @@
               <li><strong>R2 {{ locale === 'zh' ? '存储桶' : 'Bucket' }}</strong> — {{ t('step2Item4') }}</li>
               <li><strong>Resend API {{ locale === 'zh' ? '密钥' : 'Key' }}</strong> — {{ t('step2Item5') }}</li>
             </ul>
-            <div class="step-img-placeholder">{{ t('step2Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
@@ -270,7 +270,6 @@ bucket_name = "你的R2存储桶名"
 domain = ["yourdomain.com"]
 admin = "admin@yourdomain.com"
 jwt_secret = "你的JWT密钥"</code></pre>
-            <div class="step-img-placeholder">{{ t('step3Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
@@ -290,7 +289,6 @@ cd web && npx vite build --mode release
 
 # 部署 Worker
 cd .. && npx wrangler deploy</code></pre>
-            <div class="step-img-placeholder">{{ t('step4Placeholder') }}</div>
           </div>
         </div>
         <div class="doc-step">
@@ -329,7 +327,7 @@ cd .. && npx wrangler deploy</code></pre>
       <div class="doc-footer-inner">
         <div class="doc-footer-brand">
           <img src="/smail-icon.svg" alt="smail" class="doc-footer-logo">
-          <span>smail</span>
+          <span><span>s</span>mail</span>
         </div>
         <p class="doc-footer-tagline">{{ t('footerTagline') }}</p>
         <div class="doc-footer-links">
@@ -367,7 +365,7 @@ const zhDict = {
   serverlessBadge: 'Serverless 邮箱服务',
   heroTitle1: '更从容的',
   heroTitle2: '邮箱',
-  subtitle: '基于 Cloudflare 构建的低成本 Serverless 邮箱服务，无需维护服务器，全球边缘节点加速，让你的邮件管理更从容。',
+  subtitle: '基于 Cloudflare 构建的低成本 Serverless 邮箱服务\n无需服务器，全球边缘节点加速，让你的邮件管理更加从容',
   quickDeploy: '快速部署',
   tryOnline: '在线体验',
   featuresTitle: '核心功能',
@@ -409,7 +407,6 @@ const zhDict = {
   deployDesc: '5 步完成部署，快速拥有你的专属邮箱服务',
   step1Title: 'Fork 仓库',
   step1Desc: '访问 github.com/sixzjd/smail，点击右上角 Fork 按钮，将仓库复制到你自己的 GitHub 账户。',
-  step1Placeholder: '截图位置：GitHub 仓库页面 Fork 按钮',
   step2Title: '配置 Cloudflare 资源',
   step2Desc: '在 Cloudflare Dashboard 中创建以下资源：',
   step2Item1: 'Domain — 添加你的域名（如 mail.example.com）',
@@ -417,16 +414,13 @@ const zhDict = {
   step2Item3: 'KV 命名空间 — 创建 KV namespace，记录 id',
   step2Item4: 'R2 存储桶 — 创建 bucket（如 cloudmail）',
   step2Item5: 'Resend API 密钥 — 在 resend.com 注册并获取 API key',
-  step2Placeholder: '截图位置：Cloudflare Dashboard 资源列表',
   step3Title: '配置 wrangler.toml',
   step3Desc: '克隆 fork 的仓库，修改 wrangler.toml 中的配置：',
-  step3Placeholder: '截图位置：wrangler.toml 配置示例',
   step4Title: '部署',
   step4Desc1: '有两种部署方式：',
   step4MethodA: '方式 A：GitHub Actions（推荐）',
   step4MethodADesc: '在仓库 Settings → Secrets 中添加 Cloudflare API Token，push 到 main 分支自动部署。',
   step4MethodB: '方式 B：手动部署',
-  step4Placeholder: '截图位置：部署成功的终端输出',
   step5Title: '初始化数据库',
   step5Desc: '部署成功后，访问以下 URL 初始化数据库：',
   step5Success: '看到 success 即表示初始化完成。',
@@ -443,7 +437,7 @@ const enDict = {
   serverlessBadge: 'Serverless Email Service',
   heroTitle1: 'A CALMER',
   heroTitle2: 'MAILBOX',
-  subtitle: 'A low-cost Serverless email service built on Cloudflare. No server maintenance needed, with global edge node acceleration for a more从容 email management experience.',
+  subtitle: 'A low-cost Serverless email service built on Cloudflare\nNo servers to maintain, edge acceleration for calmer email management',
   quickDeploy: 'Quick Deploy',
   tryOnline: 'Try Online',
   featuresTitle: 'Core Features',
@@ -485,7 +479,6 @@ const enDict = {
   deployDesc: '5 steps to deploy and own your private email service',
   step1Title: 'Fork the Repository',
   step1Desc: 'Visit github.com/sixzjd/smail and click the Fork button in the upper right corner to copy the repo to your GitHub account.',
-  step1Placeholder: 'Screenshot: GitHub repo Fork button',
   step2Title: 'Configure Cloudflare Resources',
   step2Desc: 'Create the following resources in Cloudflare Dashboard:',
   step2Item1: 'Domain — Add your domain (e.g. mail.example.com)',
@@ -493,16 +486,13 @@ const enDict = {
   step2Item3: 'KV Namespace — Create a KV namespace and note the id',
   step2Item4: 'R2 Bucket — Create a bucket (e.g. cloudmail)',
   step2Item5: 'Resend API Key — Register at resend.com and get an API key',
-  step2Placeholder: 'Screenshot: Cloudflare Dashboard resource list',
   step3Title: 'Configure wrangler.toml',
   step3Desc: 'Clone the forked repo and modify the wrangler.toml configuration:',
-  step3Placeholder: 'Screenshot: wrangler.toml config example',
   step4Title: 'Deploy',
   step4Desc1: 'There are two deployment options:',
   step4MethodA: 'Option A: GitHub Actions (Recommended)',
   step4MethodADesc: 'Add Cloudflare API Token in repo Settings → Secrets, push to main branch for automatic deployment.',
   step4MethodB: 'Option B: Manual Deploy',
-  step4Placeholder: 'Screenshot: Successful deployment terminal output',
   step5Title: 'Initialize Database',
   step5Desc: 'After deployment, visit the following URL to initialize the database:',
   step5Success: 'Seeing success means initialization is complete.',
@@ -564,8 +554,13 @@ const enDict = {
 .doc-logo-text {
   font-size: 19px;
   font-weight: 700;
-  color: var(--c-primary);
+  color: var(--c-text);
   letter-spacing: -0.5px;
+}
+
+/* 与主站侧栏 brand 保持一致：s 用主题色，mail 用墨色 */
+.doc-logo-text span {
+  color: var(--c-primary);
 }
 
 .doc-github-btn {
@@ -665,8 +660,10 @@ const enDict = {
   font-size: 17px;
   color: var(--c-text-secondary);
   margin: 0 auto;
-  max-width: 560px;
+  max-width: 680px;
   line-height: 1.7;
+  /* 文案里的 \n 按硬换行渲染 */
+  white-space: pre-line;
 }
 
 .doc-hero-actions {
@@ -1021,17 +1018,6 @@ const enDict = {
   font-size: 13px;
 }
 
-.step-img-placeholder {
-  background: var(--c-bg-alt);
-  border: 1.5px dashed rgba(0,0,0,0.12);
-  border-radius: var(--radius-sm);
-  padding: 32px 20px;
-  text-align: center;
-  color: var(--c-text-muted);
-  font-size: 13px;
-  margin: 12px 0;
-}
-
 .step-content a {
   color: var(--c-primary);
   text-decoration: none;
@@ -1122,6 +1108,10 @@ const enDict = {
   font-size: 16px;
   font-weight: 700;
   color: var(--c-text);
+}
+
+.doc-footer-brand span span {
+  color: var(--c-primary);
 }
 
 .doc-footer-tagline {
@@ -1268,10 +1258,6 @@ html.dark .doc-header {
 
 html.dark .step-content pre {
   background: #1a1614;
-}
-
-html.dark .step-img-placeholder {
-  border-color: #3d3630;
 }
 </style>
 
