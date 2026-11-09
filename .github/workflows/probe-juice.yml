@@ -4,26 +4,40 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: DNS
+      - name: chk ipv6
         run: |
-          echo "=== AAAA ==="; getent ahostsv6 imap.sixzjd.sbs || echo "no AAAA"
-          echo "=== A ==="; getent ahostsv4 imap.sixzjd.sbs || echo "no A"
-      - name: TCP probe (IPv6)
+          echo "=== ip -6 addr ==="
+          ip -6 addr show scope global 2>/dev/null | head -10 || true
+          echo "=== ipv6 route ==="
+          ip -6 route show default 2>/dev/null | head -5 || true
+          echo "=== ipify via DNS AAAA resolved externally ==="
+          curl -s -m 10 -4 https://ipv6.icanhazip.com || echo "(icanhazip fail)"
+      - name: dns resolve (via DoH ipv4)
         run: |
-          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
-          for p in 22 993 465 587; do
-            timeout 6 bash -c "echo > /dev/tcp/$H/$p" 2>/dev/null && echo "port $p OPEN" || echo "port $p CLOSED"
-          done
-      - name: control (random port must fail)
+          echo "=== authoritative AAAA via cloudflare DoH ==="
+          curl -s -m 10 -4 -H 'accept: application/dns-json' \
+            "https://cloudflare-dns.com/dns-query?name=imap.sixzjd.sbs&type=AAAA" || true
+          echo
+      - name: tcp connect (reliable python probe)
         run: |
-          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
-          timeout 6 bash -c "echo > /dev/tcp/$H/9999" 2>/dev/null && echo "9999 OPEN (FAKE!)" || echo "9999 CLOSED (sane)"
-      - name: IMAP banner
+          python3 - <<'PY'
+          import socket, time, json
+          H = "2408:8207:7821:b400:2a7f:cfff:fec8:8f57"
+          for p in (22, 993, 465, 587, 9999):
+              t0 = time.time()
+              s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+              s.settimeout(8)
+              try:
+                  s.connect((H, p, 0, 0))
+                  print(f"port {p}: CONNECTED in {int((time.time()-t0)*1000)}ms")
+              except Exception as e:
+                  print(f"port {p}: FAIL {type(e).__name__}: {e} in {int((time.time()-t0)*1000)}ms")
+              finally:
+                  s.close()
+          PY
+      - name: install ssh via ipv4 && ping test tweak
         run: |
-          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
-          timeout 10 openssl s_client -connect "[$H]:993" -servername imap.sixzjd.sbs -brief </dev/null 2>&1 | head -20
-      - name: IPv6 basic
-        run: |
-          curl -s -m 10 -6 https://api64.ipify.org || echo "no ipv6 egress"
+          echo "=== 尝试通过 IPv4 反向代理不可行，仅记录 ==="
+          curl -s -m 8 -4 https://api.ipify.org && echo " <- runner public IPv4"
