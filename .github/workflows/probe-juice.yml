@@ -1,0 +1,29 @@
+name: probe-juice
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: DNS
+        run: |
+          echo "=== AAAA ==="; getent ahostsv6 imap.sixzjd.sbs || echo "no AAAA"
+          echo "=== A ==="; getent ahostsv4 imap.sixzjd.sbs || echo "no A"
+      - name: TCP probe (IPv6)
+        run: |
+          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
+          for p in 22 993 465 587; do
+            timeout 6 bash -c "echo > /dev/tcp/$H/$p" 2>/dev/null && echo "port $p OPEN" || echo "port $p CLOSED"
+          done
+      - name: control (random port must fail)
+        run: |
+          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
+          timeout 6 bash -c "echo > /dev/tcp/$H/9999" 2>/dev/null && echo "9999 OPEN (FAKE!)" || echo "9999 CLOSED (sane)"
+      - name: IMAP banner
+        run: |
+          H=2408:8207:7821:b400:2a7f:cfff:fec8:8f57
+          timeout 10 openssl s_client -connect "[$H]:993" -servername imap.sixzjd.sbs -brief </dev/null 2>&1 | head -20
+      - name: IPv6 basic
+        run: |
+          curl -s -m 10 -6 https://api64.ipify.org || echo "no ipv6 egress"
